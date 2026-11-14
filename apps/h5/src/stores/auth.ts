@@ -15,7 +15,7 @@ export const useAuthStore = defineStore('staff-auth', () => {
  }
  async function change(old_password: string, new_password: string) {
   await changePassword({ body: { old_password, new_password } })
-  mustChange.value = false; localStorage.setItem('shuke.must-change', 'false')
+  signOut()
  }
  function signOut() { token.value = ''; staff.value = undefined; clearToken('staff'); localStorage.removeItem('shuke.must-change'); mustChange.value = false }
  return { token, staff, mustChange, signIn, change, signOut }

@@ -58,5 +58,6 @@ declare module 'vue' {
     VanTabbar: typeof import('vant/es')['Tabbar']
     VanTabbarItem: typeof import('vant/es')['TabbarItem']
     VanTabs: typeof import('vant/es')['Tabs']
+    WechatQRUpload: typeof import('./../components/staff/WechatQRUpload.vue')['default']
   }
 }

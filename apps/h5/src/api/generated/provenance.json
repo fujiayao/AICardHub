@@ -1,7 +1,7 @@
 {
   "source": "openapi.json",
-  "sha256": "6e06c35ef71cd5cd99b25f7047942d3cea3197a7fe26c99938859040af1bfadc",
+  "sha256": "9e95dce53b110e26a686585bd1a4b4abb9e4a3ecc0588e6100dd4373db248e1e",
   "title": "AICardHub 本地候选",
   "version": "1.0.0",
-  "operations": 41
+  "operations": 42
 }

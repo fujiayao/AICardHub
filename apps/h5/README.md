@@ -20,3 +20,5 @@ pnpm build
 浏览器截图可复用主仓库 e2e/browser 已安装的 Playwright，设置 AICARD_BROWSER_PACKAGE 为其 package.json、AICARD_CREDENTIALS 为本地 seed 凭据路径，运行 `node scripts/capture-browser.mjs`。不安装额外浏览器、不记录密码和 token。独立业务验收由主仓库 e2e/browser runner 执行。
 
 本地候选状态及实际证据见 reports/H5-CANDIDATE.md。
+
+后续修复与专项证据见 reports/H5-FIX-01.md。`node scripts/stage-browser.mjs` 会创建独立合成员工，验证后停用；仅修改该合成账号，不修改 demo，生成状态、二维码与通知截图。

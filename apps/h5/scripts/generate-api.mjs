@@ -5,7 +5,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { endpoints } from './endpoints.mjs'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const input = process.argv[2] || path.resolve(root, '../../..', 'contracts/openapi.json')
+const input = process.argv[2] || path.resolve(root, '../..', 'contracts/openapi.json')
 const text = /^https?:/.test(input) ? await (await fetch(input)).text() : await readFile(input, 'utf8')
 const doc = JSON.parse(text)
 if (!doc.openapi || !doc.paths || !doc.components?.schemas) throw new Error('An OpenAPI 3 schema with paths/components is required')

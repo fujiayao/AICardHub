@@ -1,4 +1,4 @@
-// Generated from OpenAPI; DO NOT EDIT. SHA256 6e06c35ef71cd5cd99b25f7047942d3cea3197a7fe26c99938859040af1bfadc
+// Generated from OpenAPI; DO NOT EDIT. SHA256 9e95dce53b110e26a686585bd1a4b4abb9e4a3ecc0588e6100dd4373db248e1e
 import { request } from '../client'
 import type * as Schemas from './schemas'
 export type * from './schemas'
@@ -30,6 +30,8 @@ export function saveCard(input: { body: Schemas.CardInput }): Promise<Schemas.Ca
 export function cardShare(_input: {  } = {}): Promise<Schemas.ShareData> { return request<Schemas.ShareData>('get', `/api/v1/me/card/share`, undefined, 'staff', undefined) }
 /** me_card_photo */
 export function uploadPhoto(input: { body: FormData }): Promise<Schemas.PhotoData> { return request<Schemas.PhotoData>('post', `/api/v1/me/card/photo`, input.body, 'staff', undefined) }
+/** me_card_wechat_qr */
+export function uploadWechatQR(input: { body: FormData }): Promise<Schemas.WechatQRData> { return request<Schemas.WechatQRData>('post', `/api/v1/me/card/wechat-qr`, input.body, 'staff', undefined) }
 /** me_assistant_get */
 export function assistant(_input: {  } = {}): Promise<Schemas.AssistantData> { return request<Schemas.AssistantData>('get', `/api/v1/me/assistant`, undefined, 'staff', undefined) }
 /** me_assistant_update */

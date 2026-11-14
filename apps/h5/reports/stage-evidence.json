@@ -1,0 +1,38 @@
+{
+  "fixture": {
+    "employee_id": 14,
+    "code": "f1667f0c",
+    "name": "合成状态验收"
+  },
+  "screenshots": [
+    "B6-empty-390x844.png",
+    "B10-empty-390x844.png",
+    "B13-empty-390x844.png",
+    "A1-loading-390x844.png",
+    "A1-network-error-390x844.png",
+    "A5-wechat-guide-390x844.png",
+    "B3-qr-upload-390x844.png",
+    "A1-wechat-qr-390x844.png",
+    "B13-lead-notification-390x844.png",
+    "B11-from-notification-390x844.png",
+    "A4-disabled-390x844.png"
+  ],
+  "checks": [
+    "First password change clears staff session, returns login with explicit prompt, requires new-password sign-in",
+    "A5 shown with WeChat UA and dismissed successfully; desktop emulation, not a real device",
+    "QR multipart upload, image /files proxy, and persisted card URL; synthetic card share QR used as upload fixture; no real WeChat identity, no device scanning claim",
+    "B13 marks notification read and opens exact lead ID through real API",
+    "Personal password sheet clears staff session and new-password sign-in succeeds",
+    "A4 uses a genuinely disabled dedicated synthetic card; demo remains active"
+  ],
+  "expected_faults": [
+    "A1-loading: delayed real public-card response in isolated browser",
+    "A1-error: browser-only internetdisconnected; retry restored real API"
+  ],
+  "errors": [],
+  "notification_target": {
+    "type": "lead",
+    "id": 6,
+    "expected_lead_id": 6
+  }
+}
