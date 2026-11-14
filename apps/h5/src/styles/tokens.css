@@ -39,10 +39,28 @@
   --c-hero-top:#2C4E80;      /* 头图渐变上端 */
   --c-hero-id-title:#D3DDEC; /* 头图上职位文字 */
   --c-hero-id-co:#9FB2CF;    /* 头图上公司文字 */
+  --c-hero-shade-0:rgba(19,41,75,0);   /* 头图底部压暗渐变·起 */
+  --c-hero-shade-1:rgba(19,41,75,.82); /* 头图底部压暗渐变·中 */
+  --c-glass-bg:rgba(255,255,255,.16);  /* 毛玻璃圆钮底 */
+  --c-bar-bg:rgba(255,255,255,.96);    /* 底部常驻操作栏底 */
   --c-ai-ink:#0B4F4C;        /* 青绿浅底上的开场白文字 */
   --c-ai-glow:rgba(14,158,152,.18); /* AI 卡片径向光晕、在线点光圈 */
+  --c-ai-glow-0:rgba(14,158,152,0); /* 径向光晕外端透明 */
   --c-chat-bg-top:#EAF2F6;   /* 对话页顶部浅青 */
+  --c-lead-card-line:#F3D9B3; /* 留资卡琥珀描边 */
   --sh-welcome:0 0 0 4px #fff,0 10px 24px rgba(19,41,75,.16);
+  /* 匿名职业照占位插画调色（精确复刻原型 photo()，仅几何占位用） */
+  --c-portrait-highlight:#ffffff;
+  --c-portrait-neck:#A9B8CC;
+  --c-portrait-ear:#B9C6D8;
+  --c-portrait-face-0:#E3E9F1;
+  --c-portrait-face-1:#B7C4D6;
+  --c-portrait-hair:#27324A;
+  --c-portrait-shoulder-0:#1A2F52;
+  --c-portrait-shoulder-1:#0C1A33;
+  --c-portrait-shirt:#EEF2F7;
+  --c-portrait-tie:#0E9E98;
+  --c-portrait-suit:#21385E;
   /* 间距：4px 阶梯 */
   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:32px; --sp-8:40px;
   --hero-photo-h:440px;

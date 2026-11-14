@@ -3,12 +3,13 @@ import type { PublicCard } from '@/api/generated'
 import { computed } from 'vue'
 import AnonymousPortrait from '@/components/common/AnonymousPortrait.vue'
 import { share } from '@/platform'
-const props = defineProps<{ card: PublicCard }>()
+const props = defineProps<{ card: PublicCard, shareQuery?: string }>()
 const origin = window.location.origin
 const role = computed(() => [props.card.title, props.card.dept].filter(Boolean).join('｜'))
 const brandName = computed(() => props.card.company.short_name || props.card.company.name)
 function onShare() {
-  share(`${props.card.name}｜${props.card.title}`, `${origin}/c/${props.card.code}?s=link`)
+  const query = props.shareQuery || 's=link'
+  share(`${props.card.name}｜${props.card.title}`, `${origin}/c/${props.card.code}?${query}`)
 }
 </script>
 
@@ -57,7 +58,7 @@ function onShare() {
   position: absolute;
   inset: auto 0 0 0;
   height: 58%;
-  background: linear-gradient(180deg, rgba(19, 41, 75, 0) 0%, rgba(19, 41, 75, .82) 62%, var(--c-ink) 100%);
+  background: linear-gradient(180deg, var(--c-hero-shade-0) 0%, var(--c-hero-shade-1) 62%, var(--c-ink) 100%);
 }
 .vc-top {
   position: absolute;
@@ -101,13 +102,16 @@ function onShare() {
 .glass {
   width: 36px;
   height: 36px;
+  border: 0;
+  padding: 0;
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, .16);
+  background: var(--c-glass-bg);
   backdrop-filter: blur(8px);
   display: grid;
   place-items: center;
   color: var(--c-surface);
   flex: none;
+  cursor: pointer;
 }
 .glass .icon {
   width: 18px;

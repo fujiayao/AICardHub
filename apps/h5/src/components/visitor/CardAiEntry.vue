@@ -52,7 +52,7 @@ const questions = computed(() => props.card.assistant?.guide_questions ?? [])
   width: 140px;
   height: 140px;
   border-radius: var(--r-pill);
-  background: radial-gradient(circle, var(--c-ai-glow), rgba(14, 158, 152, 0) 70%);
+  background: radial-gradient(circle, var(--c-ai-glow), var(--c-ai-glow-0) 70%);
 }
 .ai-who {
   display: flex;
@@ -132,12 +132,14 @@ const questions = computed(() => props.card.assistant?.guide_questions ?? [])
   justify-content: space-between;
   gap: 8px;
   padding: 9px 12px;
+  border: 0;
   border-radius: var(--r-md);
   background: var(--c-bg);
   font-size: var(--fs-sm);
   color: var(--c-ink);
   text-align: left;
   min-height: 44px;
+  cursor: pointer;
 }
 .ai-q-text {
   flex: 1;
@@ -162,6 +164,7 @@ const questions = computed(() => props.card.assistant?.guide_questions ?? [])
   font-size: var(--fs-base);
   position: relative;
   background: var(--c-surface);
+  cursor: pointer;
 }
 .ai-ask span {
   flex: 1;
