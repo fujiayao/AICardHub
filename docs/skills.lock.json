@@ -1,0 +1,165 @@
+{
+  "checked_on": "2026-11-14",
+  "scope": "Project only; no global config changes",
+  "installer": "Official skill-installer script; --method git for the 3 downloaded skills; curated API listing returned 403",
+  "copies": [
+    "执行包/.agents/skills",
+    "执行包/.claude/skills",
+    "D:/AIWork/智能名片/.agents/skills",
+    "D:/AIWork/智能名片/.claude/skills"
+  ],
+  "skills": [
+    {
+      "name": "aicardhub-delivery",
+      "source": {
+        "kind": "project_authored",
+        "basis": "Project AGENTS and source requirements",
+        "note": "Does not supersede unapproved ADR or grant production authorization"
+      },
+      "file_count": 1,
+      "sha256": {
+        "SKILL.md": "e26f9a1c91cd706b121417397902e3fe072fea506cad6f78406787d97d746283"
+      }
+    },
+    {
+      "name": "pinia",
+      "source": {
+        "kind": "reused_local_snapshot",
+        "path": "C:/Users/Administrator/.agents/skills/pinia",
+        "upstream": "https://github.com/antfu/skills",
+        "revision": null,
+        "note": "Local snapshot hashes recorded; not falsely pinned to the newly fetched upstream HEAD",
+        "license": "MIT"
+      },
+      "file_count": 12,
+      "sha256": {
+        "GENERATION.md": "90053e5f51c2f060aeef398125da3633ec3dc9a90169379096c7ebe3c514225d",
+        "LICENSE.md": "2a596f697b619094b6f4067936e0f385027a393bce32211383db0478774c1cb2",
+        "SKILL.md": "fba52570068a715fef7d306e582a5993bf08a838b55465d3c3c7bff8ba70f731",
+        "references/advanced-hmr.md": "661ff58636eaca335805df317c93848aba710e5957aab5f921eba9b57b69192d",
+        "references/advanced-nuxt.md": "e12dd48df259c97c38722e87b368808188fcbc28208398505624007529b0e3a2",
+        "references/advanced-ssr.md": "9fbc7b11da5cb7b1d4ef8b320935712ba3d356f7847344c56b01e80a3e1e3132",
+        "references/best-practices-outside-component.md": "1354224a5a9e41b2b7dea712b79ec948690a0d65e90dde905298e8b17e7ed49e",
+        "references/best-practices-testing.md": "634ccd1d076c509af0fa9bae4ac428a536c2ba42a2ef11eda7fe7af683fa5252",
+        "references/core-stores.md": "41627453eb019d1755dac787924bde52be162a3bdfc555119f88a8e59dda8f21",
+        "references/features-composables.md": "e218809b50506ca8177eee9e3926a8e3601f636ea13b661c9a432b3af2251653",
+        "references/features-composing-stores.md": "2c4245338e3e3f368c6665775909eef5e062645e0252a6f760817a73f677df7e",
+        "references/features-plugins.md": "f5cc105231d80f1fdf5e54369f283fda3acbad7da27f3a0b61c9b0c62fd6c3d7"
+      }
+    },
+    {
+      "name": "pnpm",
+      "source": {
+        "kind": "reused_local_snapshot",
+        "path": "C:/Users/Administrator/.agents/skills/pnpm",
+        "upstream": "https://github.com/antfu/skills",
+        "revision": null,
+        "note": "Local snapshot hashes recorded; not falsely pinned to the newly fetched upstream HEAD",
+        "license": "MIT"
+      },
+      "file_count": 19,
+      "sha256": {
+        "GENERATION.md": "ea0b4108d31f967be39e42282d9cd97d55f3a3e4900bd0be5834f90ef6005266",
+        "LICENSE.md": "2a596f697b619094b6f4067936e0f385027a393bce32211383db0478774c1cb2",
+        "SKILL.md": "e7f6c224184cb125e7dce8f1562c3c76a4cd6afd6326958ea1c75f92eca413dc",
+        "references/best-practices-ci.md": "51105aafda72159c7130bb3af1cc5cd8f79b95ba6b8c2b653550348f2424fdca",
+        "references/best-practices-migration.md": "d4fdee694fd80c2db2a53a08fbbab2c4d556b30db6e67369fa397e1073f12668",
+        "references/best-practices-performance.md": "25ef647e5cc8df5432a86f69502a3a4101b022208ea5392a6d25475ecc60ff69",
+        "references/core-cli.md": "b315a23c83606baf70814f7fb021a7cbc000a5f2106833ae7899d40277d83a73",
+        "references/core-config.md": "fde08642de233986b5700fae436ba4d9a12d80daa488da0c3b193d8719f9baba",
+        "references/core-store.md": "9348b4c72945a1f97b2b49e0017336bc8497b2e2f2092d9d53c6f842a9ac5225",
+        "references/core-workspaces.md": "42d28109235b03bfc9a5c74e89ab83779086b3d19c1e8c78af58c37a4e15357a",
+        "references/features-aliases.md": "39a967a7c65f2287f5aea1166f900a000fd31431ff799f23c86553b062c79058",
+        "references/features-catalogs.md": "45496d9e236a0cb59f97be228378353f92369ae574c756ba9f27dc9b88ac9d0a",
+        "references/features-config-dependencies.md": "52baeb9628523a9acda1a93c8adfbbdfa1e9bf900011ed07d3640826c3e7d813",
+        "references/features-global-virtual-store.md": "697bb5bde881252d5f3d252e02e25799cbb985da70435564349bea52c61fb662",
+        "references/features-hooks.md": "3d6e2e3410aecd16bbe01be8bbbdbd84b700aa74094b402bbcb1ebb984318a6f",
+        "references/features-overrides.md": "a375afb519c967fbb83be1d85091048e7c5b3d0ed6bb4da0d726b582276cd5df",
+        "references/features-patches.md": "2b1146c3f1e33abb7e18bdaa413753719e96dd47a564f4a922468a0f85e98cca",
+        "references/features-peer-deps.md": "8ad2c691f1e577ed0e4874786e2f64410c976a1a2f76759e5f4f80d97fae83cb",
+        "references/features-supply-chain-security.md": "d4150af2f526319349a7d18ccdd4fcb712e5ef30b7e98e6f8ff0a3e33819bf54"
+      }
+    },
+    {
+      "name": "security-best-practices",
+      "source": {
+        "kind": "downloaded_deprecated_compatible_snapshot",
+        "repo": "openai/skills",
+        "revision": "49f948faa9258a0c61caceaf225e179651397431",
+        "path": "skills/.curated/security-best-practices",
+        "license": "Apache-2.0",
+        "note": "Upstream deprecated, not a current full security plugin; verify framework-specific guidance against installed versions"
+      },
+      "file_count": 13,
+      "sha256": {
+        "LICENSE.txt": "44e03f7e263eb3ad256440c1eeab5e49168baff5a78ecef9a5447261cf3a91bc",
+        "SKILL.md": "7a889544c0ae67982a918a4b28569cc93f7426ae39306a0cb786603445714162",
+        "agents/openai.yaml": "53417b99f51611f1df76d35955cdce41250bdac358fb290d4a0fb266febd623c",
+        "references/golang-general-backend-security.md": "04710995935d0b97e2564db82b44fa9fe6adcc66965d06f109af24d26ce8a620",
+        "references/javascript-express-web-server-security.md": "631d3578c77404a6632b12e946b929a989ec64b4472fe661f27f7510195efa8d",
+        "references/javascript-general-web-frontend-security.md": "cd4feb15b7827f5262b8d2dbbfb34133e57397149b0599f60b79d7b5ea6dbdaf",
+        "references/javascript-jquery-web-frontend-security.md": "da893da293539976037fe4d0efae8cf280457ef1e63c6eb314e43186f0858f00",
+        "references/javascript-typescript-nextjs-web-server-security.md": "c493ca01bd3a3a9521d2e0f725bfa4338adcecfaf3d23a1e5cfd1b1f63ae64fe",
+        "references/javascript-typescript-react-web-frontend-security.md": "dad5a8d16b2b7a06baa6e6fa1c378ea4c34b20ee1bcbde38d36d9d66dc0dab02",
+        "references/javascript-typescript-vue-web-frontend-security.md": "919a4e4a3fbf0a1185f26f34c524e246097022d16b09ab2d190cbd4ecb3a9bb4",
+        "references/python-django-web-server-security.md": "1e6842447e9e3fed08f14640e9655765d877672e2f88a81c14ee91b62bb726c5",
+        "references/python-fastapi-web-server-security.md": "948afa0afe5f6e6e222bb81094efb3072667758b4c81153149b67e3802950d9c",
+        "references/python-flask-web-server-security.md": "53a9fa1d72bd6af40e6102df68929421eecc80e6f6a7f4da6390fb6bc05feb25"
+      }
+    },
+    {
+      "name": "vitest",
+      "source": {
+        "kind": "downloaded_author_repository",
+        "repo": "antfu/skills",
+        "revision": "d524ed287eef22757297827ce42e3cad88abd20c",
+        "path": "skills/vitest",
+        "license": "MIT"
+      },
+      "file_count": 22,
+      "sha256": {
+        "GENERATION.md": "ec2f8186e5dc01e3e1dfbdd8fe68e3d2eb2085ffeb6633f14e45773c2614ab3d",
+        "LICENSE.md": "2a596f697b619094b6f4067936e0f385027a393bce32211383db0478774c1cb2",
+        "SKILL.md": "7201b5584b59242741e49ecf40a1c82342836b262f94828229c3cc8af983f5ec",
+        "references/advanced-environments.md": "c3c1f6b3c2148972f835a5a952f62960c7c5d4acb6e0959601a6767040e51743",
+        "references/advanced-projects.md": "7531cc8fd9004c6be88cfcbc2bfa303998c67bd8a3aa3eaafed87c54141bb6f0",
+        "references/advanced-type-testing.md": "e107d4d6cabf5fd746445c4720097123e7959ba0106fd8fc5c1fd8cd211af7b9",
+        "references/advanced-vi.md": "8d3aca186753c675d5866abe5aebf6567796cba90f13f6b35db1230c921b001b",
+        "references/core-cli.md": "d88f7783c84ffbd7aa81c59daaf64bac9523427ea2c933e37a49961f075e49c0",
+        "references/core-config.md": "28554b673f2c21b179237e741245c5cc7056b3013e5a8b0d92cf5efd3f950ffa",
+        "references/core-describe.md": "d053fde1958050a81cefe944de06acde3a959f84b0f9c466e23e793c24d3d254",
+        "references/core-expect.md": "f664cc65572d4c9b2c66f363298b7a9716c2223076251e3463d9a183a2c9279f",
+        "references/core-hooks.md": "553d9f90bcd864b3e79da73e946f07924467cf8e38bfac4f7de5e704a008ba55",
+        "references/core-test-api.md": "52d49da376a95f1446993931419061e10956d433eb47ccf83781c59fc846fb9a",
+        "references/features-benchmarking.md": "4f95897e8fb31682470994b8e6358a6815a11011b3d19d7203e4a4cf1629008f",
+        "references/features-concurrency.md": "24f0b70d30bebf05c0ccde0865a0343a16cc9d672cc48f71c4cd2d3054e7fe3b",
+        "references/features-context.md": "cae18801d3414a9a1e3a829213498a4705ab9a2566fbfab5fa2d36b434d0923a",
+        "references/features-coverage.md": "489260bd61e572f8d66a8467a952e6af866ab1de67d3300ee0433883df045acf",
+        "references/features-filtering.md": "8c922d5280e59dd4b067e095ed18acd4e9dfdf4dd5575a0b386c5419c39bb601",
+        "references/features-mocking.md": "6ec2ad0ccb61c3499896710ba86bcb68277ee66d56c92fea5aff9ffa74f0056d",
+        "references/features-reporters.md": "68409e281d0d447ee420fbac1d32885dd10eb7d6a6d7db8e5f5c65d552cd1c20",
+        "references/features-snapshots.md": "76d265493e7625f911d2e75b1d52c9500615327e6f5ed2452c4f1cc24c8a86b3",
+        "references/features-test-tags.md": "0e477aad720347a1ae373472a2b24fdaa61b0bd0ae3c0c700c3a9ef91cb87f32"
+      }
+    },
+    {
+      "name": "vue",
+      "source": {
+        "kind": "downloaded_author_repository",
+        "repo": "antfu/skills",
+        "revision": "d524ed287eef22757297827ce42e3cad88abd20c",
+        "path": "skills/vue",
+        "license": "MIT"
+      },
+      "file_count": 6,
+      "sha256": {
+        "GENERATION.md": "4a8100dddff675ed31b9bf617a86b04bb47089f50d8d2940b3bb6d2f9622396f",
+        "LICENSE.md": "2a596f697b619094b6f4067936e0f385027a393bce32211383db0478774c1cb2",
+        "SKILL.md": "deec9a7f7b589ba673829eb48336303160fa7dd7625cfebff79d77399e8ce9cc",
+        "references/advanced-patterns.md": "6bc4e9d6d56ae24887305f24300035de65debc208fd12031d56fd20e3a13f6f0",
+        "references/core-new-apis.md": "45b4f0d301c6b317d71bdca07c9d65ad27bbb49c59848a88e4f91a778019a4a4",
+        "references/script-setup-macros.md": "b3ceec4b60e3493c0f5b1229005b9c9cb6c7ea3f02a06b84bf00d0e7557df201"
+      }
+    }
+  ]
+}

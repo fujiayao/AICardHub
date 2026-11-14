@@ -1,0 +1,6 @@
+# 仅供核对，不覆盖 ~/.codex/config.toml。真实供应商用Magpie与Codex已验证集成设置。
+# 依据当前官方文档，旧CLI若不识别字段应保持现有设置；不得盲目覆盖。
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4
+# 不填model/provider/key。所有角色默认继承父会话，DeepSeek审查另开经过验证路由的执行器。
