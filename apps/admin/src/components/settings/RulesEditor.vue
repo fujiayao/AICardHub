@@ -4,6 +4,7 @@ import { ElMessage } from "element-plus";
 import { api } from "@/api/adapters";
 import { useTask } from "@/composables/useTask";
 import LoadState from "@/components/LoadState.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 const content = shallowRef(""),
   loaded = shallowRef(false);
 const { busy, error, run } = useTask();
@@ -27,12 +28,10 @@ onMounted(load);
 </script>
 <template>
   <section class="page">
-    <div>
-      <h1>回答规则</h1>
-      <p class="muted">
-        维护公司级口径、禁答话题、敏感词及免责声明。规则由后端统一用于回答。
-      </p>
-    </div>
+    <PageHeader
+      title="回答规则"
+      desc="维护公司级口径、禁答话题、敏感词及免责声明。规则由后端统一用于回答。"
+    />
     <div class="panel">
       <LoadState :busy="busy" :error="error" @retry="load" /><el-form
         v-if="loaded"

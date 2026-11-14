@@ -10,8 +10,14 @@ defineEmits<{
   transfer: [staff: Staff];
   card: [staff: Staff];
 }>();
+const noLoginReason = "名片档案未开通登录，无手机号，不提供重置密码";
+/** 名片档案：无手机号、不开通登录（等待 nullable phone 契约，先按空值防御） */
+function isProfile(row: Staff): boolean {
+  return !row.phone;
+}
 const columns = [
   { label: "姓名", prop: "name", minWidth: 100 },
+  { label: "类型", slot: "kind", width: 100 },
   { label: "手机", slot: "phone", minWidth: 130 },
   { label: "部门", prop: "dept" },
   { label: "职务", prop: "title" },
@@ -29,7 +35,13 @@ const columns = [
     :loading="busy"
     empty-text="暂无员工，请新增或调整搜索条件"
   >
-    <template #phone="{ row }">{{ maskPhone(row.phone) }}</template>
+    <template #kind="{ row }">{{
+      isProfile(row) ? "名片档案" : "员工账号"
+    }}</template>
+    <template #phone="{ row }"
+      ><el-tag v-if="isProfile(row)" type="info">未开通登录</el-tag
+      ><span v-else>{{ maskPhone(row.phone) }}</span></template
+    >
     <template #status="{ row }"
       ><el-tag :type="staffEnabled(row) ? 'success' : 'info'">{{
         staffEnabled(row) ? "启用" : "停用"
@@ -51,7 +63,21 @@ const columns = [
         :disabled="!row.card_code || busy"
         @click="$emit('card', row)"
         >名片 / 助手</el-button
+      ><el-tooltip
+        v-if="isProfile(row)"
+        :content="noLoginReason"
+        placement="top"
+        ><span
+          ><el-button
+            link
+            type="primary"
+            disabled
+            :aria-label="`重置密码：${noLoginReason}`"
+            >重置密码</el-button
+          ></span
+        ></el-tooltip
       ><el-button
+        v-else
         link
         type="primary"
         :disabled="busy"

@@ -12,6 +12,8 @@ import EmployeeForm from "./EmployeeForm.vue";
 import EmployeeActions from "./EmployeeActions.vue";
 import EmployeeImport from "./EmployeeImport.vue";
 import CardEditor from "./CardEditor.vue";
+import ExecutiveProfilePreview from "./ExecutiveProfilePreview.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 const auth = useAuthStore(),
   q = shallowRef(""),
   search = shallowRef("");
@@ -19,7 +21,8 @@ const { data, page, busy, error, load } = usePage((p) =>
   api.employees({ page: p, page_size: 20, q: search.value }),
 );
 const mutate = useTask();
-const importing = shallowRef(false);
+const importing = shallowRef(false),
+  execPreview = shallowRef(false);
 const open = shallowRef(false),
   selected = shallowRef<Staff | null>(null),
   action = shallowRef<"reset" | "transfer" | null>(null),
@@ -68,12 +71,14 @@ onMounted(() => load());
 </script>
 <template>
   <section class="page">
-    <div>
-      <h1>员工与名片</h1>
-      <p class="muted">
-        创建员工后自动开通名片与助手。不能停用或转交当前管理员身份。
-      </p>
-    </div>
+    <PageHeader
+      title="员工与名片"
+      desc="创建员工后自动开通名片与助手。不能停用或转交当前管理员身份。"
+    >
+      <el-button type="primary" @click="edit()">新增员工</el-button
+      ><el-button @click="importing = true">Excel 导入</el-button
+      ><el-button @click="execPreview = true">高管名片档案（预览）</el-button>
+    </PageHeader>
     <div class="panel">
       <form class="toolbar" @submit.prevent="find">
         <el-input
@@ -82,24 +87,26 @@ onMounted(() => load());
           clearable
           aria-label="搜索员工"
         /><el-button native-type="submit" :loading="busy">搜索</el-button
-        ><el-button type="primary" @click="edit()">新增员工</el-button
-        ><el-button @click="importing = true">Excel 导入</el-button
         ><el-button :loading="busy" @click="load()">刷新</el-button>
       </form>
       <LoadState
         :busy="busy"
         :error="error || mutate.error.value"
         @retry="load()"
-      /><EmployeeTable
-        :rows="data.items"
-        :self-id="auth.session?.staff.id"
-        :busy="busy || mutate.busy.value"
-        @edit="edit"
-        @disable="disable"
-        @reset="start('reset', $event)"
-        @transfer="start('transfer', $event)"
-        @card="card = $event"
-      /><el-pagination
+      />
+      <div class="table-wrap">
+        <EmployeeTable
+          :rows="data.items"
+          :self-id="auth.session?.staff.id"
+          :busy="busy || mutate.busy.value"
+          @edit="edit"
+          @disable="disable"
+          @reset="start('reset', $event)"
+          @transfer="start('transfer', $event)"
+          @card="card = $event"
+        />
+      </div>
+      <el-pagination
         v-model:current-page="page"
         :total="data.total"
         :page-size="20"
@@ -110,14 +117,20 @@ onMounted(() => load());
     <el-dialog
       v-model="importing"
       title="Excel 导入员工"
-      width="900px"
+      width="min(900px, 100vw)"
       :close-on-click-modal="false"
       ><EmployeeImport v-if="importing" @imported="load()"
     /></el-dialog>
     <el-dialog
+      v-model="execPreview"
+      title="高管名片档案（预览）"
+      width="min(560px, 100vw)"
+      ><ExecutiveProfilePreview v-if="execPreview"
+    /></el-dialog>
+    <el-dialog
       v-model="open"
       :title="selected ? '编辑员工' : '新增员工'"
-      width="600px"
+      width="min(560px, 100vw)"
       :close-on-click-modal="false"
       ><EmployeeForm
         v-if="open"
@@ -127,7 +140,7 @@ onMounted(() => load());
     ><el-dialog
       :model-value="!!action"
       :title="action === 'reset' ? '重置密码' : '离职转交'"
-      width="540px"
+      width="min(560px, 100vw)"
       :close-on-click-modal="false"
       @update:model-value="
         (v) => {
@@ -153,7 +166,7 @@ onMounted(() => load());
       "
       ><CardEditor v-if="card?.card_code" :code="card.card_code" /></el-drawer
     ><el-alert
-      title="Excel 导入会逐行创建并显示结果。物理NFC管理延期；独立启用操作仍未交付。"
+      title="Excel 导入会逐行创建并显示结果。物理 NFC 管理暂缓；独立启用操作仍未交付。"
       type="info"
       :closable="false"
     />

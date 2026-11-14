@@ -6,6 +6,7 @@ import type { Template } from "@/api/schema";
 import { useTask, confirmAction } from "@/composables/useTask";
 import LoadState from "@/components/LoadState.vue";
 import TemplateForm from "./TemplateForm.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 const { busy, error, run } = useTask();
 const rows = ref<Template[]>([]),
   draft = ref<Omit<Template, "id"> | null>(null),
@@ -56,55 +57,55 @@ onMounted(load);
 </script>
 <template>
   <section class="page">
-    <div>
-      <h1>AI 模板</h1>
-      <p class="muted">
-        统一维护人设、开场白和引导问题。默认模板用于新建名片。
-      </p>
-    </div>
+    <PageHeader
+      title="AI 模板"
+      desc="统一维护人设、开场白和引导问题。默认模板用于新建名片。"
+    >
+      <el-button type="primary" @click="edit()">新增模板</el-button>
+    </PageHeader>
     <div class="panel">
       <div class="toolbar">
-        <el-button type="primary" @click="edit()">新增模板</el-button
-        ><el-button :loading="busy" @click="load">刷新</el-button>
+        <el-button :loading="busy" @click="load">刷新</el-button>
       </div>
-      <LoadState :busy="busy" :error="error" @retry="load" /><el-table
-        :data="rows"
-        empty-text="尚无模板"
-        ><el-table-column prop="name" label="名称" /><el-table-column
-          prop="opening"
-          label="开场白"
-          show-overflow-tooltip
-        /><el-table-column label="状态" width="160"
-          ><template #default="{ row }"
-            ><el-tag :type="row.enabled ? 'success' : 'info'">{{
-              row.enabled ? "启用" : "停用"
-            }}</el-tag>
-            <el-tag v-if="row.is_default">默认</el-tag></template
-          ></el-table-column
-        ><el-table-column label="操作" min-width="240"
-          ><template #default="{ row }"
-            ><el-button link type="primary" @click="edit(row)">编辑</el-button
-            ><el-button
-              link
-              type="primary"
-              :disabled="row.is_default || !row.enabled || busy"
-              @click="setDefault(row)"
-              >设为默认</el-button
-            ><el-button
-              link
-              type="danger"
-              :disabled="row.is_default || busy"
-              @click="remove(row)"
-              >删除</el-button
-            ></template
-          ></el-table-column
-        ></el-table
-      >
+      <LoadState :busy="busy" :error="error" @retry="load" />
+      <div class="table-wrap">
+        <el-table :data="rows" empty-text="尚无模板"
+          ><el-table-column prop="name" label="名称" /><el-table-column
+            prop="opening"
+            label="开场白"
+            show-overflow-tooltip
+          /><el-table-column label="状态" width="160"
+            ><template #default="{ row }"
+              ><el-tag :type="row.enabled ? 'success' : 'info'">{{
+                row.enabled ? "启用" : "停用"
+              }}</el-tag>
+              <el-tag v-if="row.is_default">默认</el-tag></template
+            ></el-table-column
+          ><el-table-column label="操作" min-width="240"
+            ><template #default="{ row }"
+              ><el-button link type="primary" @click="edit(row)">编辑</el-button
+              ><el-button
+                link
+                type="primary"
+                :disabled="row.is_default || !row.enabled || busy"
+                @click="setDefault(row)"
+                >设为默认</el-button
+              ><el-button
+                link
+                type="danger"
+                :disabled="row.is_default || busy"
+                @click="remove(row)"
+                >删除</el-button
+              ></template
+            ></el-table-column
+          ></el-table
+        >
+      </div>
     </div>
     <el-dialog
       :model-value="!!draft"
       :title="id ? '编辑模板' : '新增模板'"
-      width="680px"
+      width="min(680px, 100vw)"
       :close-on-click-modal="false"
       @update:model-value="
         (v) => {

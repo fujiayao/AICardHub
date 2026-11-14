@@ -50,52 +50,112 @@ async function save() {
 }
 </script>
 <template>
-  <main class="panel password-panel">
-    <h1>设置新密码</h1>
-    <p>首次登录必须先修改密码，完成后才能使用管理功能。</p>
-    <el-alert
-      v-if="error"
-      :title="error"
-      type="error"
-      :closable="false"
-    /><el-form
-      ref="form"
-      :model="model"
-      :rules="rules"
-      label-position="top"
-      @submit.prevent="save"
-      ><el-form-item label="原密码" prop="old_password"
-        ><el-input
-          v-model="model.old_password"
-          type="password"
-          show-password
-          autocomplete="current-password" /></el-form-item
-      ><el-form-item label="新密码" prop="new_password"
-        ><el-input
-          v-model="model.new_password"
-          type="password"
-          show-password
-          autocomplete="new-password"
-          maxlength="20" /></el-form-item
-      ><el-form-item label="确认新密码" prop="confirm"
-        ><el-input
-          v-model="model.confirm"
-          type="password"
-          show-password
-          autocomplete="new-password"
-          maxlength="20"
-      /></el-form-item>
-      <div class="toolbar">
-        <el-button native-type="submit" type="primary" :loading="busy"
-          >更新密码</el-button
-        ><el-button @click="auth.logout">退出登录</el-button>
-      </div></el-form
-    >
+  <main class="auth-page">
+    <section class="auth-card" aria-labelledby="password-title">
+      <header class="auth-band">
+        <span class="auth-mark" aria-hidden="true">AI</span>
+        <p class="auth-product">数科 AI 智能名片 · 管理后台</p>
+      </header>
+      <div class="auth-body">
+        <h1 id="password-title">设置新密码</h1>
+        <p class="muted">首次登录必须先修改密码，完成后才能使用管理功能。</p>
+        <el-alert
+          v-if="error"
+          :title="error"
+          type="error"
+          :closable="false"
+        /><el-form
+          ref="form"
+          :model="model"
+          :rules="rules"
+          label-position="top"
+          @submit.prevent="save"
+          ><el-form-item label="原密码" prop="old_password"
+            ><el-input
+              v-model="model.old_password"
+              type="password"
+              show-password
+              autocomplete="current-password" /></el-form-item
+          ><el-form-item label="新密码" prop="new_password"
+            ><el-input
+              v-model="model.new_password"
+              type="password"
+              show-password
+              autocomplete="new-password"
+              maxlength="20" /></el-form-item
+          ><el-form-item label="确认新密码" prop="confirm"
+            ><el-input
+              v-model="model.confirm"
+              type="password"
+              show-password
+              autocomplete="new-password"
+              maxlength="20"
+          /></el-form-item>
+          <div class="toolbar">
+            <el-button native-type="submit" type="primary" :loading="busy"
+              >更新密码</el-button
+            ><el-button @click="auth.logout">退出登录</el-button>
+          </div></el-form
+        >
+      </div>
+    </section>
   </main>
 </template>
 <style scoped>
-.password-panel {
-  max-width: 500px;
-  margin: 10vh auto;
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--ac-space-5, 24px) var(--ac-space-4, 16px);
+  background: var(--ac-bg, var(--el-fill-color-light));
+  font-family:
+    system-ui,
+    -apple-system,
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+}
+.auth-card {
+  width: min(480px, 100%);
+  overflow: hidden;
+  background: var(--ac-surface, var(--el-bg-color));
+  border: 1px solid var(--ac-border, var(--el-border-color-light));
+  border-radius: var(--ac-radius, 8px);
+  box-shadow: var(--ac-shadow, var(--el-box-shadow-light));
+}
+.auth-band {
+  display: flex;
+  gap: var(--ac-space-3, 12px);
+  align-items: center;
+  padding: var(--ac-space-4, 16px) var(--ac-space-5, 24px);
+  background: var(--ac-navy, var(--el-color-primary));
+  color: var(--ac-surface, var(--el-bg-color));
+}
+.auth-mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ac-radius, 8px);
+  background: var(--ac-teal, var(--el-color-success));
+  color: var(--ac-surface, var(--el-bg-color));
+  font-weight: 700;
+}
+.auth-product {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.auth-body {
+  padding: var(--ac-space-5, 24px);
+}
+.auth-card h1 {
+  margin: 0;
+  font-size: 22px;
+  color: var(--ac-text, var(--el-text-color-primary));
+}
+.auth-card .toolbar {
+  margin-bottom: 0;
 }
 </style>

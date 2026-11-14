@@ -9,6 +9,7 @@ import LoadState from "@/components/LoadState.vue";
 import NoteEditor from "./NoteEditor.vue";
 import KnowledgeUpload from "./KnowledgeUpload.vue";
 import HistoryPanel from "./HistoryPanel.vue";
+import PageHeader from "@/components/shared/PageHeader.vue";
 const { data, page, busy, error, load } = usePage((p) =>
   api.notes({ page: p, page_size: 20 }),
 );
@@ -120,70 +121,74 @@ onMounted(() => load());
 </script>
 <template>
   <section class="page">
-    <div>
-      <h1>公开知识</h1>
-      <p class="muted">
-        先审核内容，再公开发布。个人笔记保留所属名片范围，只有公开且批准后才可用于该名片的访客回答。
-      </p>
-    </div>
+    <PageHeader
+      title="公开知识"
+      desc="先审核内容，再公开发布。个人笔记保留所属名片范围，只有公开且批准后才可用于该名片的访客回答。"
+    >
+      <el-button type="primary" @click="create">新建 Markdown</el-button
+      ><el-button @click="uploading = true">批量上传 Markdown</el-button>
+    </PageHeader>
     <div class="panel">
       <div class="toolbar">
-        <el-button type="primary" @click="create">新建 Markdown</el-button
-        ><el-button @click="uploading = true">批量上传 Markdown</el-button
-        ><el-button :loading="busy" @click="load()">刷新列表</el-button>
+        <el-button :loading="busy" @click="load()">刷新列表</el-button>
       </div>
       <LoadState
         :busy="busy"
         :error="error || editTask.error.value"
         @retry="load()"
-      /><el-table :data="data.items" empty-text="尚无知识，请创建 Markdown 草稿"
-        ><el-table-column
-          prop="title"
-          label="标题"
-          min-width="180"
-        /><el-table-column label="范围"
-          ><template #default="{ row }"
-            ><el-tag :type="row.scope === 'card' ? 'warning' : 'info'">{{
-              row.scope === "card" ? "个人笔记" : "公司知识"
-            }}</el-tag>
-            <div v-if="row.scope === 'card'" class="muted">
-              名片 {{ row.card_code }}
-            </div></template
-          ></el-table-column
-        ><el-table-column prop="revision" label="版本" /><el-table-column
-          label="状态"
-          width="120"
-          ><template #default="{ row }"
-            ><el-tag :type="row.public && row.approved ? 'success' : 'info'">{{
-              row.public && row.approved ? "已发布" : "未发布"
-            }}</el-tag></template
-          ></el-table-column
-        ><el-table-column label="操作" min-width="260"
-          ><template #default="{ row }"
-            ><el-button
-              link
-              type="primary"
-              :disabled="editTask.busy.value"
-              @click="edit(row)"
-              >编辑 / 审批</el-button
-            ><el-button link type="primary" @click="openHistory(row)"
-              >历史</el-button
-            ><el-button
-              link
-              type="warning"
-              :disabled="!row.public || editTask.busy.value"
-              @click="withdraw(row)"
-              >撤回</el-button
-            ><el-button
-              link
-              type="danger"
-              :disabled="editTask.busy.value"
-              @click="remove(row)"
-              >删除</el-button
-            ></template
-          ></el-table-column
-        ></el-table
-      ><el-pagination
+      />
+      <div class="table-wrap">
+        <el-table :data="data.items" empty-text="尚无知识，请创建 Markdown 草稿"
+          ><el-table-column
+            prop="title"
+            label="标题"
+            min-width="180"
+          /><el-table-column label="范围"
+            ><template #default="{ row }"
+              ><el-tag :type="row.scope === 'card' ? 'warning' : 'info'">{{
+                row.scope === "card" ? "个人笔记" : "公司知识"
+              }}</el-tag>
+              <div v-if="row.scope === 'card'" class="muted">
+                名片 {{ row.card_code }}
+              </div></template
+            ></el-table-column
+          ><el-table-column prop="revision" label="版本" /><el-table-column
+            label="状态"
+            width="120"
+            ><template #default="{ row }"
+              ><el-tag
+                :type="row.public && row.approved ? 'success' : 'info'"
+                >{{ row.public && row.approved ? "已发布" : "未发布" }}</el-tag
+              ></template
+            ></el-table-column
+          ><el-table-column label="操作" min-width="260"
+            ><template #default="{ row }"
+              ><el-button
+                link
+                type="primary"
+                :disabled="editTask.busy.value"
+                @click="edit(row)"
+                >编辑 / 审批</el-button
+              ><el-button link type="primary" @click="openHistory(row)"
+                >历史</el-button
+              ><el-button
+                link
+                type="warning"
+                :disabled="!row.public || editTask.busy.value"
+                @click="withdraw(row)"
+                >撤回</el-button
+              ><el-button
+                link
+                type="danger"
+                :disabled="editTask.busy.value"
+                @click="remove(row)"
+                >删除</el-button
+              ></template
+            ></el-table-column
+          ></el-table
+        >
+      </div>
+      <el-pagination
         v-model:current-page="page"
         :total="data.total"
         :page-size="20"
@@ -210,14 +215,14 @@ onMounted(() => load());
     <el-dialog
       v-model="uploading"
       title="批量上传 Markdown"
-      width="1000px"
+      width="min(1000px, 100vw)"
       :close-on-click-modal="false"
       ><KnowledgeUpload v-if="uploading" @saved="load()"
     /></el-dialog>
     <el-dialog
       :model-value="!!historyId"
       title="版本历史"
-      width="760px"
+      width="min(760px, 100vw)"
       @update:model-value="
         (v) => {
           if (!v) historyId = '';
