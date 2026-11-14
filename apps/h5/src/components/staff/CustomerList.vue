@@ -29,7 +29,8 @@ function overdue(item: LeadData) { return item.status === 'new' && Date.now() - 
 .status.new{background:var(--c-amber-soft);color:var(--c-amber)}
 .status.contacted{background:var(--c-primary-soft);color:var(--c-primary)}
 .status.converted{background:var(--c-success-soft);color:var(--c-success)}
-.need{margin:var(--sp-2) 0;color:var(--c-text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.status.invalid{background:var(--c-tag-gray-bg);color:var(--c-text-3)}
+.need{margin:var(--sp-2) 0;padding:8px 10px;border-radius:8px;background:var(--c-bg);color:var(--c-text-2);font-size:var(--fs-sm);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .foot{margin-top:var(--sp-2);align-items:center}
 .overdue{display:inline-flex;align-items:center;gap:4px;color:var(--c-amber);font-size:var(--fs-xs)}
 .vis-row{display:flex;align-items:center;gap:12px}

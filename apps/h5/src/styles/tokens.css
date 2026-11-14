@@ -22,6 +22,7 @@
   --c-surface:#FFFFFF;
   --c-line:#E5E9EF;
   --c-tag-gray-bg:#EEF1F5;   /* 灰色标签底（来源标签、C 级意向） */
+  --c-seg-track:#E8ECF1;     /* 分段控件轨道底（客户 Tab 等） */
   --c-text:#1A2433;
   --c-text-2:#5A6677;
   --c-text-3:#8D97A5;
