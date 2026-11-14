@@ -1,0 +1,44 @@
+[project]
+name = "aicardhub-server"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+ "fastapi[standard]>=0.115", "pydantic>=2,<3", "pydantic-settings>=2,<3",
+ "sqlalchemy[asyncio]>=2.0,<2.1", "asyncmy>=0.2", "alembic>=1.14",
+ "httpx>=0.28", "openai>=2", "apscheduler>=3.11,<4", "PyJWT>=2.10",
+ "bcrypt>=4", "loguru>=0.7", "python-frontmatter>=1.1", "tiktoken>=0.9",
+ "filelock>=3", "pymupdf>=1.25", "python-docx>=1.1", "Pillow>=11",
+ "qrcode>=8", "cryptography>=44", "openpyxl>=3.1"
+]
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=1",
+    "pytest-cov>=6",
+    "ruff>=0.11",
+    "mypy>=1.15",
+    "types-qrcode",
+    "types-openpyxl",
+    "types-pyyaml>=6.0.12.20261113",
+]
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC", "S110"]
+ignore = ["E501", "B008"]
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+[[tool.mypy.overrides]]
+module = ["apscheduler.*", "asyncmy.*", "frontmatter.*", "pymupdf.*"]
+ignore_missing_imports = true
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+pythonpath = ["."]
+[tool.coverage.run]
+source = ["app"]

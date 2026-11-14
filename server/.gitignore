@@ -1,0 +1,5 @@
+local-credentials.json
+/data/
+*.log
+htmlcov/
+.coverage
