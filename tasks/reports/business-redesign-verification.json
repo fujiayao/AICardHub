@@ -32,7 +32,9 @@
     "preserved_admin": true,
     "phones_portraits_not_fabricated": true,
     "executive_logins_enabled": false,
-    "temporary_event_and_lead_cleaned": true
+    "temporary_event_and_lead_cleaned": true,
+    "final_synthetic_lead_session_visit_counts_zero": true,
+    "initialization_guard_verified_employee_count": 11
   },
   "browser": {
     "real_card_codes": [

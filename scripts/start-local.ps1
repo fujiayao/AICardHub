@@ -59,7 +59,7 @@ $ready = $false
 do {
  try {
   $health = Invoke-RestMethod -Uri 'http://127.0.0.1:8000/health' -TimeoutSec 2
-  $h5 = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:5173/card/demo' -TimeoutSec 2
+  $h5 = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:5173/login' -TimeoutSec 2
   $admin = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:5174' -TimeoutSec 2
   $ready = $health.status -eq 'ok' -and $h5.StatusCode -eq 200 -and $admin.StatusCode -eq 200
  } catch { Start-Sleep -Milliseconds 500 }
