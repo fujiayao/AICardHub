@@ -35,5 +35,12 @@ export type CompanyOption = Schemas["CompanyOption"];
 export type CompanyItem = Schemas["CompanyItem"];
 export type CompanyInput = Company;
 
+// Contract v2 campaign aliases (backend main export; admin campaign_* only).
+export type Campaign = Schemas["CampaignData"];
+export type CampaignInput = Schemas["CampaignInput"];
+export type CampaignStatus = NonNullable<CampaignInput["status"]>;
+export type CampaignReport = Schemas["CampaignReport"];
+export type CampaignSourceRow = Schemas["SourceBreakdownRow"];
+
 export type EmployeeImportResult = Schemas["EmployeeImportResult"];
 export type KnowledgeUploadRow = Schemas["KnowledgeUploadRow"];

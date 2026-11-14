@@ -11,12 +11,19 @@ import type {
   IssueStatus,
   Staff,
   CompanyInput,
+  CampaignInput,
+  CampaignStatus,
 } from "../schema";
 export interface PageQuery {
   page?: number;
   page_size?: number;
   q?: string;
   status?: string;
+}
+export interface CampaignQuery {
+  page: number;
+  page_size: number;
+  status?: CampaignStatus;
 }
 export const api = {
   importEmployees: (file: File) => {
@@ -52,6 +59,14 @@ export const api = {
     id
       ? ops.updateCompanyItem({ path: { id }, body })
       : ops.createCompany({ body }),
+  campaigns: (query: CampaignQuery) => ops.campaigns({ query }),
+  campaign: (id: number) => ops.campaign({ path: { id } }),
+  saveCampaign: (id: number | null, body: CampaignInput) =>
+    id
+      ? ops.updateCampaign({ path: { id }, body })
+      : ops.createCampaign({ body }),
+  deleteCampaign: (id: number) => ops.deleteCampaign({ path: { id } }),
+  campaignReport: (id: number) => ops.campaignReport({ path: { id } }),
   products: () => ops.products(),
   saveProduct: (id: number | null, body: ProductInput) =>
     id
