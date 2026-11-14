@@ -79,7 +79,7 @@ class PasswordInput(Schema):
 class Staff(Schema):
     id: int
     name: str
-    phone: str
+    phone: str | None = None
     role: Literal["employee", "admin"]
     dept: str = ""
     title: str = ""
@@ -88,6 +88,9 @@ class Staff(Schema):
     status: str = "active"
     must_change_pwd: bool = False
     card_code: str = ""
+    company_id: int = 0
+    company_name: str = ""
+    login_enabled: bool = False
 
 
 class LoginResult(Schema):
@@ -105,6 +108,18 @@ class CompanyData(Schema):
     website: str = Field(default="", max_length=255)
     logo_url: str = Field(default="", max_length=500)
     brand_color: str = Field(default="", max_length=30)
+
+
+class CompanyItem(CompanyData):
+    id: int
+    is_primary: bool
+
+
+class CompanyOption(Schema):
+    id: int
+    name: str
+    short_name: str
+    is_primary: bool
 
 
 class ProductInput(Schema):
@@ -315,13 +330,25 @@ class TextData(Schema):
 
 class EmployeeInput(Schema):
     name: str = Field(min_length=1, max_length=80)
-    phone: str = Field(pattern=r"^1[3-9]\d{9}$")
+    phone: str | None = Field(default=None, pattern=r"^1[3-9]\d{9}$")
     dept: str = Field(default="", max_length=120)
     title: str = Field(default="", max_length=120)
-    password: str = Field(min_length=8, max_length=20)
+    password: str | None = Field(default=None, min_length=8, max_length=20)
     role: Literal["employee", "admin"] = "employee"
     email: str = Field(default="", max_length=120)
     business_scope: str = Field(default="", max_length=4000)
+    company_id: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="after")
+    def credentials_pair(self) -> "EmployeeInput":
+        if self.phone is None:
+            if self.password is not None:
+                raise ValueError("password requires phone")
+            if self.role != "employee":
+                raise ValueError("admin requires phone and password")
+        elif self.password is None:
+            raise ValueError("phone requires password")
+        return self
 
 
 class EmployeeUpdate(Schema):
@@ -333,6 +360,7 @@ class EmployeeUpdate(Schema):
     business_scope: str | None = Field(default=None, max_length=4000)
     role: Literal["employee", "admin"] | None = None
     status: Literal["active", "disabled"] | None = None
+    company_id: int | None = Field(default=None, ge=1)
 
 
 class ResetPassword(Schema):

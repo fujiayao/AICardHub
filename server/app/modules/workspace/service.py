@@ -22,16 +22,37 @@ from app.modules.workspace.models import (
 )
 
 
+async def primary_company(db: AsyncSession) -> Company:
+    """The primary company is fixed as the original lowest id row."""
+    from sqlalchemy import select
+
+    row = await db.scalar(select(Company).order_by(Company.id).limit(1))
+    if row is None:
+        raise AppError(ErrorCode.NOT_FOUND, 404, "企业信息未配置")
+    return row
+
+
+async def employee_company(db: AsyncSession, employee: Employee) -> Company:
+    return await repo.one(db, Company, Company.id == employee.company_id)
+
+
+def login_enabled(employee: Employee) -> bool:
+    return bool(employee.phone and employee.password_hash)
+
+
 async def staff_data(db: AsyncSession, employee: Employee) -> s.Staff:
-    result = s.Staff.model_validate(employee)
+    result = s.Staff.model_validate(employee, from_attributes=True)
     card = await repo.optional(db, Card, Card.employee_id == employee.id)
     result.card_code = card.code if card else ""
+    company = await employee_company(db, employee)
+    result.company_id, result.company_name = company.id, company.name
+    result.login_enabled = login_enabled(employee)
     return result
 
 
 async def login(db: AsyncSession, payload: s.LoginInput, admin: bool = False) -> s.LoginResult:
     employee = await repo.optional(db, Employee, Employee.phone == payload.phone)
-    if employee is None:
+    if employee is None or employee.password_hash is None:
         raise AppError(ErrorCode.AUTH_INVALID, 401, "账号或密码错误")
     if employee.status != "active":
         raise AppError(ErrorCode.AUTH_DISABLED, 401, "账号已停用")
@@ -61,7 +82,9 @@ async def login(db: AsyncSession, payload: s.LoginInput, admin: bool = False) ->
 
 
 async def change_password(db: AsyncSession, employee: Employee, payload: s.PasswordInput) -> s.OK:
-    if not await verify_password(payload.old_password, employee.password_hash):
+    if employee.password_hash is None or not await verify_password(
+        payload.old_password, employee.password_hash
+    ):
         raise AppError(ErrorCode.AUTH_INVALID, 400, "原密码不正确")
     employee.password_hash = await hash_password(payload.new_password)
     employee.must_change_pwd = False
@@ -84,17 +107,23 @@ async def by_code(db: AsyncSession, code: str, active: bool = False) -> Card:
 
 
 async def company_get(db: AsyncSession) -> s.CompanyData:
-    return s.CompanyData.model_validate(await repo.one(db, Company))
+    return s.CompanyData.model_validate(await primary_company(db))
 
 
 async def public_card(db: AsyncSession, code: str) -> s.PublicCard:
     card = await by_code(db, code)
     employee = await repo.one(db, Employee, Employee.id == card.employee_id)
-    company = await company_get(db)
+    company_row = await employee_company(db, employee)
+    company = s.CompanyData.model_validate(company_row)
     if card.status != "active" or employee.status != "active":
         return s.PublicCard(code=card.code, status="disabled", company=company)
     assistant = await repo.one(db, Assistant, Assistant.card_id == card.id)
-    products = await repo.many(db, Product, Product.enabled.is_(True))
+    primary = await primary_company(db)
+    products = (
+        await repo.many(db, Product, Product.enabled.is_(True))
+        if company_row.id == primary.id
+        else []
+    )
     return s.PublicCard(
         code=card.code,
         status="active",
@@ -160,12 +189,34 @@ def render(text: str, employee: Employee, company: Company) -> str:
     return text
 
 
+async def resolve_company_id(db: AsyncSession, company_id: int | None) -> int:
+    if company_id is None:
+        return (await primary_company(db)).id
+    return (await repo.one(db, Company, Company.id == company_id)).id
+
+
 async def create_employee(
     db: AsyncSession, payload: s.EmployeeInput, *, code: str | None = None, must_change: bool = True
 ) -> Employee:
-    values = payload.model_dump(exclude={"password"})
-    employee = Employee(
-        **values, password_hash=await hash_password(payload.password), must_change_pwd=must_change
+    values = payload.model_dump(exclude={"password", "company_id"})
+    values["company_id"] = await resolve_company_id(db, payload.company_id)
+    password_hash = await hash_password(payload.password) if payload.password else None
+    employee = Employee(**values, password_hash=password_hash, must_change_pwd=must_change)
+    db.add(employee)
+    await db.flush()
+    card = Card(
+        code=code or uuid4().hex[:8],
+        employee_id=employee.id,
+        display_title=employee.title,
+        mobile=employee.phone or "",
+        email=employee.email,
+    )
+    db.add(card)
+    await db.flush()
+    template = await repo.optional(
+        db, Template, Template.is_default.is_(True), Template.enabled.is_(True)
+    )
+    company = await employee_company(db, employee) must_change_pwd=must_change
     )
     db.add(employee)
     await db.flush()

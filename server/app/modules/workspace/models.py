@@ -19,6 +19,18 @@ class Company(Entity):
     brand_color: Mapped[str] = mapped_column(String(30), default="")
 
 
+class Campaign(Entity):
+    __tablename__ = "campaign"
+    name: Mapped[str] = mapped_column(String(120))
+    status: Mapped[str] = mapped_column(String(20), default="draft")
+    start_at: Mapped[datetime] = mapped_column(UTCDateTime())
+    end_at: Mapped[datetime] = mapped_column(UTCDateTime())
+    booth: Mapped[str] = mapped_column(String(80), default="")
+    location: Mapped[str] = mapped_column(String(255), default="")
+    opening_override: Mapped[str] = mapped_column(Text, default="")
+    guide_override: Mapped[list[str]] = mapped_column(JSON, default=list)
+
+
 class Product(Entity):
     __tablename__ = "product_card"
     title: Mapped[str] = mapped_column(String(120))
@@ -32,13 +44,14 @@ class Product(Entity):
 class Employee(Entity):
     __tablename__ = "employee"
     name: Mapped[str] = mapped_column(String(80))
-    phone: Mapped[str] = mapped_column(String(20), unique=True)
+    phone: Mapped[str | None] = mapped_column(String(20), unique=True)
+    company_id: Mapped[int] = mapped_column(ForeignKey("company.id"), index=True)
     dept: Mapped[str] = mapped_column(String(120), default="")
     title: Mapped[str] = mapped_column(String(120), default="")
     email: Mapped[str] = mapped_column(String(120), default="")
     business_scope: Mapped[str] = mapped_column(Text, default="")
     role: Mapped[str] = mapped_column(String(20), default="employee")
-    password_hash: Mapped[str] = mapped_column(String(100))
+    password_hash: Mapped[str | None] = mapped_column(String(100))
     must_change_pwd: Mapped[bool] = mapped_column(default=True)
     failed_logins: Mapped[int] = mapped_column(default=0)
     locked_until: Mapped[datetime | None] = mapped_column(UTCDateTime())
@@ -92,6 +105,7 @@ class Visit(Entity):
     card_id: Mapped[int] = mapped_column(ForeignKey("card.id"), index=True)
     visitor_id: Mapped[int] = mapped_column(ForeignKey("visitor.id"), index=True)
     source: Mapped[str] = mapped_column(String(20))
+    campaign_id: Mapped[int | None] = mapped_column(ForeignKey("campaign.id"), index=True)
     stay_seconds: Mapped[int] = mapped_column(default=0)
 
 
@@ -101,6 +115,9 @@ class ChatSession(Entity):
     visitor_id: Mapped[int | None] = mapped_column(ForeignKey("visitor.id"), index=True)
     employee_id: Mapped[int | None] = mapped_column(ForeignKey("employee.id"))
     is_test: Mapped[bool] = mapped_column(default=False)
+    visit_id: Mapped[int | None] = mapped_column(ForeignKey("visit.id", ondelete="SET NULL"))
+    campaign_id: Mapped[int | None] = mapped_column(ForeignKey("campaign.id"), index=True)
+    source: Mapped[str] = mapped_column(String(20), default="link", server_default="link")
     rounds: Mapped[int] = mapped_column(default=0)
     lead_prompts: Mapped[int] = mapped_column(default=0)
     generation_token: Mapped[str | None] = mapped_column(String(36))
@@ -137,6 +154,8 @@ class Lead(Entity):
         ForeignKey("chat_session.id", ondelete="SET NULL")
     )
     owner_employee_id: Mapped[int] = mapped_column(ForeignKey("employee.id"), index=True)
+    visit_id: Mapped[int | None] = mapped_column(ForeignKey("visit.id", ondelete="SET NULL"))
+    campaign_id: Mapped[int | None] = mapped_column(ForeignKey("campaign.id"), index=True)
     name: Mapped[str] = mapped_column(String(80))
     phone: Mapped[str] = mapped_column(String(20))
     company_name: Mapped[str] = mapped_column(String(150), default="")
