@@ -36,7 +36,9 @@ class Summary(BaseModel):
     tags: list[str] = Field(default_factory=list, max_length=10)
 
 
-async def summarize(client: LLMClient, messages: list[dict[str, str]]) -> Summary:
+async def summarize(
+    client: LLMClient, messages: list[dict[str, str]], fallbacks: list[LLMClient] | None = None
+) -> Summary:
     prompt = [
         {
             "role": "system",
@@ -44,23 +46,41 @@ async def summarize(client: LLMClient, messages: list[dict[str, str]]) -> Summar
         },
         {"role": "user", "content": json.dumps(messages, ensure_ascii=False)},
     ]
-    for _ in range(2):
-        try:
-            parts = []
-            async with asyncio.timeout(60):
-                async with managed_stream(client.stream(prompt)) as stream:
-                    length = 0
-                    async for text in stream:
-                        length += len(text)
-                        if length > 10000:
-                            raise ValueError("summary too long")
-                        parts.append(text)
-            return Summary.model_validate_json("".join(parts))
-        except Exception as exc:
-            logger.warning(
-                "Summary generation/JSON validation failed type={}; bounded retry",
-                type(exc).__name__,
-            )
+    chain = [client, *(fallbacks or [])]
+    selected = 0
+    # Two JSON attempts in one bounded 120s operation; no replay/fallback once an
+    # attempt yielded content. Each configured provider is attempted at most once
+    # on transport failure before its first content.
+    try:
+        async with asyncio.timeout(120):
+            for _ in range(2):
+                parts: list[str] = []
+                while selected < len(chain):
+                    try:
+                        async with managed_stream(chain[selected].stream(prompt)) as stream:
+                            async with asyncio.timeout(60):
+                                async for text in stream:
+                                    if text:
+                                        parts.append(text)
+                                    if sum(map(len, parts)) > 10000:
+                                        raise ValueError("summary too long")
+                        break
+                    except asyncio.CancelledError:
+                        raise
+                    except Exception as exc:
+                        logger.warning("Summary provider failed type={}", type(exc).__name__)
+                        if parts or selected == len(chain) - 1:
+                            return Summary(
+                                summary="会话已结束，自动摘要暂不可用，请查看原始对话。",
+                                intent_level="C",
+                            )
+                        selected += 1
+                try:
+                    return Summary.model_validate_json("".join(parts))
+                except ValueError:
+                    logger.warning("Summary JSON invalid; bounded retry")
+    except TimeoutError:
+        logger.warning("Summary operation deadline reached")
     return Summary(summary="会话已结束，自动摘要暂不可用，请查看原始对话。", intent_level="C")
 
 
@@ -91,9 +111,9 @@ async def end_sessions(
     owned = client is None
     if not candidates:
         return 0
+    fallbacks: list[LLMClient] = []
     if client is None:
-        client, fallback = clients(runtime)
-        await close_client(fallback)
+        client, fallbacks = clients(runtime)
     count = 0
     try:
         for session_id in candidates:
@@ -127,7 +147,7 @@ async def end_sessions(
             await db.commit()
             # No transaction/checked-out session connection while the provider runs.
             try:
-                result = await summarize(client, snapshot)
+                result = await summarize(client, snapshot, fallbacks)
                 current = await db.scalar(
                     select(ChatSession)
                     .where(ChatSession.id == session_id, ChatSession.generation_token == token)
@@ -180,7 +200,11 @@ async def end_sessions(
                 await asyncio.shield(release())
     finally:
         if owned:
-            await close_client(client)
+            for resource in (client, *fallbacks):
+                try:
+                    await close_client(resource)
+                except Exception as exc:
+                    logger.warning("Summary client cleanup failed type={}", type(exc).__name__)
     return count
 
 

@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -15,11 +16,18 @@ class Settings(BaseSettings):
     llm_base_url: str = ""
     llm_api_key: str = ""
     llm_model: str = ""
+    llm_api_mode: Literal["chat_completions", "responses"] = "chat_completions"
     llm_timeout: float = 30
     llm_fallback_enabled: bool = False
     llm_fallback_base_url: str = ""
     llm_fallback_model: str = ""
     llm_fallback_api_key: str = ""
+    llm_fallback_api_mode: Literal["chat_completions", "responses"] = "chat_completions"
+    llm_tertiary_enabled: bool = False
+    llm_tertiary_base_url: str = ""
+    llm_tertiary_model: str = ""
+    llm_tertiary_api_key: str = ""
+    llm_tertiary_api_mode: Literal["chat_completions", "responses"] = "chat_completions"
     kb_root: str = "../data/kb"
     upload_root: str = "../data/uploads"
     public_base_url: str = "http://127.0.0.1:5173"

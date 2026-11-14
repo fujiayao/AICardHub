@@ -35,12 +35,15 @@ async def notes(
         scope="card" if card else None,
         card_code=card.code if card else None,
     )
-    items = [
-        s.NoteData.model_validate(row)
-        for row in rows
+    # Derived files can contain an empty persona in existing stores. Filter before
+    # applying ordinary note validation; real submitted notes remain nonempty.
+    hidden = (
+        ("profile-", "persona-", "rules-")
         if employee_id is None
-        or not str(row["file_id"]).startswith(("profile-", "persona-", "corrections-", "rules-"))
-    ]
+        else ("profile-", "persona-", "corrections-", "rules-")
+    )
+    visible = [row for row in rows if not str(row["file_id"]).startswith(hidden)]
+    items = [s.NoteData.model_validate(row) for row in visible]
     return s.Page[s.NoteData](
         items=items[(page - 1) * page_size : page * page_size],
         total=len(items),

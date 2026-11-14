@@ -100,6 +100,13 @@ async def test_后台配置下一次真实对话生效且首字前主备切换(
         "llm_fallback_model": "synthetic-fallback",
         "llm_fallback_api_key": "synthetic-fallback-key",
         "llm_fallback_enabled": True,
+        "llm_api_mode": "responses",
+        "llm_fallback_api_mode": "responses",
+        "llm_tertiary_enabled": True,
+        "llm_tertiary_base_url": "http://127.0.0.1:3/v1",
+        "llm_tertiary_model": "synthetic-tertiary",
+        "llm_tertiary_api_key": "synthetic-tertiary-key",
+        "llm_tertiary_api_mode": "chat_completions",
     }.items():
         await runtime.save(db, actor, key, value)
     await runtime.save(db, actor, "llm_mode", "openai")
@@ -107,7 +114,7 @@ async def test_后台配置下一次真实对话生效且首字前主备切换(
 
     def build(base_url, api_key, model, timeout):
         client = FakeLLMClient(
-            reply="合成回退回答", fail_after=0 if model == "synthetic-primary" else None
+            reply="合成回退回答", fail_after=0 if model != "synthetic-tertiary" else None
         )
         client.model = model
         client.constructor = (base_url, api_key, timeout)
@@ -120,10 +127,10 @@ async def test_后台配置下一次真实对话生效且首字前主备切换(
         made.append(client)
         return client
 
-    monkeypatch.setattr(runtime, "OpenAILLMClient", build)
     import app.integrations.llm.client as llm
 
     monkeypatch.setattr(llm, "OpenAILLMClient", build)
+    monkeypatch.setattr(llm, "ResponsesLLMClient", build)
     visitor = Visitor(anon_id=str(uuid4()))
     db.add(visitor)
     await db.commit()
@@ -150,8 +157,8 @@ async def test_后台配置下一次真实对话生效且首字前主备切换(
             )
         ]
     )
-    assert "event: done" in text and "synthetic-fallback" in text
-    assert len(made) == 2 and all(client.was_closed for client in made)
+    assert "event: done" in text and "synthetic-tertiary" in text
+    assert len(made) == 3 and all(client.was_closed for client in made)
     assert made[0].constructor[0] == "http://127.0.0.1:1/v1"
     assert made[1].constructor[1] == "synthetic-fallback-key"
     await runtime.save(db, actor, "llm_mode", "fake")
@@ -166,7 +173,7 @@ async def test_后台配置下一次真实对话生效且首字前主备切换(
             )
         ]
     )
-    assert "RATE_LIMITED" in text and len(made) == 2
+    assert "RATE_LIMITED" in text and len(made) == 3
 
 
 async def test_摘要JSON意向通知及重跑幂等与测试隔离(db, employees):
@@ -706,7 +713,7 @@ async def test_上游关闭异常仍落库已输出内容并返回安全错误(d
         raise RuntimeError("sensitive provider body must not escape")
 
     fake.aclose = broken_close
-    monkeypatch.setattr(runtime, "clients", lambda settings: (fake, None))
+    monkeypatch.setattr(runtime, "clients", lambda settings: (fake, []))
     monkeypatch.setattr(chat, "SessionLocal", async_sessionmaker(db.bind, expire_on_commit=False))
 
     async def connected():
@@ -759,7 +766,7 @@ async def test_流取消传播保存部分内容并释放租约(db, employees, m
                 self.closed_streams += 1
 
     fake = CancelFake()
-    monkeypatch.setattr(runtime, "clients", lambda settings: (fake, None))
+    monkeypatch.setattr(runtime, "clients", lambda settings: (fake, []))
     monkeypatch.setattr(chat, "SessionLocal", async_sessionmaker(db.bind, expire_on_commit=False))
 
     async def connected():
@@ -831,7 +838,7 @@ async def test_三十轮上限不能再领取租约且租约覆盖主备超时(d
     await chat.claim_generation(db, result.session_id, employee_id=employee.id)
     row = await db.get(ChatSession, result.session_id)
     await db.refresh(row)
-    assert (row.generation_expires_at - before).total_seconds() >= 269
+    assert (row.generation_expires_at - before).total_seconds() >= 149
     row.generation_token = None
     row.generation_expires_at = None
     row.rounds = 30

@@ -12,11 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.errors import AppError, ErrorCode
-from app.integrations.llm.client import LLMClient, OpenAILLMClient, build_client
+from app.integrations.llm.client import LLMClient, build_client
 from app.modules.workspace.models import AuditLog, Employee, Setting
 
 MASK = "********"
-SECRET_KEYS = frozenset({"llm_api_key", "llm_fallback_api_key"})
+SECRET_KEYS = frozenset({"llm_api_key", "llm_fallback_api_key", "llm_tertiary_api_key"})
 
 
 class RuntimeSettings(BaseModel):
@@ -25,11 +25,18 @@ class RuntimeSettings(BaseModel):
     llm_base_url: str = Field(default="", max_length=500)
     llm_model: str = Field(default="", max_length=160)
     llm_api_key: str = Field(default="", max_length=4096, repr=False)
+    llm_api_mode: Literal["chat_completions", "responses"] = "chat_completions"
     llm_timeout: float = Field(default=30, ge=1, le=120)
     llm_fallback_enabled: bool = False
     llm_fallback_base_url: str = Field(default="", max_length=500)
     llm_fallback_model: str = Field(default="", max_length=160)
     llm_fallback_api_key: str = Field(default="", max_length=4096, repr=False)
+    llm_fallback_api_mode: Literal["chat_completions", "responses"] = "chat_completions"
+    llm_tertiary_enabled: bool = False
+    llm_tertiary_base_url: str = Field(default="", max_length=500)
+    llm_tertiary_model: str = Field(default="", max_length=160)
+    llm_tertiary_api_key: str = Field(default="", max_length=4096, repr=False)
+    llm_tertiary_api_mode: Literal["chat_completions", "responses"] = "chat_completions"
     visitor_daily_limit: int = Field(default=50, ge=1, le=100000)
     card_daily_limit: int = Field(default=10000, ge=1, le=10000000)
     global_daily_limit: int = Field(default=100000, ge=1, le=100000000)
@@ -52,7 +59,7 @@ def defaults() -> dict[str, Any]:
 def validate(values: dict[str, Any]) -> RuntimeSettings:
     try:
         result = RuntimeSettings.model_validate(values)
-        for key in ("llm_base_url", "llm_fallback_base_url"):
+        for key in ("llm_base_url", "llm_fallback_base_url", "llm_tertiary_base_url"):
             value = getattr(result, key)
             if value:
                 parsed = urlsplit(value)
@@ -72,21 +79,19 @@ def validate(values: dict[str, Any]) -> RuntimeSettings:
         if result.llm_mode == "openai":
             if not all((result.llm_base_url, result.llm_model.strip(), result.llm_api_key.strip())):
                 raise ValueError("incomplete primary provider")
-            if result.llm_fallback_enabled and not all(
-                (
-                    result.llm_fallback_base_url,
-                    result.llm_fallback_model.strip(),
-                    result.llm_fallback_api_key.strip(),
-                )
-            ):
-                raise ValueError("incomplete fallback provider")
+            for prefix in ("llm_fallback", "llm_tertiary"):
+                if getattr(result, f"{prefix}_enabled") and not all(
+                    getattr(result, f"{prefix}_{field}").strip()
+                    for field in ("base_url", "model", "api_key")
+                ):
+                    raise ValueError("incomplete enabled provider")
         return result
     except (ValidationError, ValueError) as exc:
         # Never return pydantic's input_value, provider URL credentials or key text.
         raise AppError(
             ErrorCode.VALIDATION_ERROR,
             422,
-            "配置值类型或范围无效；启用真实模型前需完整配置主备连接",
+            "配置值类型或范围无效；启用真实模型前需完整配置所有已启用的连接",
         ) from exc
 
 
@@ -154,17 +159,36 @@ async def save(
     return await get_value(db, key)
 
 
-def clients(settings: RuntimeSettings) -> tuple[LLMClient, LLMClient | None]:
+def clients(settings: RuntimeSettings) -> tuple[LLMClient, list[LLMClient]]:
+    # Validate the entire chain before allocating any HTTP transport.
+    settings = validate(settings.model_dump())
     primary = build_client(settings)
-    fallback = None
-    if settings.llm_mode == "openai" and settings.llm_fallback_enabled:
-        fallback = OpenAILLMClient(
-            settings.llm_fallback_base_url,
-            settings.llm_fallback_api_key,
-            settings.llm_fallback_model,
-            settings.llm_timeout,
-        )
-    return primary, fallback
+    fallbacks: list[LLMClient] = []
+    if settings.llm_mode == "openai":
+        for prefix in ("llm_fallback", "llm_tertiary"):
+            if getattr(settings, f"{prefix}_enabled"):
+                fallbacks.append(
+                    build_client(
+                        {
+                            "llm_mode": "openai",
+                            "llm_api_mode": getattr(settings, f"{prefix}_api_mode"),
+                            "llm_base_url": getattr(settings, f"{prefix}_base_url"),
+                            "llm_model": getattr(settings, f"{prefix}_model"),
+                            "llm_api_key": getattr(settings, f"{prefix}_api_key"),
+                            "llm_timeout": settings.llm_timeout,
+                        }
+                    )
+                )
+    return primary, fallbacks
+
+
+def generation_lease_seconds(settings: RuntimeSettings) -> int:
+    attempts = 1 + (
+        int(settings.llm_fallback_enabled) + int(settings.llm_tertiary_enabled)
+        if settings.llm_mode == "openai"
+        else 0
+    )
+    return int(settings.llm_timeout * attempts) + 30
 
 
 async def close_client(client: LLMClient | None) -> None:

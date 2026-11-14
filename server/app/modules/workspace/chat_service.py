@@ -144,8 +144,8 @@ async def stream(
         row.last_msg_at = utcnow()
         row.ended_at = None
         await db.commit()
-        client, fallback = clients(settings)
-        engine = ChatEngine(client, fallback)
+        client, fallbacks = clients(settings)
+        engine = ChatEngine(client, fallbacks=fallbacks)
         parts: list[str] = []
         done: dict[str, Any] = {}
         filter_ = MarkerFilter()
@@ -191,7 +191,7 @@ async def stream(
 
             async def close_upstream() -> bool:
                 failed = False
-                for resource in (iterator, client, fallback):
+                for resource in (iterator, client, *fallbacks):
                     close = getattr(resource, "aclose", None)
                     if close is not None:
                         try:
@@ -279,13 +279,13 @@ async def validate_active(db: AsyncSession, session: ChatSession) -> None:
 async def claim_generation(
     db: AsyncSession, session_id: int, visitor_id: int | None = None, employee_id: int | None = None
 ) -> str:
-    from app.modules.workspace.runtime_settings import load
+    from app.modules.workspace.runtime_settings import generation_lease_seconds, load
 
     row = await session_access(db, session_id, visitor_id, employee_id)
     if row.rounds >= 30:
         raise AppError(ErrorCode.RATE_LIMITED, 429, "本会话已达30轮，请直接联系员工")
     runtime = await load(db)
-    lease_seconds = int(runtime.llm_timeout * 2) + 30
+    lease_seconds = generation_lease_seconds(runtime)
     token = str(uuid4())
     claimed = await db.execute(
         update(ChatSession)

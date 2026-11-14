@@ -82,3 +82,15 @@ AI修复原样cherry-pick：5367d55/5960a90/f60d54f对应本分支0c912c8/98f0e9
 真实开发库14员工，同值PUT公司信息耗时20.31秒，根因为同步render_all逐卡读取并Git写入。改为源数据事务中写Setting render_pending-{code}（不改已执行迁移），仅active员工与card。独立scheduler每30秒分批10条处理，按version条件清标记保留并发变更；API不启动scheduler。派生profile/persona在访客chat_context明确排除，后台禁止将这两类文件批准公开，即使旧文件曾公开也不进入访客上下文。知识正文原有显式批准规则保持。
 
 回归：公司保存专项1通过（29.11s含真实Git后台渲染，保存本身断言<3秒）；资料重渲染/调度器/密码专项8通过（32.92s）。最终ruff app/tests、format app/tests及mypy38文件通过。上一轮全量165测试是在密码补丁生效前启动，其3个新增规则测试因旧进程加载旧schema失败（162通过），补丁后8项密码专项及本轮8项均通过；不将该旧进程全量运行声称最终全绿。主线程将在main统一全量回归。
+
+## 原生Responses与三级运行配置补丁
+
+产品专属地址/模型与真实密钥由主线程本地配置，本补丁不写真实供应商值、不调用真实模型。新增固定字段llm_api_mode、llm_fallback_api_mode、llm_tertiary_enabled/base_url/model/api_key/api_mode；协议仅chat_completions/responses。与AIowner 9ab2232（本分支75a9f43）原样接入；各级均经build_client，ChatEngine(primary,fallbacks=[...])严格主→备→兜底，最多两级后备，首内容后绝不重放。
+
+三级共用llm_timeout；generation lease按启用级数*timeout+30秒，三级120秒配置为390秒（取代旧两级270秒），原子rounds<30保持。chat清理遍历iterator及所有客户端，每个关闭失败均继续尝试并安全记录类型、部分内容仍落库。jobs摘要使用同链路，首内容前才降级；总操作120秒、JSON最多两次尝试，取消传播，所有创建客户端逐个关闭。
+
+兜底key加入固定secret白名单；与主备同Fernet加密/掩码/空串保留/clear_secret显式清空，env回退同样支持。未知键/未知协议/非严格类型/启用但配置不完整均拒绝。GET runtime-settings自动包含新字段且只返回key掩码。前端Erdos按llm_完整前缀接入，不新增泛化settings键；无API schema变更，导出OpenAPI无diff。
+
+后台知识列表500修复：先排除profile/persona/rules派生文件再NoteData校验；管理员仍可审批私有notes/corrections，员工列表继续隐藏派生文件；外部NoteInput.content非空未放宽。
+
+实际检查：新增协议/三级顺序/secret/env/摘要降级取消/空persona列表专项6 passed 45.09s（合成Fake+专用MySQL）；三级SSE实际落库、三客户端关闭、关闭异常、取消与租约回归4 passed 37.95s；摘要/调度回归4 passed 42.44s；AIowner test_llm 66 passed 2.16s。ruff app/tests通过、format46文件通过、mypy38源文件通过。未重新全量pytest；未启动API/scheduler，未运行seed，未读取或修改真实密钥。
