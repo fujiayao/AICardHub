@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { adminRoutes } from "./modules/admin";
+import { installAuthNavigation } from "./guard";
 import { useAuthStore } from "@/store/modules/auth";
 import { tokenExpired } from "@/api/session";
 import { store } from "@/store";
@@ -11,6 +12,15 @@ const router = createRouter({
       path: "/change-password",
       component: () => import("@/views/ChangePassword.vue"),
     },
+    // Backward-compatible alias for old links; keeps query and hash.
+    {
+      path: "/activity",
+      redirect: (to) => ({
+        path: "/activities",
+        query: to.query,
+        hash: to.hash,
+      }),
+    },
     {
       path: "/",
       component: () => import("@/layout/index.vue"),
@@ -21,28 +31,17 @@ const router = createRouter({
   ],
 });
 router.beforeEach((to) => {
-  const auth = useAuthStore(store);
   document.title = `${to.meta.title ?? "管理员登录"} · 数科名片管理后台`;
-  if (
-    (!auth.authenticated ||
-      (auth.session && tokenExpired(auth.session.token))) &&
-    to.path !== "/login"
-  )
-    return "/login";
-  if (
-    auth.authenticated &&
-    auth.session?.must_change_pwd &&
-    to.path !== "/change-password"
-  )
-    return "/change-password";
-  if (auth.authenticated && to.path === "/login") return "/dashboard";
 });
-window.addEventListener("admin-session-ended", () => {
-  void router.replace("/login");
-});
-window.addEventListener("admin-password-required", () => {
-  useAuthStore(store).requirePassword();
-  void router.replace("/change-password");
+installAuthNavigation(router, {
+  auth: () => {
+    const auth = useAuthStore(store);
+    const signedIn =
+      auth.authenticated && !(auth.session && tokenExpired(auth.session.token));
+    return { signedIn, mustChangePassword: !!auth.session?.must_change_pwd };
+  },
+  requirePassword: () => useAuthStore(store).requirePassword(),
+  events: window,
 });
 window.setInterval(() => {
   const auth = useAuthStore(store);

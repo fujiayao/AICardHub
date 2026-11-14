@@ -4,6 +4,13 @@ import type { NavIconName } from "@/router/modules/admin";
 const links: { to: string; label: string; desc: string; icon: NavIconName }[] =
   [
     {
+      to: "/activities",
+      label: "活动管理",
+      desc: "创建与维护活动",
+      icon: "calendar",
+    },
+    { to: "/reports", label: "活动报表", desc: "查看活动数据", icon: "chart" },
+    {
       to: "/employees",
       label: "员工与名片",
       desc: "新增员工、编辑名片",

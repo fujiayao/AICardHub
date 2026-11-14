@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { reactive, useTemplateRef } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import type { FormInstance, FormRules } from "element-plus";
 import { useAuthStore } from "@/store/modules/auth";
 import { useTask } from "@/composables/useTask";
+import { redirectQuery, resolveTarget } from "@/router/redirect";
 const auth = useAuthStore(),
   router = useRouter(),
+  route = useRoute(),
   { busy, error, run } = useTask();
 const model = reactive({ phone: "", password: "" });
 const form = useTemplateRef<FormInstance>("form");
@@ -21,8 +23,11 @@ async function submit() {
   await run(async () => {
     await auth.login(model.phone, model.password);
     model.password = "";
+    const target = route.query.redirect;
     await router.replace(
-      auth.session?.must_change_pwd ? "/change-password" : "/dashboard",
+      auth.session?.must_change_pwd
+        ? { path: "/change-password", query: redirectQuery(target) }
+        : resolveTarget(target),
     );
   });
 }

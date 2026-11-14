@@ -1,0 +1,61 @@
+{
+  "base": "3178380",
+  "branch": "feat/campaign-entry-fix",
+  "runs": [
+    {
+      "requested_model": "onceai/claude-opus-5-5",
+      "reported_init_model": "onceai/claude-opus-5-5",
+      "reported_message_models": [
+        "onceai/claude-opus-5-5"
+      ],
+      "claude_code_version": "2.1.325",
+      "base_url": "http://127.0.0.1:3425",
+      "cwd": "D:\\AIWork\\智能名片\\worktrees\\prototype-admin-fix",
+      "started_at": "2026-11-14T23:35:40",
+      "elapsed_seconds": 343.0,
+      "returncode": 0,
+      "timeout": false,
+      "result_received": true,
+      "modelUsage": {
+        "onceai/claude-opus-5-5": {
+          "inputTokens": 38957,
+          "outputTokens": 22403,
+          "cacheReadInputTokens": 577351,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.7193581999999998,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 128000,
+          "thinkingTokens": 0,
+          "cacheCreationEphemeral5mInputTokens": 0,
+          "cacheCreationEphemeral1hInputTokens": 0,
+          "canonicalModel": "claude-opus-5-5",
+          "provider": "firstParty",
+          "costBasis": "list"
+        }
+      },
+      "stream_sha256": "D4858C2FA24737AF054379BCFB43120363AA4C4BA773C229BB0D382CC96782E5"
+    },
+    {
+      "requested_model": "onceai/claude-opus-5-5",
+      "reported_init_model": "onceai/claude-opus-5-5",
+      "reported_message_models": [
+        "onceai/claude-opus-5-5"
+      ],
+      "claude_code_version": "2.1.325",
+      "base_url": "http://127.0.0.1:3425",
+      "cwd": "D:\\AIWork\\智能名片\\worktrees\\prototype-admin-fix",
+      "started_at": "2026-11-14T23:43:06",
+      "elapsed_seconds": 240.4,
+      "returncode": 1,
+      "timeout": true,
+      "result_received": false,
+      "modelUsage": null,
+      "stream_sha256": "5D1A11B6C967F3ECE259C1A40BCE8770BAE3B4BE26D82E7C8EF580D27284518B"
+    }
+  ],
+  "total_elapsed_seconds": 583.4,
+  "fallback_used": false,
+  "subagents": 0,
+  "note": "Second Opus correction run hit its 240s cap after writing code/tests/report; host independently verified final files. Raw logs are ignored .local/campaign-entry, only sanitized receipts committed."
+}

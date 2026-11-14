@@ -1,14 +1,16 @@
 <!-- C1 首次改密 -->
 <script setup lang="ts">
 import { reactive, useTemplateRef } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import type { FormInstance, FormRules } from "element-plus";
 import { ElMessage } from "element-plus";
 import { api } from "@/api/adapters";
 import { useAuthStore } from "@/store/modules/auth";
 import { useTask } from "@/composables/useTask";
+import { redirectQuery, setLoginHandoff } from "@/router/redirect";
 const auth = useAuthStore(),
   router = useRouter(),
+  route = useRoute(),
   { busy, error, run } = useTask();
 const form = useTemplateRef<FormInstance>("form");
 const model = reactive({ old_password: "", new_password: "", confirm: "" });
@@ -40,12 +42,18 @@ async function save() {
       old_password: model.old_password,
       new_password: model.new_password,
     });
+    // Token is invalidated server-side: drop it and re-authenticate, keeping
+    // the original target. Hand-off is set before logout so the session-ended
+    // listener (dispatched during logout) targets the same /login location as
+    // the replace below; both navigations agree, so their order does not matter.
+    const target = route.query.redirect;
+    setLoginHandoff(target);
     auth.logout();
     model.old_password = "";
     model.new_password = "";
     model.confirm = "";
     ElMessage.success("密码已更新，请使用新密码重新登录");
-    await router.replace("/login");
+    await router.replace({ path: "/login", query: redirectQuery(target) });
   });
 }
 </script>
