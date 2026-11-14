@@ -4574,6 +4574,13 @@
     "schemas": {
       "AdminStats": {
         "properties": {
+          "source_breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/TrafficSource"
+            },
+            "type": "array",
+            "title": "Source Breakdown"
+          },
           "visits": {
             "type": "integer",
             "title": "Visits"
@@ -7640,6 +7647,13 @@
       },
       "StatsData": {
         "properties": {
+          "source_breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/TrafficSource"
+            },
+            "type": "array",
+            "title": "Source Breakdown"
+          },
           "visits": {
             "type": "integer",
             "title": "Visits"
@@ -7806,6 +7820,40 @@
           "text"
         ],
         "title": "TextData"
+      },
+      "TrafficSource": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "visits": {
+            "type": "integer",
+            "title": "Visits"
+          },
+          "visitors": {
+            "type": "integer",
+            "title": "Visitors"
+          },
+          "chats": {
+            "type": "integer",
+            "title": "Chats"
+          },
+          "leads": {
+            "type": "integer",
+            "title": "Leads"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source",
+          "visits",
+          "visitors",
+          "chats",
+          "leads"
+        ],
+        "title": "TrafficSource"
       },
       "TransferInput": {
         "properties": {

@@ -446,7 +446,16 @@ class DailyStat(Schema):
     leads: int
 
 
+class TrafficSource(Schema):
+    source: str
+    visits: int
+    visitors: int
+    chats: int
+    leads: int
+
+
 class StatsData(Schema):
+    source_breakdown: list[TrafficSource] = Field(default_factory=list)
     visits: int
     visitors: int
     chats: int

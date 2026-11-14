@@ -285,6 +285,21 @@ async def stats(
         leads=len(lead_rows),
         conversion_rate=round(len(lead_rows) / visitor_count, 4) if visitor_count else 0,
         daily=daily,
+        source_breakdown=[
+            s.TrafficSource(
+                source=source,
+                visits=sum(r.source == source for r in visit_rows),
+                visitors=len({r.visitor_id for r in visit_rows if r.source == source}),
+                chats=sum(r.source == source for r in chat_rows),
+                leads=sum(r.source == source for r in lead_rows),
+            )
+            for source in sorted(
+                {"nfc", "qr", "poster", "link", "sig"}
+                | {r.source for r in visit_rows}
+                | {r.source for r in chat_rows}
+                | {r.source for r in lead_rows}
+            )
+        ],
     )
     if employee_id is None:
         values["employees"] = await db.scalar(select(func.count()).select_from(Employee)) or 0
