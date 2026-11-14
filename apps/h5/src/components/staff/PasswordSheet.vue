@@ -18,4 +18,10 @@ async function submit() {
  }
 }
 </script>
-<template><van-popup v-model:show="show" position="bottom" round closeable><section class="sheet stack"><h2>修改密码</h2><van-form @submit="submit"><van-field v-model="form.old" label="原密码" type="password" autocomplete="current-password" /><van-field v-model="form.next" label="新密码" type="password" autocomplete="new-password" /><van-field v-model="form.confirm" label="确认密码" type="password" autocomplete="new-password" /><p class="muted">8–20 位，包含字母和数字，两次输入一致</p><p v-if="failure" class="error" role="alert">{{ failure }}</p><van-button block type="primary" native-type="submit" :disabled="!valid || !form.old" :loading="saving">保存</van-button></van-form></section></van-popup></template>
+<template><van-popup v-model:show="show" position="bottom" round closeable><section class="sheet stack"><header class="sheet-head"><span class="icon i-lucide-lock head-icon" aria-hidden="true" /><h2>修改密码</h2></header><van-form @submit="submit"><van-cell-group inset><van-field v-model="form.old" label="原密码" type="password" autocomplete="current-password" placeholder="请输入原密码" /></van-cell-group><van-cell-group inset><van-field v-model="form.next" label="新密码" type="password" autocomplete="new-password" placeholder="8–20 位，含字母和数字" /><van-field v-model="form.confirm" label="确认密码" type="password" autocomplete="new-password" placeholder="再次输入新密码" /></van-cell-group><p class="muted small help">8–20 位，包含字母和数字，两次输入一致</p><p v-if="failure" class="error" role="alert">{{ failure }}</p><div class="actions"><van-button block type="primary" native-type="submit" :disabled="!valid || !form.old" :loading="saving">保存</van-button></div></van-form></section></van-popup></template>
+<style scoped>
+.sheet-head{display:flex;align-items:center;gap:var(--sp-2)}
+.head-icon{color:var(--c-text-2)}
+.help{padding:0 var(--sp-1)}
+.actions{margin-top:var(--sp-2)}
+</style>
