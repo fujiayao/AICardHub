@@ -79,12 +79,8 @@ def bounded_text(text: str, tokens: int, *, chars: int = 12_000) -> str:
 
 
 def document_hash(document: dict[str, Any]) -> str:
-    payload = {
-        key: value for key, value in document.items() if key not in {"hash", "tokens"}
-    }
-    encoded = json.dumps(
-        payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    )
+    payload = {key: value for key, value in document.items() if key not in {"hash", "tokens"}}
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha1(encoded.encode("utf-8")).hexdigest()
 
 
@@ -139,9 +135,5 @@ def parse_document(text: str, file_id: str) -> dict[str, Any]:
 
 
 def serialize_document(document: dict[str, Any]) -> str:
-    metadata = {
-        key: value
-        for key, value in document.items()
-        if key not in {"content", "tokens"}
-    }
+    metadata = {key: value for key, value in document.items() if key not in {"content", "tokens"}}
     return frontmatter.dumps(frontmatter.Post(document["content"], **metadata)) + "\n"

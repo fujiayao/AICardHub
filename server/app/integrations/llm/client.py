@@ -60,19 +60,18 @@ class FakeLLMClient:
         self.chunks = (
             list(chunks)
             if chunks is not None
-            else [
-                reply[index : index + chunk_size]
-                for index in range(0, len(reply), chunk_size)
-            ]
+            else [reply[index : index + chunk_size] for index in range(0, len(reply), chunk_size)]
         )
         self.fail_after, self.error, self.delay = fail_after, error, delay
         self.calls: list[list[dict[str, str]]] = []
         self.closed_streams = 0
+        self.stream_started = asyncio.Event()
 
     async def stream(self, messages: list[dict[str, str]]) -> AsyncIterator[str]:
         self.calls.append([dict(message) for message in messages])
         emitted = 0
         try:
+            self.stream_started.set()
             for chunk in self.chunks:
                 if self.delay:
                     await asyncio.sleep(self.delay)
@@ -95,9 +94,7 @@ class OpenAILLMClient:
 
     def __init__(self, base_url: str, api_key: str, model: str, timeout: float = 30):
         if not base_url or not api_key or not model or timeout <= 0:
-            raise ValueError(
-                "Complete provider configuration and positive timeout required"
-            )
+            raise ValueError("Complete provider configuration and positive timeout required")
         self.model, self.timeout = model, timeout
         self.first_token_timeout = min(15.0, timeout)
         self._client = AsyncOpenAI(
@@ -128,9 +125,7 @@ class OpenAILLMClient:
                 emitted,
             )
 
-    async def _stream_content(
-        self, messages: list[dict[str, str]]
-    ) -> AsyncIterator[str]:
+    async def _stream_content(self, messages: list[dict[str, str]]) -> AsyncIterator[str]:
         response = await self._client.chat.completions.create(
             model=self.model,
             messages=cast(list[ChatCompletionMessageParam], messages),

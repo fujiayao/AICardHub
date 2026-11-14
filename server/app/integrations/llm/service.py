@@ -55,11 +55,7 @@ class ChatEngine:
         history: list[dict[str, Any]],
         persona: str = "",
     ) -> AsyncIterator[dict[str, Any]]:
-        if (
-            not isinstance(question, str)
-            or not question.strip()
-            or len(question) > 8000
-        ):
+        if not isinstance(question, str) or not question.strip() or len(question) > 8000:
             yield _event(
                 "error",
                 code="INVALID_QUESTION",
@@ -68,9 +64,7 @@ class ChatEngine:
             return
         phone_found = PHONE.search(question) is not None
         if phone_found:
-            yield _event(
-                "lead_prompt", reason="phone", title="如需跟进，请确认并提交联系方式"
-            )
+            yield _event("lead_prompt", reason="phone", title="如需跟进，请确认并提交联系方式")
         if QUOTE.search(question):
             yield _event("delta", text=QUOTE_REPLY)
             if not phone_found:
@@ -89,9 +83,7 @@ class ChatEngine:
             yield _event("done", kb_refs=[], nokb=False, model="policy")
             return
         if IDENTITY.search(question):
-            yield _event(
-                "delta", text="我是名片本人的 AI 分身。具体业务和承诺请与本人确认。"
-            )
+            yield _event("delta", text="我是名片本人的 AI 分身。具体业务和承诺请与本人确认。")
             yield _event("done", kb_refs=[], nokb=False, model="policy")
             return
         selected = await asyncio.to_thread(public_knowledge, knowledge)
@@ -109,9 +101,7 @@ class ChatEngine:
                 # First *nonempty provider content*, even a buffered marker, commits
                 # this attempt. This is stricter than first customer-visible delta.
                 async with managed_stream(client.stream(messages)) as iterator:
-                    async with asyncio.timeout(
-                        float(getattr(client, "first_token_timeout", 15))
-                    ):
+                    async with asyncio.timeout(float(getattr(client, "first_token_timeout", 15))):
                         while True:
                             first = await anext(iterator)
                             if first:

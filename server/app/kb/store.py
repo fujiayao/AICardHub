@@ -130,9 +130,7 @@ class KnowledgeStore:
         key = str(path)
         if key not in self._cache or self._cache[key][0] != digest:
             document = parse_document(raw, path.stem)
-            expected = self._path(
-                document["file_id"], document["scope"], document["card_code"]
-            )
+            expected = self._path(document["file_id"], document["scope"], document["card_code"])
             if path != expected:
                 raise ValueError("Knowledge owner differs from path")
             if len(self._cache) >= 256:
@@ -159,9 +157,7 @@ class KnowledgeStore:
             if document["revision"] != int(path.stem):
                 raise ValueError("Revision differs from filename")
             documents.append(document)
-        return sorted(
-            documents, key=lambda document: document["revision"], reverse=True
-        )
+        return sorted(documents, key=lambda document: document["revision"], reverse=True)
 
     def _atomic_write(self, path: Path, text: str) -> None:
         self._safe(path)
@@ -307,10 +303,7 @@ class KnowledgeStore:
                 deleted=True,
                 public=False,
                 approved=False,
-                revision=max(
-                    current["revision"], versions[0]["revision"] if versions else 0
-                )
-                + 1,
+                revision=max(current["revision"], versions[0]["revision"] if versions else 0) + 1,
             )
             self._save(current)
 
@@ -325,9 +318,7 @@ class KnowledgeStore:
             raise ValueError("Invalid revision")
         with self._lock:
             versions = self._history(file_id)
-            target = next(
-                (item for item in versions if item["revision"] == revision), None
-            )
+            target = next((item for item in versions if item["revision"] == revision), None)
             if target is None:
                 raise KeyError("Knowledge revision not found")
             current = self._get(file_id)
@@ -348,9 +339,7 @@ class KnowledgeStore:
             raise ValueError("Invalid search arguments")
         if limit <= 0 or not query.strip():
             return []
-        terms = set(
-            re.findall(r"[a-z0-9_]+|[\u3400-\u9fff]{1,2}", query[:2000].lower())
-        )
+        terms = set(re.findall(r"[a-z0-9_]+|[\u3400-\u9fff]{1,2}", query[:2000].lower()))
         if not terms:
             return []
         with self._lock:
@@ -358,10 +347,7 @@ class KnowledgeStore:
             for document in self.list_files():
                 if document["public"] is not True or document["approved"] is not True:
                     continue
-                if (
-                    document["scope"] != "company"
-                    and document["card_code"] != card_code
-                ):
+                if document["scope"] != "company" and document["card_code"] != card_code:
                     continue
                 body, title = document["content"].lower(), document["title"].lower()
                 score = sum(3 * (term in title) + (term in body) for term in terms)

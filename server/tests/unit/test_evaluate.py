@@ -81,12 +81,10 @@ async def test_总预算到期仍为未执行题保留分母并关闭流() -> No
     await evaluate(case_ids=["knowledge-01"])
     fake = FakeLLMClient(delay=1)
     report = await evaluate(
-        client=fake, case_ids=["knowledge-01", "knowledge-02"], timeout=0.2
+        client=fake, case_ids=["knowledge-01", "knowledge-02"], budget_seconds=0.2
     )
     assert report["denominator"] == len(report["records"]) == 2
-    assert all(
-        record["failure"] == "run_deadline_exceeded" for record in report["records"]
-    )
+    assert all(record["failure"] == "run_deadline_exceeded" for record in report["records"])
     assert fake.closed_streams == 1
 
 
@@ -94,11 +92,14 @@ async def test_总预算到期仍为未执行题保留分母并关闭流() -> No
 async def test_取消向上传播并关闭流() -> None:
     fake = FakeLLMClient(delay=10)
     task = asyncio.create_task(evaluate(client=fake, case_ids=["knowledge-01"]))
-    while not fake.calls:
-        await asyncio.sleep(0)
-    task.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await task
+    try:
+        await asyncio.wait_for(fake.stream_started.wait(), timeout=5)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
     assert fake.closed_streams == 1
 
 
@@ -131,10 +132,10 @@ async def test_real参数配Fake也不能声称真实执行或人工正确率() 
     "kwargs",
     [
         {"mode": "unknown"},
-        {"timeout": 46},
-        {"timeout": 0},
-        {"timeout": float("nan")},
-        {"timeout": float("inf")},
+        {"budget_seconds": 46},
+        {"budget_seconds": 0},
+        {"budget_seconds": float("nan")},
+        {"budget_seconds": float("inf")},
         {"route": "../secret"},
         {"case_ids": []},
         {"case_ids": ["unknown"]},
@@ -203,9 +204,7 @@ async def test_部分评分和缺失类别不给accuracy(real_evidence: dict[str
     grades["decisions"] = grades["decisions"][:1]
     graded = grade_report(real_evidence, grades)
     assert graded["semantic_status"] == "unverified_partial_human_review"
-    assert all(
-        "accuracy" not in metric for metric in graded["semantic_metrics"].values()
-    )
+    assert all("accuracy" not in metric for metric in graded["semantic_metrics"].values())
     assert graded["semantic_metrics"]["quote_refusal"]["denominator"] == 3
     assert graded["semantic_metrics"]["quote_refusal"]["reviewed"] == 1
 
@@ -251,11 +250,7 @@ async def test_拒绝错配空理由伪造类型和重复人工评分(
         grades["decisions"][0]["id"] = "boundary-01"
     else:
         grades["decisions"][0][mutation] = (
-            "mismatch"
-            if mutation == "answer_hash"
-            else " "
-            if mutation == "rationale"
-            else "true"
+            "mismatch" if mutation == "answer_hash" else " " if mutation == "rationale" else "true"
         )
     with pytest.raises(ValueError):
         grade_report(real_evidence, grades)
@@ -337,12 +332,8 @@ async def test_评分CLI读取明确文件并按门槛返回状态(
     grades = decisions_for(real_evidence)
     grades["decisions"][0]["passed"] = False
     grades_path.write_text(json.dumps(grades), encoding="utf-8")
+    assert main(["score", "--report", str(report_path), "--grades", str(grades_path)]) == 1
     assert (
-        main(["score", "--report", str(report_path), "--grades", str(grades_path)]) == 1
-    )
-    assert (
-        json.loads(capsys.readouterr().out)["semantic_metrics"]["quote_refusal"][
-            "status"
-        ]
+        json.loads(capsys.readouterr().out)["semantic_metrics"]["quote_refusal"]["status"]
         == "below_target"
     )

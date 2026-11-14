@@ -202,34 +202,24 @@ def seal(report: dict[str, Any]) -> dict[str, Any]:
     return report
 
 
-def _checks(
-    case: dict[str, Any], events: list[dict[str, Any]], response: str
-) -> dict[str, bool]:
+def _checks(case: dict[str, Any], events: list[dict[str, Any]], response: str) -> dict[str, bool]:
     done = [event["data"] for event in events if event["event"] == "done"]
-    leads = [
-        event["data"].get("reason")
-        for event in events
-        if event["event"] == "lead_prompt"
-    ]
+    leads = [event["data"].get("reason") for event in events if event["event"] == "lead_prompt"]
     expected_refs = [] if case["expected_policy"] else [DOCUMENT["file_id"]]
     return {
         "completed_without_error": len(done) == 1
         and not any(event["event"] == "error" for event in events),
         "terminal_done": bool(events) and events[-1]["event"] == "done",
         "allowed_events_only": all(
-            event["event"] in {"delta", "lead_prompt", "done", "error"}
-            for event in events
+            event["event"] in {"delta", "lead_prompt", "done", "error"} for event in events
         ),
         "nonempty_answer": bool(response.strip()),
         "internal_marker_hidden": "<<NOKB>>" not in response,
-        "reference_boundary": len(done) == 1
-        and done[0].get("kb_refs") == expected_refs,
-        "nokb_contract": len(done) == 1
-        and done[0].get("nokb") is case["expected_nokb"],
+        "reference_boundary": len(done) == 1 and done[0].get("kb_refs") == expected_refs,
+        "nokb_contract": len(done) == 1 and done[0].get("nokb") is case["expected_nokb"],
         "policy_path": len(done) == 1
         and (done[0].get("model") == "policy") is case["expected_policy"],
-        "lead_prompt_contract": leads
-        == ([case["expected_lead"]] if case["expected_lead"] else []),
+        "lead_prompt_contract": leads == ([case["expected_lead"]] if case["expected_lead"] else []),
     }
 
 
@@ -238,23 +228,21 @@ async def evaluate(
     *,
     client: LLMClient | None = None,
     case_ids: list[str] | None = None,
-    timeout: float = 45,
+    budget_seconds: float = 45,
     route: str = "default",
 ) -> dict[str, Any]:
     """Collect bounded evidence. Fake checks are never semantic pass/fail scores."""
     if (
         mode not in {"fake", "real"}
-        or not math.isfinite(timeout)
-        or not 0 < timeout <= 45
+        or not math.isfinite(budget_seconds)
+        or not 0 < budget_seconds <= 45
     ):
         raise ValueError("Use fake/real mode and a timeout in (0,45] seconds")
     if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,31}", route):
         raise ValueError("Invalid environment route name")
     all_cases = samples()
     selected = (
-        all_cases
-        if case_ids is None
-        else [case for case in all_cases if case["id"] in case_ids]
+        all_cases if case_ids is None else [case for case in all_cases if case["id"] in case_ids]
     )
     if not selected or (
         case_ids is not None
@@ -281,9 +269,7 @@ async def evaluate(
         "targets": TARGETS.copy(),
         "real_execution": "unverified_not_run",
         "provider_kind": "fake" if mode == "fake" else "not_configured",
-        "semantic_status": "not_applicable_fake"
-        if mode == "fake"
-        else "unverified_pending_human",
+        "semantic_status": "not_applicable_fake" if mode == "fake" else "unverified_pending_human",
         "semantic_metrics": {},
         "records": [],
         "limitations": [
@@ -298,15 +284,12 @@ async def evaluate(
             client = FakeLLMClient()
         else:
             prefix = "EVAL_" if route == "default" else f"EVAL_{route.upper()}_"
-            values = [
-                os.environ.get(prefix + key, "")
-                for key in ("BASE_URL", "API_KEY", "MODEL")
-            ]
+            values = [os.environ.get(prefix + key, "") for key in ("BASE_URL", "API_KEY", "MODEL")]
             if not all(values):
                 report["configuration_error"] = "missing_route_environment"
                 return seal(report)
             client = OpenAILLMClient(
-                base_url=values[0], api_key=values[1], model=values[2], timeout=timeout
+                base_url=values[0], api_key=values[1], model=values[2], timeout=budget_seconds
             )
             owned = True
     provider_kind = "fake" if isinstance(client, FakeLLMClient) else "real"
@@ -320,7 +303,7 @@ async def evaluate(
         for case in selected:
             events: list[dict[str, Any]] = []
             failure = None
-            remaining = timeout - (time.monotonic() - started)
+            remaining = budget_seconds - (time.monotonic() - started)
             if remaining > 0:
                 stream = engine.stream(case["question"], case["knowledge"], [])
                 try:
@@ -340,9 +323,7 @@ async def evaluate(
             )
             checks = _checks(case, events, response)
             completed = (
-                checks["completed_without_error"]
-                and checks["terminal_done"]
-                and failure is None
+                checks["completed_without_error"] and checks["terminal_done"] and failure is None
             )
             record = {
                 "id": case["id"],
@@ -420,9 +401,7 @@ def grade_report(report: dict[str, Any], grades: dict[str, Any]) -> dict[str, An
     decisions = grades.get("decisions")
     if not isinstance(decisions, list):
         raise TypeError("Human decisions must be a list")
-    selected = [
-        case for case in samples() if case["id"] in report.get("selected_ids", [])
-    ]
+    selected = [case for case in samples() if case["id"] in report.get("selected_ids", [])]
     if (
         report.get("selected_ids") != [case["id"] for case in selected]
         or report.get("selection_hash") != digest(selected)
@@ -451,10 +430,7 @@ def grade_report(report: dict[str, Any], grades: dict[str, Any]) -> dict[str, An
             or type(decision.get("passed")) is not bool
         ):
             raise ValueError("Answer hash mismatch or nonboolean grade")
-        if (
-            not isinstance(decision.get("rationale"), str)
-            or not decision["rationale"].strip()
-        ):
+        if not isinstance(decision.get("rationale"), str) or not decision["rationale"].strip():
             raise ValueError("Human rationale required")
         by_id[case_id] = decision
     result = deepcopy(report)
@@ -462,9 +438,7 @@ def grade_report(report: dict[str, Any], grades: dict[str, Any]) -> dict[str, An
     result["human_review"] = deepcopy(grades)
     metrics = {}
     for category, target in TARGETS.items():
-        subset = [
-            record for record in records.values() if record["category"] == category
-        ]
+        subset = [record for record in records.values() if record["category"] == category]
         reviewed = [by_id[record["id"]] for record in subset if record["id"] in by_id]
         metric: dict[str, Any] = {
             "denominator": len(subset),
@@ -494,9 +468,7 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--route", default="default")
     run.add_argument("--case", action="append", dest="case_ids")
     run.add_argument("--timeout", type=float, default=45)
-    score = sub.add_parser(
-        "score", help="attach explicit human grading to a real report"
-    )
+    score = sub.add_parser("score", help="attach explicit human grading to a real report")
     score.add_argument("--report", type=Path, required=True)
     score.add_argument("--grades", type=Path, required=True)
     args = parser.parse_args(argv)
@@ -510,7 +482,7 @@ def main(argv: list[str] | None = None) -> int:
                     args.mode,
                     route=args.route,
                     case_ids=args.case_ids,
-                    timeout=args.timeout,
+                    budget_seconds=args.timeout,
                 )
             )
         else:
@@ -519,13 +491,9 @@ def main(argv: list[str] | None = None) -> int:
                 json.loads(args.grades.read_text(encoding="utf-8-sig")),
             )
     except (ValueError, OSError, TypeError, KeyError):
-        sys.stderr.write(
-            "Evaluation failed: invalid configuration, report or human grades.\n"
-        )
+        sys.stderr.write("Evaluation failed: invalid configuration, report or human grades.\n")
         return 2
-    sys.stdout.write(
-        json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False) + "\n"
-    )
+    sys.stdout.write(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False) + "\n")
     if result.get("configuration_error"):
         return 2
     if args.command == "run":
@@ -540,9 +508,7 @@ def main(argv: list[str] | None = None) -> int:
     return (
         0
         if result["semantic_status"] == "human_reviewed"
-        and all(
-            metric["status"] == "met" for metric in result["semantic_metrics"].values()
-        )
+        and all(metric["status"] == "met" for metric in result["semantic_metrics"].values())
         else 1
     )
 

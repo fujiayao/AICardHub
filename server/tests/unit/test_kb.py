@@ -102,9 +102,7 @@ def test_公司与本人资料可见但他人卡片严格隔离(store: Knowledge
     publish(store, "company-demo")
     publish(store, "alice-demo", scope="personal", card_code="alice")
     publish(store, "bob-demo", scope="card", card_code="bob")
-    store.upsert(
-        "private-demo", "合成演示产品", "私人内容", scope="personal", card_code="alice"
-    )
+    store.upsert("private-demo", "合成演示产品", "私人内容", scope="personal", card_code="alice")
     assert {item["file_id"] for item in store.search("演示产品", "alice")} == {
         "company-demo",
         "alice-demo",
@@ -144,9 +142,7 @@ def test_回滚增加版本但不会重新公开被撤回内容(store: Knowledge
 
 def test_并发写入不丢失版本(store: KnowledgeStore) -> None:
     def write(index: int) -> int:
-        return KnowledgeStore(store.root).upsert("demo", "并发合成内容", str(index))[
-            "revision"
-        ]
+        return KnowledgeStore(store.root).upsert("demo", "并发合成内容", str(index))["revision"]
 
     with ThreadPoolExecutor(max_workers=4) as executor:
         revisions = list(executor.map(write, range(8)))
@@ -179,9 +175,7 @@ def test_损坏文档拒绝进入检索索引(store: KnowledgeStore) -> None:
 
 def test_检索有数量和上下文上限(store: KnowledgeStore) -> None:
     for index in range(6):
-        store.upsert(
-            f"demo-{index}", "演示产品", "演示产品" * 12_000, public=True, approved=True
-        )
+        store.upsert(f"demo-{index}", "演示产品", "演示产品" * 12_000, public=True, approved=True)
     found = store.search("演示产品", limit=100)
     assert len(found) == 4
     assert sum(estimate_tokens(item["content"]) for item in found) <= 6000
@@ -208,9 +202,7 @@ def test_禁止链接指向存储外部(store: KnowledgeStore, tmp_path: Path) -
         (store.root / "company").rmdir()
 
 
-def test_提交失败恢复当前文档和历史(
-    store: KnowledgeStore, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_提交失败恢复当前文档和历史(store: KnowledgeStore, monkeypatch: pytest.MonkeyPatch) -> None:
     original = publish(store)
     original_git = store._git
 
