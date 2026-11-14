@@ -11,6 +11,7 @@ import TrendChart from "./TrendChart.vue";
 import LeadPipeline from "./LeadPipeline.vue";
 import Shortcuts from "./Shortcuts.vue";
 import LeadsTable from "./LeadsTable.vue";
+import SourceBreakdown from "./SourceBreakdown.vue";
 const stats = shallowRef<Stats>();
 const { busy, error, run } = useTask();
 const pipeline = useTemplateRef<InstanceType<typeof LeadPipeline>>("pipeline");
@@ -50,15 +51,10 @@ onMounted(load);
       <LeadPipeline ref="pipeline" />
     </div>
     <div class="grid">
-      <section class="panel source" aria-labelledby="source-title">
+      <SourceBreakdown v-if="stats && !error" :rows="stats.source_breakdown" />
+      <section v-else class="panel" aria-labelledby="source-title">
         <div class="panel-head"><h2 id="source-title">访问来源分布</h2></div>
-        <div class="pending-state">
-          <strong>统计接口暂未提供来源维度</strong>
-          <span
-            >当前统计契约只包含总量与每日趋势，不含二维码 / 链接 /
-            海报等来源拆分。后端发布来源统计字段后再展示，本页不生成示例数据。</span
-          >
-        </div>
+        <LoadState :busy="busy" :error="error" @retry="load" />
       </section>
       <Shortcuts />
     </div>
