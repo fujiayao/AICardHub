@@ -127,7 +127,10 @@ async def employee_update(
         raise AppError(ErrorCode.FORBIDDEN, 403, "不能停用或移除自己的管理员身份")
     data = payload.model_dump(exclude_unset=True)
     previous_role = row.role
-    effective_role = data.get("role", row.role)
+    effective_role = data.get("role") or row.role
+    effective_phone = data.get("phone", row.phone)
+    if effective_role == "admin" and not (effective_phone and row.password_hash):
+        raise AppError(ErrorCode.FORBIDDEN, 403, "请先补充手机号并设置密码后再授予管理员身份")
     if "company_id" in data:
         row.company_id = await shared.resolve_company_id(db, data.pop("company_id"))
     if "phone" in data:
@@ -140,6 +143,8 @@ async def employee_update(
                 row.password_hash = None
                 row.token_version += 1
         else:
+            if new_phone != row.phone:
+                row.token_version += 1
             row.phone = new_phone
     for key, value in data.items():
         if value is not None:
