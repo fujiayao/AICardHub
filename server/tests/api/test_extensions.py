@@ -502,6 +502,7 @@ def test_独立调度器时间与任务注册不启动API():
         "cleanup",
         "render",
     }
+    assert scheduler.get_job("render").trigger.interval.total_seconds() == 15
     assert str(scheduler.timezone) == "Asia/Shanghai"
     assert "hour='9'" in str(scheduler.get_job("digest").trigger)
 

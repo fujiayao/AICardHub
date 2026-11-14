@@ -37,7 +37,7 @@ def create_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler(timezone="Asia/Shanghai")
     for name, function, interval in [
         ("sessions", tasks.end_sessions, 60),
-        ("render", tasks.render_pending, 30),
+        ("render", tasks.render_pending, 15),
         ("overdue", tasks.overdue_reminders, 3600),
     ]:
         scheduler.add_job(
