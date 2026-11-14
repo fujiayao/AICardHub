@@ -103,6 +103,8 @@ class ChatSession(Entity):
     is_test: Mapped[bool] = mapped_column(default=False)
     rounds: Mapped[int] = mapped_column(default=0)
     lead_prompts: Mapped[int] = mapped_column(default=0)
+    generation_token: Mapped[str | None] = mapped_column(String(36))
+    generation_expires_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
     last_msg_at: Mapped[datetime] = mapped_column(UTCDateTime(), default=utcnow)
     ended_at: Mapped[datetime | None] = mapped_column(UTCDateTime())
     summary: Mapped[str] = mapped_column(Text, default="")
@@ -209,3 +211,10 @@ class KnowledgeFile(Entity):
     public: Mapped[bool] = mapped_column(Boolean, default=False)
     approved: Mapped[bool] = mapped_column(Boolean, default=False)
     revision: Mapped[int] = mapped_column(default=1)
+
+
+class CardAccessGrant(Entity):
+    __tablename__ = "card_access_grant"
+    card_id: Mapped[int] = mapped_column(ForeignKey("card.id"), unique=True)
+    employee_id: Mapped[int] = mapped_column(ForeignKey("employee.id"), index=True)
+    operator_id: Mapped[int] = mapped_column(ForeignKey("employee.id"))

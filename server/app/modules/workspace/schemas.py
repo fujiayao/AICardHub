@@ -254,6 +254,7 @@ class LeadResult(Schema):
 
 
 class LeadData(Schema):
+    visitor_id: int
     id: int
     name: str
     phone: str
@@ -363,16 +364,27 @@ class VisitorData(Schema):
 
 
 class VisitorSession(Schema):
+    intent_level: Literal["A", "B", "C"] = "C"
+    tags: list[str] = Field(default_factory=list)
     id: int
     summary: str
     messages: list[MessageData]
 
 
+class VisitorVisit(Schema):
+    source: Source
+    created_at: datetime
+    stay_seconds: int
+
+
 class VisitorDetail(VisitorData):
+    visits: list[VisitorVisit] = Field(default_factory=list)
     sessions: list[VisitorSession]
 
 
 class NotificationData(Schema):
+    target_type: str = ""
+    target_id: int | None = None
     id: int
     title: str
     content: str
@@ -457,11 +469,13 @@ class RulesData(Schema):
 
 
 class SettingInput(Schema):
-    value: Any
+    value: Any = None
+    clear_secret: bool = False
 
 
-class SettingData(SettingInput):
+class SettingData(Schema):
     key: str
+    value: Any
 
 
 class AuditData(Schema):
@@ -498,3 +512,29 @@ class ImportRow(Schema):
 
 class EmployeeImportResult(Schema):
     items: list[ImportRow]
+
+
+class KnowledgeUploadDraft(NoteInput):
+    file_id: str
+    description: str = ""
+    scope: Literal["company"] = "company"
+
+
+class KnowledgeUploadRow(Schema):
+    filename: str
+    valid: bool
+    message: str
+    draft: KnowledgeUploadDraft | None = None
+
+
+class KnowledgeUploadResult(Schema):
+    items: list[KnowledgeUploadRow]
+
+
+class RuntimeConfiguration(Schema):
+    settings: dict[str, Any]
+    limits_unit: Literal["messages_per_day"] = "messages_per_day"
+
+
+class WechatQRData(Schema):
+    wechat_qr_url: str

@@ -848,6 +848,49 @@
         ]
       }
     },
+    "/api/v1/me/card/wechat-qr": {
+      "post": {
+        "summary": "Card Wechat Qr",
+        "operationId": "me_card_wechat_qr",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_me_card_wechat_qr"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WechatQRData"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/me/assistant": {
       "get": {
         "summary": "Assistant Get",
@@ -2365,6 +2408,49 @@
         }
       }
     },
+    "/api/v1/admin/employees/import": {
+      "post": {
+        "summary": "Employee Import",
+        "operationId": "employee_import",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_employee_import"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeImportResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/employees/{id}": {
       "put": {
         "summary": "Employee Update",
@@ -3094,6 +3180,49 @@
         }
       }
     },
+    "/api/v1/admin/kb/upload": {
+      "post": {
+        "summary": "Knowledge Upload",
+        "operationId": "kb_admin_upload",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_kb_admin_upload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeUploadResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/kb/files": {
       "get": {
         "summary": "Notes",
@@ -3619,6 +3748,29 @@
         ]
       }
     },
+    "/api/v1/admin/runtime-settings": {
+      "get": {
+        "summary": "Runtime Configuration",
+        "operationId": "runtime_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeConfiguration"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/admin/settings/{key}": {
       "get": {
         "summary": "Settings Get",
@@ -3993,6 +4145,37 @@
         ],
         "title": "AuditData"
       },
+      "Body_employee_import": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_employee_import"
+      },
+      "Body_kb_admin_upload": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_kb_admin_upload"
+      },
       "Body_me_card_photo": {
         "properties": {
           "file": {
@@ -4006,6 +4189,20 @@
           "file"
         ],
         "title": "Body_me_card_photo"
+      },
+      "Body_me_card_wechat_qr": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_me_card_wechat_qr"
       },
       "Body_me_kb_import": {
         "properties": {
@@ -4429,6 +4626,23 @@
         ],
         "title": "Draft"
       },
+      "EmployeeImportResult": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ImportRow"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "EmployeeImportResult"
+      },
       "EmployeeInput": {
         "properties": {
           "name": {
@@ -4712,6 +4926,40 @@
         ],
         "title": "ImportResult"
       },
+      "ImportRow": {
+        "properties": {
+          "row": {
+            "type": "integer",
+            "title": "Row"
+          },
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "employee": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Staff"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "row",
+          "ok",
+          "message"
+        ],
+        "title": "ImportRow"
+      },
       "IssueData": {
         "properties": {
           "id": {
@@ -4792,8 +5040,112 @@
         ],
         "title": "IssuePatch"
       },
+      "KnowledgeUploadDraft": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 100000,
+            "minLength": 1,
+            "title": "Content"
+          },
+          "public": {
+            "type": "boolean",
+            "title": "Public",
+            "default": false
+          },
+          "approved": {
+            "type": "boolean",
+            "title": "Approved",
+            "default": false
+          },
+          "file_id": {
+            "type": "string",
+            "title": "File Id"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "scope": {
+            "type": "string",
+            "const": "company",
+            "title": "Scope",
+            "default": "company"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "content",
+          "file_id"
+        ],
+        "title": "KnowledgeUploadDraft"
+      },
+      "KnowledgeUploadResult": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeUploadRow"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "KnowledgeUploadResult"
+      },
+      "KnowledgeUploadRow": {
+        "properties": {
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "draft": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KnowledgeUploadDraft"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "filename",
+          "valid",
+          "message"
+        ],
+        "title": "KnowledgeUploadRow"
+      },
       "LeadData": {
         "properties": {
+          "visitor_id": {
+            "type": "integer",
+            "title": "Visitor Id"
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -4852,6 +5204,7 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
+          "visitor_id",
           "id",
           "name",
           "phone",
@@ -5168,6 +5521,22 @@
       },
       "NotificationData": {
         "properties": {
+          "target_type": {
+            "type": "string",
+            "title": "Target Type",
+            "default": ""
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -5894,6 +6263,27 @@
         ],
         "title": "RulesData"
       },
+      "RuntimeConfiguration": {
+        "properties": {
+          "settings": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Settings"
+          },
+          "limits_unit": {
+            "type": "string",
+            "const": "messages_per_day",
+            "title": "Limits Unit",
+            "default": "messages_per_day"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "settings"
+        ],
+        "title": "RuntimeConfiguration"
+      },
       "SessionInput": {
         "properties": {
           "card_code": {
@@ -5939,19 +6329,19 @@
       },
       "SettingData": {
         "properties": {
-          "value": {
-            "title": "Value"
-          },
           "key": {
             "type": "string",
             "title": "Key"
+          },
+          "value": {
+            "title": "Value"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "value",
-          "key"
+          "key",
+          "value"
         ],
         "title": "SettingData"
       },
@@ -5959,13 +6349,15 @@
         "properties": {
           "value": {
             "title": "Value"
+          },
+          "clear_secret": {
+            "type": "boolean",
+            "title": "Clear Secret",
+            "default": false
           }
         },
         "additionalProperties": false,
         "type": "object",
-        "required": [
-          "value"
-        ],
         "title": "SettingInput"
       },
       "ShareData": {
@@ -6365,6 +6757,13 @@
             "format": "date-time",
             "title": "Last Seen At"
           },
+          "visits": {
+            "items": {
+              "$ref": "#/components/schemas/VisitorVisit"
+            },
+            "type": "array",
+            "title": "Visits"
+          },
           "sessions": {
             "items": {
               "$ref": "#/components/schemas/VisitorSession"
@@ -6404,6 +6803,23 @@
       },
       "VisitorSession": {
         "properties": {
+          "intent_level": {
+            "type": "string",
+            "enum": [
+              "A",
+              "B",
+              "C"
+            ],
+            "title": "Intent Level",
+            "default": "C"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
           "id": {
             "type": "integer",
             "title": "Id"
@@ -6428,6 +6844,52 @@
           "messages"
         ],
         "title": "VisitorSession"
+      },
+      "VisitorVisit": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "nfc",
+              "qr",
+              "poster",
+              "link",
+              "sig"
+            ],
+            "title": "Source"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "stay_seconds": {
+            "type": "integer",
+            "title": "Stay Seconds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source",
+          "created_at",
+          "stay_seconds"
+        ],
+        "title": "VisitorVisit"
+      },
+      "WechatQRData": {
+        "properties": {
+          "wechat_qr_url": {
+            "type": "string",
+            "title": "Wechat Qr Url"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "wechat_qr_url"
+        ],
+        "title": "WechatQRData"
       },
       "DeltaEvent": {
         "additionalProperties": false,

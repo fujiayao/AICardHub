@@ -1,6 +1,8 @@
 from collections.abc import Callable
 from typing import Any, cast
 from uuid import uuid4
+from xml.etree.ElementTree import ParseError
+from zipfile import BadZipFile
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,7 +38,8 @@ async def notes(
     items = [
         s.NoteData.model_validate(row)
         for row in rows
-        if not str(row["file_id"]).startswith(("profile-", "persona-", "corrections-", "rules-"))
+        if employee_id is None
+        or not str(row["file_id"]).startswith(("profile-", "persona-", "corrections-", "rules-"))
     ]
     return s.Page[s.NoteData](
         items=items[(page - 1) * page_size : page * page_size],
@@ -208,12 +211,14 @@ async def issue_create(db: AsyncSession, employee_id: int, payload: s.IssueInput
     return s.IssueData.model_validate(row)
 
 
-async def polish(payload: s.PolishInput) -> s.TextData:
+async def polish(payload: s.PolishInput, db: AsyncSession) -> s.TextData:
     # Preserve factual content: ask the configured model only for expression changes.
     from app.integrations.llm.client import build_client
+    from app.modules.workspace.runtime_settings import load
 
-    client = build_client(get_settings())
-    if get_settings().llm_mode == "fake":
+    runtime = await load(db)
+    client = build_client(runtime)
+    if runtime.llm_mode == "fake":
         return s.TextData(text=payload.text.strip())
     parts = []
     iterator = client.stream(
@@ -260,7 +265,15 @@ async def import_document(content: bytes, filename: str) -> s.ImportResult:
         raise AppError(ErrorCode.VALIDATION_ERROR, 413, "文件不可超过20MB")
     try:
         text = await run_in_threadpool(extract_document, content, filename)
-    except (ValueError, UnicodeError) as exc:
+    except (
+        ValueError,
+        UnicodeError,
+        RuntimeError,
+        BadZipFile,
+        KeyError,
+        ParseError,
+        OSError,
+    ) as exc:
         raise AppError(ErrorCode.VALIDATION_ERROR, 422, "文件无法解析") from exc
     if not text.strip():
         raise AppError(ErrorCode.VALIDATION_ERROR, 422, "未提取到正文")
@@ -268,14 +281,14 @@ async def import_document(content: bytes, filename: str) -> s.ImportResult:
 
 
 async def rules_get(db: AsyncSession) -> s.RulesData:
-    from app.modules.workspace.admin_service import setting_get
+    from app.modules.workspace.models import Setting
 
-    result = await setting_get(db, "answer_rules")
-    return s.RulesData(content=str(result.value or ""))
+    row = await repo.optional(db, Setting, Setting.key == "answer_rules")
+    return s.RulesData(content=str(row.value if row else ""))
 
 
 async def rules_update(db: AsyncSession, actor: Employee, payload: s.RulesData) -> s.RulesData:
-    from app.modules.workspace.admin_service import setting_update
+    from app.modules.workspace.models import Setting
 
     await run_in_threadpool(
         (await get_store()).upsert,
@@ -285,5 +298,11 @@ async def rules_update(db: AsyncSession, actor: Employee, payload: s.RulesData) 
         public=False,
         approved=False,
     )
-    await setting_update(db, actor, "answer_rules", s.SettingInput(value=payload.content))
+    row = await repo.optional(db, Setting, Setting.key == "answer_rules")
+    if row is None:
+        db.add(Setting(key="answer_rules", value=payload.content))
+    else:
+        row.value = payload.content
+    await shared.audit(db, actor.id, "rules.update", "answer_rules")
+    await db.commit()
     return payload

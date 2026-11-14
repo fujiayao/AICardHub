@@ -54,3 +54,21 @@ OpenAPI：`uv run python -m app.export_openapi ../contracts/openapi.json`。
 - 最终 `uv run mypy app`：31源文件通过；`ruff check app alembic`通过；`ruff format --check`自有应用文件和迁移通过。
 - 生成契约64路径、85操作；`.env`与local-credentials.json均由git check-ignore确认忽略。
 - 业务候选提交 `8713f4e`；本补充只增加自有测试和本记录，不改验收测试或AI代理文件。
+
+## 扩展候选（2026-11-14）
+
+本节取代上文中相应未完成项。新增独立APScheduler进程（python -m app.scheduler），会话结束摘要与A意向通知、超时线索待办、上海时区9点日汇总、调试7天/通知90天/匿名及对话180天清理。摘要单批10条，每条领取数据库租约、提交释放行锁后调用模型，再独立提交；JSON失败仅重试一次后C级，不伪造意向。
+
+新增员工xlsx逐行导入（最多500行、大小和解压量限制、拒绝公式、密码不出现在结果/审计）、知识Markdown批量上传（仅未发布草稿）、模板/企业/名片变更资料重渲染；通过KnowledgeStore线程池写入，新内容撤批准。员工试聊仅本人卡私有资料的授权副本可见，访客仍仅批准公开资料。persona为system语气，人设不冒充事实来源。
+
+固定运行设置白名单与严格类型校验，MySQL每次读取无进程缓存；主/备模型地址、模型、加密key、超时及三级消息限额立即作用于下次调用。密钥掩码或空串提交保留原值，clear_secret=true显式清空；真实模式下不允许清空导致配置不完整，应先切fake/停用备用。未知键拒绝，规则只走专用接口。GET /admin/runtime-settings返回安全掩码完整配置；health读取实际运行模式/模型，数据库或配置失败503，不输出地址/key。限额单位明确messages_per_day，尚非Token预算。
+
+增量迁移cfe4fa4acaaa：card_access_grant转交授权及generation_token/expires_at租约。转交保留公开名片归属，接收人看关联访客会话，原员工不再拥有客户访问。生成租约=2*llm_timeout+30秒，最大270秒，原子条件含rounds<30。逐资源清理异常不阻断部分输出落库，取消最终传播。自主改密token_version++，旧token401需重新登录。损坏PDF/Word422。被清理访客token初始化401。
+
+新增/me/card/wechat-qr独立重编码图片上传（5MB，仅更新二维码字段）。NotificationData增加target_type/target_id，LeadData增加visitor_id，VisitorDetail增加visits，会话增加intent_level/tags。新增employee_import/kb_admin_upload/runtime_settings_get/me_card_wechat_qr共4操作，OpenAPI现89操作。
+
+验证：完整pytest121通过（296.44s，含新增23项），ruff check app tests、ruff format --check app tests全部通过，mypy38源文件通过；alembic heads单cfe4fa4acaaa、alembic check无差异。增量迁移已在开发库与测试库执行；测试库原由create_all生成，核对旧字段一致后stamp原revision再upgrade，未清空库。50HTTP全链路并发50/50、12.62秒；另有ASGI HTTP50流与延迟JSON摘要并行回归通过。API当前8000 PID3772；scheduler入口已测试注册，未启动常驻任务清理开发数据。
+
+AI修复原样cherry-pick：5367d55/5960a90/f60d54f对应本分支0c912c8/98f0e94/b92faf4。主干已有无需重复取。未改AI内核与验收测试。
+
+剩余限制：INTEGER/BIGINT、分享缓存/海报source/头像vCard、Token预算、文档LLM拆篇仍保持上文说明。数据库事务与版本化文件写入跨资源不原子：写入失败使业务事务失败；后续DB回滚时文件可能残留私有版本，但新生成内容均不公开且撤审批，须重新渲染/管理员复核补偿，不会自动批准。无正式模型评测/生产部署/真机/灰度通过声明。密码8–20规则补丁紧接单独提交。

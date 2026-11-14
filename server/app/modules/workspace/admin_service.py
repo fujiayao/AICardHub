@@ -1,12 +1,6 @@
-import base64
-import hashlib
-from typing import Any
-
-from cryptography.fernet import Fernet
 from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import get_settings
 from app.core.errors import AppError, ErrorCode
 from app.core.security import hash_password
 from app.modules.workspace import repo
@@ -21,7 +15,6 @@ from app.modules.workspace.models import (
     Lead,
     Notification,
     Product,
-    Setting,
     Template,
 )
 
@@ -31,6 +24,9 @@ async def company_update(
 ) -> s.CompanyData:
     row = await repo.one(db, Company)
     repo.assign(row, payload.model_dump())
+    from app.modules.workspace.render_service import render_all
+
+    await render_all(db)
     await shared.audit(db, actor.id, "company.update", str(row.id))
     await db.commit()
     return s.CompanyData.model_validate(row)
@@ -88,6 +84,9 @@ async def employee_update(
         row.token_version += 1
     card = await shared.own_card(db, row.id)
     card.status = row.status
+    from app.modules.workspace.render_service import render_card
+
+    await render_card(db, card)
     await shared.audit(db, actor.id, "employee.update", str(row.id))
     await db.commit()
     return await shared.staff_data(db, row)
@@ -120,6 +119,15 @@ async def employee_transfer(
     target = await repo.one(
         db, Employee, Employee.id == payload.to_employee_id, Employee.status == "active"
     )
+    from app.modules.workspace.models import CardAccessGrant
+
+    card_ids = await shared.customer_card_ids(db, employee_id)
+    for card_id in card_ids:
+        grant = await repo.optional(db, CardAccessGrant, CardAccessGrant.card_id == card_id)
+        if grant is None:
+            db.add(CardAccessGrant(card_id=card_id, employee_id=target.id, operator_id=actor.id))
+        else:
+            grant.employee_id, grant.operator_id = target.id, actor.id
     await db.execute(
         update(Lead)
         .where(Lead.owner_employee_id == employee_id)
@@ -148,6 +156,9 @@ async def template_save(
     repo.assign(row, payload.model_dump())
     db.add(row)
     await db.flush()
+    from app.modules.workspace.render_service import render_all
+
+    await render_all(db, row.id)
     await shared.audit(db, actor.id, "template.save", str(row.id))
     await db.commit()
     return s.TemplateData.model_validate(row)
@@ -205,46 +216,19 @@ async def issue_update(
     return s.IssueData.model_validate(row)
 
 
-def cipher() -> Fernet:
-    key = hashlib.sha256(get_settings().jwt_secret.get_secret_value().encode()).digest()
-    return Fernet(base64.urlsafe_b64encode(key))
+async def setting_get(db: AsyncSession, key: str) -> s.SettingData:
+    from app.modules.workspace.runtime_settings import get_value
 
-
-def secret_key(key: str) -> bool:
-    return any(word in key.lower() for word in ("api_key", "secret", "password", "token"))
-
-
-async def setting_get(db: AsyncSession, key: str, *, private: bool = False) -> s.SettingData:
-    row = await repo.optional(db, Setting, Setting.key == key)
-    value: Any = row.value if row else None
-    if secret_key(key) and value:
-        value = cipher().decrypt(str(value).encode()).decode() if private else "********"
-    return s.SettingData(key=key, value=value)
+    return s.SettingData(key=key, value=await get_value(db, key))
 
 
 async def setting_update(
     db: AsyncSession, actor: Employee, key: str, payload: s.SettingInput
 ) -> s.SettingData:
-    if len(key) > 100:
-        raise AppError(ErrorCode.VALIDATION_ERROR, 422)
-    row = await repo.optional(db, Setting, Setting.key == key)
-    value = payload.value
-    if secret_key(key):
-        if not isinstance(value, str):
-            raise AppError(ErrorCode.VALIDATION_ERROR, 422, "密钥必须为文本")
-        value = cipher().encrypt(value.encode()).decode()
-    elif isinstance(value, (dict, list)) and any(
-        word in str(value).lower() for word in ("api_key", "password", "secret")
-    ):
-        raise AppError(ErrorCode.VALIDATION_ERROR, 422, "密钥请使用独立设置项")
-    if row is None:
-        row = Setting(key=key, value=value)
-        db.add(row)
-    else:
-        row.value = value
-    await shared.audit(db, actor.id, "setting.update", key)
-    await db.commit()
-    return await setting_get(db, key)
+    from app.modules.workspace.runtime_settings import save
+
+    value = await save(db, actor, key, payload.value, clear_secret=payload.clear_secret)
+    return s.SettingData(key=key, value=value)
 
 
 async def audit_logs(db: AsyncSession, page: int, page_size: int) -> s.Page[s.AuditData]:

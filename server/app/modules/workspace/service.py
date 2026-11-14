@@ -65,6 +65,7 @@ async def change_password(db: AsyncSession, employee: Employee, payload: s.Passw
         raise AppError(ErrorCode.AUTH_INVALID, 400, "原密码不正确")
     employee.password_hash = await hash_password(payload.new_password)
     employee.must_change_pwd = False
+    employee.token_version += 1
     await db.commit()
     return s.OK()
 
@@ -122,6 +123,9 @@ async def card_data(db: AsyncSession, card: Card) -> s.CardData:
 
 async def update_card(db: AsyncSession, card: Card, payload: s.CardInput) -> s.CardData:
     repo.assign(card, payload.model_dump(exclude_none=True))
+    from app.modules.workspace.render_service import render_card
+
+    await render_card(db, card)
     await db.commit()
     return await card_data(db, card)
 
@@ -137,6 +141,9 @@ async def assistant_update(
         await repo.one(db, Template, Template.id == payload.template_id, Template.enabled.is_(True))
     assistant = await assistant_get(db, card)
     repo.assign(assistant, payload.model_dump())
+    from app.modules.workspace.render_service import render_card
+
+    await render_card(db, card)
     await db.commit()
     return s.AssistantData.model_validate(assistant)
 
@@ -188,6 +195,9 @@ async def create_employee(
         )
     )
     await db.flush()
+    from app.modules.workspace.render_service import render_card
+
+    await render_card(db, card)
     return employee
 
 
@@ -206,7 +216,9 @@ async def init_visitor(db: AsyncSession, token: str | None) -> s.VisitorInit:
 
     if token:
         payload = decode_token(token, "visitor")
-        visitor = await repo.one(db, Visitor, Visitor.anon_id == str(payload["sub"]))
+        visitor = await repo.optional(db, Visitor, Visitor.anon_id == str(payload["sub"]))
+        if visitor is None:
+            raise AppError(ErrorCode.AUTH_REQUIRED, 401, "访客身份已失效，请重新初始化")
         visitor.last_seen_at = utcnow()
     else:
         visitor = Visitor(anon_id=str(uuid4()))
@@ -233,3 +245,22 @@ async def update_visit(
     visit.stay_seconds = max(visit.stay_seconds, payload.stay_seconds)
     await db.commit()
     return s.OK()
+
+
+async def customer_card_ids(db: AsyncSession, employee_id: int) -> list[int]:
+    from sqlalchemy import select
+
+    from app.modules.workspace.models import CardAccessGrant
+
+    owned = select(Card.id).where(
+        Card.employee_id == employee_id, ~Card.id.in_(select(CardAccessGrant.card_id))
+    )
+    transferred = select(CardAccessGrant.card_id).where(CardAccessGrant.employee_id == employee_id)
+    return list((await db.scalars(owned.union(transferred))).all())
+
+
+async def lead_owner(db: AsyncSession, card: Card) -> int:
+    from app.modules.workspace.models import CardAccessGrant
+
+    grant = await repo.optional(db, CardAccessGrant, CardAccessGrant.card_id == card.id)
+    return grant.employee_id if grant else card.employee_id

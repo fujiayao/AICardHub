@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     llm_api_key: str = ""
     llm_model: str = ""
     llm_timeout: float = 30
+    llm_fallback_enabled: bool = False
+    llm_fallback_base_url: str = ""
+    llm_fallback_model: str = ""
+    llm_fallback_api_key: str = ""
     kb_root: str = "../data/kb"
     upload_root: str = "../data/uploads"
     public_base_url: str = "http://127.0.0.1:5173"

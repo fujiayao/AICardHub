@@ -3,9 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, File, Query, Request, UploadFile
 from fastapi.responses import PlainTextResponse, RedirectResponse, StreamingResponse
 
-from app.core.config import get_settings
 from app.core.deps import DB, Credentials, StaffDep, VisitorDep
-from app.modules.workspace import admin_service as admin
 from app.modules.workspace import chat_service as chat
 from app.modules.workspace import knowledge_service as kb
 from app.modules.workspace import me_service as me
@@ -21,10 +19,20 @@ PageSize = Annotated[int, Query(ge=1, le=100)]
 
 @public_redirect.get("/health", operation_id="health", response_model=s.HealthData)
 @router.get("/health", operation_id="api_health", response_model=s.HealthData)
-async def health() -> s.HealthData:
-    settings = get_settings()
+async def health(db: DB) -> s.HealthData:
+    from sqlalchemy.exc import SQLAlchemyError
+
+    from app.core.errors import AppError, ErrorCode
+    from app.modules.workspace.runtime_settings import load
+
+    try:
+        settings = await load(db)
+    except (SQLAlchemyError, AppError) as exc:
+        raise AppError(
+            ErrorCode.INTERNAL_ERROR, 503, "health degraded：数据库或运行配置不可用"
+        ) from exc
     return s.HealthData(
-        model="本地演示模型" if settings.llm_mode == "fake" else settings.llm_mode,
+        model="本地演示模型" if settings.llm_mode == "fake" else settings.llm_model,
         llm_mode=settings.llm_mode,
     )
 
@@ -168,6 +176,13 @@ async def card_photo(db: DB, staff: StaffDep, file: UploadFile = File(...)) -> s
     )
 
 
+@router.post("/me/card/wechat-qr", operation_id="me_card_wechat_qr", response_model=s.WechatQRData)
+async def card_wechat_qr(db: DB, staff: StaffDep, file: UploadFile = File(...)) -> s.WechatQRData:
+    return await media.wechat_qr(
+        db, await shared.own_card(db, staff.id), await file.read(5 * 1024 * 1024 + 1)
+    )
+
+
 @router.get("/me/assistant", operation_id="me_assistant_get", response_model=s.AssistantData)
 async def assistant_get(db: DB, staff: StaffDep) -> s.AssistantData:
     return s.AssistantData.model_validate(
@@ -186,12 +201,14 @@ async def assistant_update(payload: s.AssistantInput, db: DB, staff: StaffDep) -
     response_model=list[s.TemplateData],
 )
 async def assistant_templates(db: DB, staff: StaffDep) -> list[s.TemplateData]:
-    return await admin.templates(db, only_enabled=True)
+    from app.modules.workspace.render_service import template_previews
+
+    return await template_previews(db, staff.id)
 
 
 @router.post("/me/assistant/polish", operation_id="me_assistant_polish", response_model=s.TextData)
-async def assistant_polish(payload: s.PolishInput, staff: StaffDep) -> s.TextData:
-    return await kb.polish(payload)
+async def assistant_polish(payload: s.PolishInput, staff: StaffDep, db: DB) -> s.TextData:
+    return await kb.polish(payload, db)
 
 
 @router.get("/me/leads", operation_id="me_lead_list", response_model=s.Page[s.LeadData])

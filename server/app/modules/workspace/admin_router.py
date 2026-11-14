@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile
 
 from app.core.deps import DB, AdminDep
 from app.modules.workspace import admin_service as admin
@@ -53,6 +53,19 @@ async def employees(
 @router.post("/employees", operation_id="employee_create", response_model=s.Staff)
 async def employee_create(payload: s.EmployeeInput, db: DB, actor: AdminDep) -> s.Staff:
     return await admin.employee_create(db, actor, payload)
+
+
+@router.post(
+    "/employees/import", operation_id="employee_import", response_model=s.EmployeeImportResult
+)
+async def employee_import(
+    db: DB, actor: AdminDep, file: UploadFile = File(...)
+) -> s.EmployeeImportResult:
+    from app.modules.workspace import import_service
+
+    return await import_service.employee_import(
+        db, actor, await file.read(20 * 1024 * 1024 + 1), file.filename or ""
+    )
 
 
 @router.put("/employees/{id}", operation_id="employee_update", response_model=s.Staff)
@@ -155,6 +168,17 @@ async def leads(
     return await me.leads(db, None, page, page_size, status, q)
 
 
+@router.post("/kb/upload", operation_id="kb_admin_upload", response_model=s.KnowledgeUploadResult)
+async def knowledge_upload(
+    actor: AdminDep, files: list[UploadFile] = File(...)
+) -> s.KnowledgeUploadResult:
+    from app.modules.workspace import import_service
+
+    return await import_service.knowledge_upload(
+        [(file.filename or "", await file.read(1024 * 1024 + 1)) for file in files[:21]]
+    )
+
+
 @router.get("/kb/files", operation_id="kb_admin_list", response_model=s.Page[s.NoteData])
 async def notes(
     db: DB, actor: AdminDep, page: PageNumber = 1, page_size: PageSize = 20
@@ -220,6 +244,17 @@ async def rules_get(db: DB, actor: AdminDep) -> s.RulesData:
 @router.put("/rules", operation_id="rules_update", response_model=s.RulesData)
 async def rules_update(payload: s.RulesData, db: DB, actor: AdminDep) -> s.RulesData:
     return await kb.rules_update(db, actor, payload)
+
+
+@router.get(
+    "/runtime-settings", operation_id="runtime_settings_get", response_model=s.RuntimeConfiguration
+)
+async def runtime_configuration(db: DB, actor: AdminDep) -> s.RuntimeConfiguration:
+    from app.modules.workspace.runtime_settings import RuntimeSettings, get_value
+
+    return s.RuntimeConfiguration(
+        settings={key: await get_value(db, key) for key in RuntimeSettings.model_fields}
+    )
 
 
 @router.get("/settings/{key}", operation_id="settings_get", response_model=s.SettingData)

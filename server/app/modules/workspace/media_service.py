@@ -115,3 +115,28 @@ async def vcard(db: AsyncSession, code: str) -> str:
         "",
     ]
     return "\r\n".join(lines)
+
+
+def process_wechat_qr(content: bytes) -> str:
+    try:
+        with Image.open(BytesIO(content)) as source:
+            if (
+                source.format not in ("JPEG", "PNG", "WEBP")
+                or source.width * source.height > 25000000
+            ):
+                raise ValueError("invalid image")
+            image = source.convert("RGB")
+            image.thumbnail((1200, 1200))
+            filename = uuid4().hex + "-wechat.png"
+            image.save(root() / filename, format="PNG")
+            return "/files/" + filename
+    except (UnidentifiedImageError, ValueError, OSError, Image.DecompressionBombError) as exc:
+        raise AppError(ErrorCode.VALIDATION_ERROR, 422, "二维码图片格式无效") from exc
+
+
+async def wechat_qr(db: AsyncSession, card: Card, content: bytes) -> s.WechatQRData:
+    if len(content) > 5 * 1024 * 1024:
+        raise AppError(ErrorCode.VALIDATION_ERROR, 413, "图片不可超过5MB")
+    card.wechat_qr_url = await run_in_threadpool(process_wechat_qr, content)
+    await db.commit()
+    return s.WechatQRData(wechat_qr_url=card.wechat_qr_url)
