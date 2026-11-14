@@ -17,6 +17,7 @@ declare module 'vue' {
     ChatComposer: typeof import('./../components/common/ChatComposer.vue')['default']
     ChatConversation: typeof import('./../components/common/ChatConversation.vue')['default']
     CorrectionSheet: typeof import('./../components/staff/CorrectionSheet.vue')['default']
+    CustomerHistory: typeof import('./../components/staff/CustomerHistory.vue')['default']
     CustomerList: typeof import('./../components/staff/CustomerList.vue')['default']
     DemoBadge: typeof import('./../components/common/DemoBadge.vue')['default']
     DisabledCard: typeof import('./../components/visitor/DisabledCard.vue')['default']
