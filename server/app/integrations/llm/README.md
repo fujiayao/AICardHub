@@ -75,3 +75,47 @@ engine 从不创建线索；仅在用户明确同意并提交后由后端创建�
 能力探测、模型路由评测 CLI 或真实模型评测，均不应当宣称 T13–T16 全量旧任务
 已经完成。普通无 frontmatter Markdown 可以解析为默认未公开/未批准；不会为
 缺 description 的私人草稿自动调用云模型。
+
+## 独立合成评测 CLI
+
+在 server 目录运行 `python -m app.kb.evaluate run --mode fake`，stdout 输出 JSON，
+不会读取 `.env`、共享 settings 或任何知识目录。内置 `synthetic-card-v1` 纯合成
+14题（报价3、知识3、无关3、边界5），报告含完整题集 SHA256、选择题目 SHA256、
+逐题答复 hash、实际分母、目标及事件证据。此小样本只用于诊断，不是正式业务验收。
+Fake 的 automatic_summary 只统计协议/引用/政策路径，不能声称语义正确率。
+真实未运行明确标记 unverified_not_run；没有完整人工评分不产生 accuracy。
+
+真实路由只从进程环境取配置：默认 `EVAL_BASE_URL`、`EVAL_API_KEY`、`EVAL_MODEL`；
+`--route gpt` 改用 `EVAL_GPT_BASE_URL`、`EVAL_GPT_API_KEY`、`EVAL_GPT_MODEL`，可为
+不同模型分别保留报告，不合并供应商成绩。命令：
+
+```text
+python -m app.kb.evaluate run --mode real --route gpt --timeout 45
+python -m app.kb.evaluate run --mode real --route gpt --case knowledge-01 --timeout 45
+```
+
+第二条仅验证单题 streaming，不代表完整题集或语义通过。整次运行预算最多45秒；
+失败/超时题仍计分母，不静默换Fake。SDK请求URL和HTTP日志关闭，报告不写路由地址、
+API key、headers或供应商原始异常。调用方需要自行保存 stdout 到专用评测报告文件。
+退出码0仅代表本轮机器边界检查完成通过，不代表真实语义目标已达成；1为边界失败，
+2为配置/输入错误。每题 status、real_execution 与 semantic_status 须分别查看。
+
+人工逐题阅读 response、expected_behavior、rubric 后，制作 JSON：
+
+```json
+{
+  "report_hash": "原报告report_hash",
+  "sample_hash": "原报告sample_hash",
+  "reviewer": "实际评审人",
+  "decisions": [
+    {"id": "knowledge-01", "answer_hash": "逐题answer_hash", "passed": true, "rationale": "人工判断理由"}
+  ]
+}
+```
+
+运行 `python -m app.kb.evaluate score --report <report.json> --grades <grades.json>`。
+只接受 real 模式的真实供应商报告；要求人工判分、非空理由和精确答复 hash；失败
+题不可判成通过；部分评分保留原分母，不给该类 accuracy。全部该类题人工评分后，
+才计算通过数/该类分母，与报价拒答100%、知识正确90%、无关拉回95%比较。
+score退出码0表示所有类别人工完整评审且达标，1为未评完或未达标，2为无效评分。
+hash用于版本与答复绑定，不证明评审人身份，也不能代替真实人工工作。
