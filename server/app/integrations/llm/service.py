@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from typing import Any
 
 from app.integrations.llm.client import LLMClient, managed_stream
@@ -45,8 +45,24 @@ def _model(client: LLMClient) -> str:
 
 
 class ChatEngine:
-    def __init__(self, client: LLMClient, fallback: LLMClient | None = None):
+    def __init__(
+        self,
+        client: LLMClient,
+        fallback: LLMClient | None = None,
+        *,
+        fallbacks: Sequence[LLMClient] | None = None,
+    ):
+        if fallback is not None and fallbacks is not None:
+            raise ValueError("Use fallback or fallbacks, not both")
+        backups = (
+            list(fallbacks)
+            if fallbacks is not None
+            else ([fallback] if fallback is not None else [])
+        )
+        if len(backups) > 2:
+            raise ValueError("At most two fallback clients are supported")
         self.client, self.fallback = client, fallback
+        self.fallbacks = backups
 
     async def stream(
         self,
@@ -92,7 +108,7 @@ class ChatEngine:
             yield _event("done", kb_refs=[], nokb=True, model="policy")
             return
         messages = await build_messages(question, selected, history, persona)
-        clients = [self.client] + ([self.fallback] if self.fallback is not None else [])
+        clients = [self.client, *self.fallbacks]
         for index, client in enumerate(clients):
             received = False
             marker_filter = NOKBFilter()

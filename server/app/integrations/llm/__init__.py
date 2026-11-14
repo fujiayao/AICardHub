@@ -4,6 +4,7 @@ from app.integrations.llm.client import (
     FakeLLMClient,
     LLMClient,
     OpenAILLMClient,
+    ResponsesLLMClient,
     build_client,
 )
 from app.integrations.llm.service import ChatEngine
@@ -13,5 +14,6 @@ __all__ = [
     "FakeLLMClient",
     "LLMClient",
     "OpenAILLMClient",
+    "ResponsesLLMClient",
     "build_client",
 ]

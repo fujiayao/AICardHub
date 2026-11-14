@@ -4,14 +4,26 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import AsyncIterator
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
+from openai.types.responses import (
+    Response,
+    ResponseCompletedEvent,
+    ResponseErrorEvent,
+    ResponseFailedEvent,
+    ResponseIncompleteEvent,
+    ResponseStreamEvent,
+    ResponseTextDeltaEvent,
+)
 
 from app.integrations.llm import (
     ChatEngine,
     FakeLLMClient,
     OpenAILLMClient,
+    ResponsesLLMClient,
     build_client,
 )
 from app.integrations.llm.client import DEMO_MODEL
@@ -327,3 +339,354 @@ async def test_OpenAI适配器离线检查请求清理与不重试(
     assert response.closed is True
     await client.aclose()
     assert calls[-1] == "closed"
+
+
+def response_event(kind: str, text: str = "合成正文") -> ResponseStreamEvent:
+    if kind == "delta":
+        return ResponseTextDeltaEvent(
+            type="response.output_text.delta",
+            delta=text,
+            sequence_number=1,
+            item_id="synthetic-message",
+            output_index=0,
+            content_index=0,
+            logprobs=[],
+        )
+    if kind == "error":
+        return ResponseErrorEvent(
+            type="error", message="synthetic-private-error", sequence_number=2
+        )
+    status = {"completed": "completed", "failed": "failed", "incomplete": "incomplete"}[kind]
+    response = Response.model_validate(
+        {
+            "id": "synthetic-response",
+            "created_at": 0,
+            "model": "synthetic-model",
+            "object": "response",
+            "output": [],
+            "parallel_tool_calls": False,
+            "tool_choice": "auto",
+            "tools": [],
+            "status": status,
+        }
+    )
+    event_cls = {
+        "completed": ResponseCompletedEvent,
+        "failed": ResponseFailedEvent,
+        "incomplete": ResponseIncompleteEvent,
+    }[kind]
+    return event_cls.model_validate(
+        {"type": f"response.{kind}", "response": response, "sequence_number": 2}
+    )
+
+
+class FakeResponsesSDK:
+    """Offline SDK transport; emits validated official event models only."""
+
+    def __init__(
+        self,
+        events: list[ResponseStreamEvent],
+        *,
+        stall_after: int | None = None,
+        hold_create: bool = False,
+    ):
+        self.events, self.stall_after, self.hold_create = events, stall_after, hold_create
+        self.started, self.blocked, self.release = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        self.requests: list[dict[str, Any]] = []
+        self.stream_closed = False
+        self.client_closed = False
+        self.responses = SimpleNamespace(create=self.create)
+
+    async def create(self, **kwargs: Any) -> FakeResponsesSDK:
+        self.requests.append(kwargs)
+        self.started.set()
+        if self.hold_create:
+            await self.release.wait()
+        return self
+
+    async def __aenter__(self) -> FakeResponsesSDK:
+        return self
+
+    async def __aexit__(self, *args: Any) -> None:
+        self.stream_closed = True
+
+    async def __aiter__(self) -> AsyncIterator[ResponseStreamEvent]:
+        for index, event in enumerate(self.events):
+            if self.stall_after == index:
+                self.blocked.set()
+                await self.release.wait()
+            yield event
+
+    async def close(self) -> None:
+        self.client_closed = True
+
+
+def responses_client(
+    monkeypatch: pytest.MonkeyPatch, sdk: FakeResponsesSDK, *, total: float = 30
+) -> ResponsesLLMClient:
+    from app.integrations.llm import client as client_module
+
+    def factory(**kwargs: Any) -> FakeResponsesSDK:
+        assert kwargs["max_retries"] == 0
+        return sdk
+
+    monkeypatch.setattr(client_module, "AsyncOpenAI", factory)
+    return ResponsesLLMClient(
+        "https://synthetic.invalid/v1", "synthetic-key", "synthetic-model", timeout=total
+    )
+
+
+@pytest.mark.asyncio
+async def test_Responses官方类型输入分离system并逐片输出与关闭(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sdk = FakeResponsesSDK(
+        [
+            response_event("delta", "合成"),
+            response_event("delta", "答复"),
+            response_event("completed"),
+        ]
+    )
+    client = responses_client(monkeypatch, sdk)
+    messages = [
+        {"role": "system", "content": "规则一"},
+        {"role": "user", "content": "用户问题"},
+        {"role": "assistant", "content": "历史回答"},
+        {"role": "system", "content": "规则二"},
+    ]
+    assert [text async for text in client.stream(messages)] == ["合成", "答复"]
+    assert sdk.requests == [
+        {
+            "model": "synthetic-model",
+            "instructions": "规则一\n\n规则二",
+            "input": [
+                {"role": "user", "content": "用户问题", "type": "message"},
+                {"role": "assistant", "content": "历史回答", "type": "message"},
+            ],
+            "stream": True,
+            "store": False,
+        }
+    ]
+    assert sdk.stream_closed
+    await client.aclose()
+    assert sdk.client_closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("kind", ["failed", "incomplete", "error"])
+@pytest.mark.parametrize("partial", [False, True])
+async def test_Responses错误事件抛出且部分文本不重放(
+    monkeypatch: pytest.MonkeyPatch, kind: str, partial: bool
+) -> None:
+    events = ([response_event("delta")] if partial else []) + [response_event(kind)]
+    sdk = FakeResponsesSDK(events)
+    client = responses_client(monkeypatch, sdk)
+    received = []
+    with pytest.raises(RuntimeError, match="reported failure") as exc:
+        async for text in client.stream([{"role": "user", "content": "合成问题"}]):
+            received.append(text)
+    assert received == (["合成正文"] if partial else [])
+    assert "synthetic-private-error" not in str(exc.value)
+    assert sdk.stream_closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "events",
+    [
+        [],
+        [response_event("completed")],
+        [response_event("delta", ""), response_event("completed")],
+        [response_event("delta")],
+    ],
+)
+async def test_Responses空完成和缺失终止均不能假成功(
+    monkeypatch: pytest.MonkeyPatch, events: list[ResponseStreamEvent]
+) -> None:
+    sdk = FakeResponsesSDK(events)
+    client = responses_client(monkeypatch, sdk)
+    backup = FakeLLMClient(reply="备用合成内容")
+    result = await collect(ChatEngine(client, backup))
+    if any(event.type == "response.output_text.delta" and event.delta for event in events):
+        assert text_of(result) == "合成正文"
+        assert result[-1]["data"]["code"] == "LLM_STREAM_INTERRUPTED"
+        assert not backup.calls
+    else:
+        assert text_of(result) == "备用合成内容"
+        assert result[-1]["event"] == "done"
+    assert sdk.stream_closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("hold_create", [False, True])
+async def test_Responses首内容期限覆盖建连与空帧等待(
+    monkeypatch: pytest.MonkeyPatch, hold_create: bool
+) -> None:
+    sdk = FakeResponsesSDK(
+        [response_event("delta", ""), response_event("delta"), response_event("completed")],
+        stall_after=1,
+        hold_create=hold_create,
+    )
+    client = responses_client(monkeypatch, sdk)
+    client.first_token_timeout = 0.02
+    with pytest.raises(TimeoutError):
+        _ = [text async for text in client.stream([])]
+    assert sdk.started.is_set()
+    assert sdk.stream_closed is not hold_create
+
+
+@pytest.mark.asyncio
+async def test_Responses首内容后总时限仍生效(monkeypatch: pytest.MonkeyPatch) -> None:
+    sdk = FakeResponsesSDK([response_event("delta"), response_event("completed")], stall_after=1)
+    client = responses_client(monkeypatch, sdk, total=0.03)
+    stream = client.stream([])
+    assert await anext(stream) == "合成正文"
+    with pytest.raises(TimeoutError):
+        await anext(stream)
+    assert sdk.stream_closed
+
+
+@pytest.mark.asyncio
+async def test_Responses取消与消费者关闭释放流不触发备用(monkeypatch: pytest.MonkeyPatch) -> None:
+    sdk = FakeResponsesSDK([response_event("delta"), response_event("completed")], stall_after=1)
+    client = responses_client(monkeypatch, sdk)
+    backup = FakeLLMClient()
+    task = asyncio.create_task(collect(ChatEngine(client, backup)))
+    try:
+        await asyncio.wait_for(sdk.blocked.wait(), timeout=5)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+    assert sdk.stream_closed and not backup.calls
+    sdk = FakeResponsesSDK([response_event("delta"), response_event("completed")])
+    stream = responses_client(monkeypatch, sdk).stream([])
+    assert await anext(stream) == "合成正文"
+    await stream.aclose()
+    assert sdk.stream_closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("success_index", [0, 1, 2, None])
+async def test_三级链路仅首内容前按序尝试且done标实际模型(success_index: int | None) -> None:
+    order = []
+
+    class OrderedFake(FakeLLMClient):
+        async def stream(self, messages: list[dict[str, str]]) -> AsyncIterator[str]:
+            order.append(self.model)
+            async for text in super().stream(messages):
+                yield text
+
+    clients = [
+        OrderedFake(reply="合成成功", fail_after=None if index == success_index else 0)
+        for index in range(3)
+    ]
+    for index, client in enumerate(clients):
+        client.model = f"synthetic-{index}"
+    result = await collect(ChatEngine(clients[0], fallbacks=clients[1:]))
+    assert order == [
+        client.model for client in clients[: 3 if success_index is None else success_index + 1]
+    ]
+    if success_index is None:
+        assert result[-1]["data"]["code"] == "LLM_UNAVAILABLE"
+        assert not text_of(result)
+    else:
+        assert result[-1]["data"]["model"] == clients[success_index].model
+        assert text_of(result) == "合成成功"
+
+
+@pytest.mark.asyncio
+async def test_三级链路在第二级部分输出故障时不得进入第三级() -> None:
+    primary = FakeLLMClient(fail_after=0)
+    secondary = FakeLLMClient(chunks=["唯一部分", "禁止重放"], fail_after=1)
+    tertiary = FakeLLMClient()
+    result = await collect(ChatEngine(primary, fallbacks=[secondary, tertiary]))
+    assert text_of(result) == "唯一部分" and not tertiary.calls
+    assert result[-1]["data"]["code"] == "LLM_STREAM_INTERRUPTED"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("third_result", ["completed", "failed"])
+async def test_Responses三级事件链按请求顺序切换并正确终止(
+    monkeypatch: pytest.MonkeyPatch, third_result: str
+) -> None:
+    from app.integrations.llm import client as client_module
+
+    order = []
+
+    class OrderedSDK(FakeResponsesSDK):
+        async def create(self, **kwargs: Any) -> FakeResponsesSDK:
+            order.append(kwargs["model"])
+            return await super().create(**kwargs)
+
+    sdks = [
+        OrderedSDK([response_event("failed")]),
+        OrderedSDK([response_event("incomplete")]),
+        OrderedSDK(
+            [response_event("delta"), response_event("completed")]
+            if third_result == "completed"
+            else [response_event("failed")]
+        ),
+    ]
+    pending = iter(sdks)
+    monkeypatch.setattr(client_module, "AsyncOpenAI", lambda **kwargs: next(pending))
+    clients = [
+        ResponsesLLMClient("https://synthetic.invalid/v1", "synthetic-key", f"synthetic-{index}")
+        for index in range(3)
+    ]
+    result = await collect(ChatEngine(clients[0], fallbacks=clients[1:]))
+    assert order == ["synthetic-0", "synthetic-1", "synthetic-2"]
+    assert all(sdk.stream_closed and len(sdk.requests) == 1 for sdk in sdks)
+    if third_result == "completed":
+        assert text_of(result) == "合成正文"
+        assert result[-1]["data"]["model"] == "synthetic-2"
+    else:
+        assert not text_of(result)
+        assert result[-1]["data"]["code"] == "LLM_UNAVAILABLE"
+        assert not any(event["event"] == "done" for event in result)
+
+
+@pytest.mark.asyncio
+async def test_Responses首内容前取消关闭上游且不进入备用(monkeypatch: pytest.MonkeyPatch) -> None:
+    sdk = FakeResponsesSDK([response_event("delta"), response_event("completed")], stall_after=0)
+    client = responses_client(monkeypatch, sdk)
+    backup = FakeLLMClient()
+    task = asyncio.create_task(collect(ChatEngine(client, fallbacks=[backup, FakeLLMClient()])))
+    try:
+        await asyncio.wait_for(sdk.blocked.wait(), timeout=5)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+    assert sdk.stream_closed and not backup.calls
+
+
+def test_三级配置拒绝歧义和过长链路() -> None:
+    fake = FakeLLMClient()
+    with pytest.raises(ValueError):
+        ChatEngine(fake, fake, fallbacks=[fake])
+    with pytest.raises(ValueError):
+        ChatEngine(fake, fallbacks=[fake, fake, fake])
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("api_mode", [None, "chat_completions", "responses"])
+async def test_工厂默认兼容Chat并可明确选择Responses(api_mode: str | None) -> None:
+    settings = {
+        "llm_mode": "openai",
+        "llm_base_url": "https://synthetic.invalid/v1",
+        "llm_api_key": "synthetic-key",
+        "llm_model": "synthetic-model",
+    }
+    if api_mode is not None:
+        settings["llm_api_mode"] = api_mode
+    client = build_client(settings)
+    assert type(client) is (ResponsesLLMClient if api_mode == "responses" else OpenAILLMClient)
+    await client.aclose()
+    settings["llm_api_mode"] = "unknown"
+    with pytest.raises(ValueError):
+        build_client(settings)

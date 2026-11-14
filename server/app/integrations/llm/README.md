@@ -41,13 +41,14 @@ None，重复删除无操作；Git/IO 故障原样抛出，由后端映射已登
 `build_client(settings)` 支持对象属性或 mapping，键：
 
 - `llm_mode`: `fake` / `openai`，无隐式演示降级。
+- `llm_api_mode`: 默认 `chat_completions`，设 `responses` 使用原生 Responses API。
 - `llm_base_url`, `llm_api_key`, `llm_model`: openai 模式必填。
 - `llm_timeout`: 总请求秒数，默认 30；首内容期限最多 15 秒。
 
 `LLMClient.stream(messages)` 返回 `AsyncIterator[str]`。Fake 固定合成回复明确含
 “本地演示模型”，可配置 chunks、delay、fail_after、error 做离线故障测试。
 自动测试不请求真实供应商。OpenAI SDK 禁用自动重试，返回的流在完成、故障和
-取消时关闭。后端 lifespan 结束必须对主、备 OpenAILLMClient 分别调用
+取消时关闭。后端 lifespan 结束必须对所有 OpenAILLMClient / ResponsesLLMClient 分别调用
 `await client.aclose()`；Fake 不需要关闭网络连接。
 
 `ChatEngine(primary, fallback=None).stream(question, knowledge, history, persona='')`
@@ -55,6 +56,9 @@ None，重复删除无操作；Git/IO 故障原样抛出，由后端映射已登
 `{kb_refs:list[str],nokb:bool,model:str}`，后端保存消息后补 `message_id`。
 kb_refs 为本轮提供给模型的资料 ID，不表示已经由模型逐条验证的引文。
 拒答和无资料回答的 model 为 `policy`；成功备用返回备用的 model 标识。
+兼容原有单备用参数；三级链路使用 `ChatEngine(primary, fallbacks=[secondary, tertiary])`。
+两种备用参数不能同时传，最多两个备用。每级可独立选择协议/模型/地址；配置与密钥
+由后端所有者管理，不在适配器内硬编码，不读取 `.env` 或全局 SDK 配置。
 engine 没有 card 身份或 store 参数，因此调用者必须提供当前名片的新 search 结果。
 engine 会再次排除未公开、未批准、删除或未知 scope 的记录。
 
@@ -66,8 +70,8 @@ engine 从不创建线索；仅在用户明确同意并提交后由后端创建�
 声明资料不是指令，persona 服从回答规则。此结构不能证明真实模型永不受提示注入
 影响，真实模型合成样本评测应独立进行。
 
-仅第一段非空供应商内容前故障可以切一次备用。即便内容只是尚未向用户显示的
-内部标记，也禁止切备用。部分输出失败发 `LLM_STREAM_INTERRUPTED`；主备首段
+仅第一段非空供应商内容前故障可以按序切下一备用，每级仅尝试一次。即便内容只是尚未向用户显示的
+内部标记，也禁止切备用。部分输出失败发 `LLM_STREAM_INTERRUPTED`；所有级首段
 前均失败发 `LLM_UNAVAILABLE`；两种错误后都不发 done、不重放。取消向上传播，
 后端应关闭 engine 生成器并保存已生成部分。`<<NOKB>>` 跨分片过滤；只输出
 前 200 个字符（业务方案 §4.7 限制），目前可能在半句截断。
@@ -76,6 +80,18 @@ engine 从不创建线索；仅在用户明确同意并提交后由后端创建�
 能力探测、模型路由评测 CLI 或真实模型评测，均不应当宣称 T13–T16 全量旧任务
 已经完成。普通无 frontmatter Markdown 可以解析为默认未公开/未批准；不会为
 缺 description 的私人草稿自动调用云模型。
+
+`ResponsesLLMClient(base_url, api_key, model, timeout=30)` 使用 SDK
+`await client.responses.create(stream=True, store=False, ...)`，将 system 合并为
+`instructions`，user/assistant 以官方 `ResponseInputParam` 的文本 message 输入。
+只转发 `response.output_text.delta`，不重放 output_text.done 或 completed 中的全文。
+`response.failed`、`response.incomplete`、`error` 均抛安全异常；必须有非空 delta 和
+status=completed 的 `response.completed` 才正常完成；空完成、缺终止均报错。
+首非空文本期限最多15秒（涵盖 create/非文本事件），总期限为构造参数 timeout，
+沿用既有适配器的 managed_stream / aclose 清理。没有完成事件的部分输出保留并报错，
+不能触发备用。官方依据为 [SDK README](https://github.com/openai/openai-python#streaming-responses)
+以及本地 SDK 3.51.0 的 ResponseTextDeltaEvent / Completed / Failed / Incomplete / Error 类型。
+本次全部自动验证为合成 SDK 事件，不宣称专属供应商路由或真实模型已验证。
 
 ## 独立合成评测 CLI
 

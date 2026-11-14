@@ -11,6 +11,7 @@ from typing import Any, Protocol, cast
 
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
+from openai.types.responses import ResponseInputParam
 
 logger = logging.getLogger(__name__)
 DEMO_MODEL = "本地演示模型"
@@ -140,6 +141,52 @@ class OpenAILLMClient:
         await self._client.close()
 
 
+class ResponsesLLMClient(OpenAILLMClient):
+    """Native Responses API with the same deadlines and lifecycle as chat.
+
+    Only output_text.delta contributes content; a terminal completed event is
+    mandatory. Failed/incomplete/error, empty completion and premature EOF raise
+    without exposing provider payloads. No request retries or text replay.
+    """
+
+    async def _stream_content(self, messages: list[dict[str, str]]) -> AsyncIterator[str]:
+        instructions: list[str] = []
+        inputs: ResponseInputParam = []
+        for message in messages:
+            role, content = message.get("role"), message.get("content")
+            if not isinstance(content, str):
+                raise ValueError("Responses messages require text content")
+            if role == "system":
+                instructions.append(content)
+            elif role == "user":
+                inputs.append({"role": "user", "content": content, "type": "message"})
+            elif role == "assistant":
+                inputs.append({"role": "assistant", "content": content, "type": "message"})
+            else:
+                raise ValueError("Unsupported Responses message role")
+        response = await self._client.responses.create(
+            model=self.model,
+            instructions="\n\n".join(instructions),
+            input=inputs,
+            stream=True,
+            store=False,
+        )
+        has_text = False
+        async with response:
+            async for event in response:
+                if event.type == "response.output_text.delta":
+                    if event.delta:
+                        has_text = True
+                        yield event.delta
+                elif event.type in {"response.failed", "response.incomplete", "error"}:
+                    raise RuntimeError("Responses stream reported failure")
+                elif event.type == "response.completed":
+                    if event.response.status != "completed" or not has_text:
+                        raise RuntimeError("Responses completion has no valid text")
+                    return
+        raise RuntimeError("Responses stream ended without completion")
+
+
 def _setting(settings: object, name: str, default: Any = None) -> Any:
     if isinstance(settings, Mapping):
         value = settings.get(name, default)
@@ -151,7 +198,7 @@ def _setting(settings: object, name: str, default: Any = None) -> Any:
 
 
 def build_client(settings: object) -> LLMClient:
-    """Settings keys: llm_mode, llm_base_url, llm_api_key, llm_model, llm_timeout.
+    """Settings: llm_mode, llm_api_mode, llm_base_url/api_key/model/timeout.
 
     Missing/invalid production configuration raises instead of silently using demo.
     Fallback uses a separately configured client passed to ChatEngine.
@@ -161,7 +208,11 @@ def build_client(settings: object) -> LLMClient:
         return FakeLLMClient()
     if mode != "openai":
         raise ValueError("llm_mode must be fake or openai")
-    return OpenAILLMClient(
+    api_mode = _setting(settings, "llm_api_mode", "chat_completions")
+    if api_mode not in {"chat_completions", "responses"}:
+        raise ValueError("llm_api_mode must be chat_completions or responses")
+    client_type = ResponsesLLMClient if api_mode == "responses" else OpenAILLMClient
+    return client_type(
         base_url=_setting(settings, "llm_base_url", ""),
         api_key=_setting(settings, "llm_api_key", ""),
         model=_setting(settings, "llm_model", ""),
