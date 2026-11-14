@@ -1,0 +1,12 @@
+import { createApp } from "vue";
+import ElementPlus from "element-plus";
+import Table from "@pureadmin/table";
+import "element-plus/dist/index.css";
+import "@pureadmin/table/dist/style.css";
+import "./styles/main.css";
+import App from "./App.vue";
+import router from "./router";
+import { setupStore } from "./store";
+const app = createApp(App);
+setupStore(app);
+app.use(ElementPlus).use(Table).use(router).mount("#app");

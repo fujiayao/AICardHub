@@ -1,0 +1,108 @@
+:root {
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color-light);
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+a {
+  color: var(--el-color-primary);
+}
+button,
+input,
+textarea {
+  font: inherit;
+}
+h1 {
+  font-size: 24px;
+  margin: 0 0 10px;
+}
+h2 {
+  font-size: 18px;
+  margin: 0;
+}
+p {
+  line-height: 1.7;
+}
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.toolbar .el-input {
+  width: 240px;
+  max-width: 100%;
+}
+.page {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.panel {
+  padding: 24px;
+  background: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-light);
+  border-radius: 6px;
+  min-width: 0;
+}
+.muted {
+  color: var(--el-text-color-secondary);
+  font-size: 14px;
+}
+.el-form {
+  max-width: 880px;
+}
+.el-form-item .el-select {
+  width: 100%;
+}
+.el-pagination {
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.el-dialog {
+  max-width: calc(100vw - 24px);
+}
+.el-table {
+  width: 100%;
+}
+.split {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) minmax(0, 3fr);
+  gap: 20px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+.metric {
+  padding: 20px;
+  border-bottom: 2px solid var(--el-border-color);
+}
+.metric strong {
+  display: block;
+  font-size: 28px;
+  margin-top: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.danger-text {
+  color: var(--el-color-danger);
+}
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .panel {
+    padding: 16px;
+  }
+}
