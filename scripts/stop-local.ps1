@@ -7,9 +7,9 @@ $records=@(Get-Content -LiteralPath $stateFile -Raw|ConvertFrom-Json)
 foreach($record in $records){
  $rootProcess=$processes|Where-Object ProcessId -eq $record.pid|Select-Object -First 1
  if(-not $rootProcess){continue}
- $recordedStart=[DateTimeOffset]::Parse($record.started_at)
+ $recordedStart=if($record.started_at -is [DateTime]){[DateTimeOffset]$record.started_at}else{[DateTimeOffset]::Parse([string]$record.started_at)}
  $created=[DateTimeOffset]$rootProcess.CreationDate
- if([Math]::Abs(($created-$recordedStart).TotalSeconds) -gt 15){Write-Output "$($record.name)进程标识已变化，跳过。";continue}
+ if([Math]::Abs(($created-$recordedStart).TotalSeconds) -gt 60){Write-Output "$($record.name)进程标识已变化，跳过。";continue}
  if($rootProcess.Name -notmatch '^(uv|node|cmd|python|pwsh|powershell)\.exe$'){Write-Output "$($record.name)进程类型未匹配，跳过。";continue}
  $tree=[Collections.Generic.List[object]]::new()
  $tree.Add($rootProcess)

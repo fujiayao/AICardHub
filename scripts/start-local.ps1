@@ -42,7 +42,8 @@ foreach ($service in $services) {
  $busy = if ($service.Port -gt 0) { Get-NetTCPConnection -LocalPort $service.Port -State Listen -ErrorAction SilentlyContinue } else { Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object { $_.CommandLine -match '-m\s+app\.scheduler' } }
  if ($busy) { Write-Output "$($service.Name)已有服务，保留现有进程。"; continue }
  $process = Start-Process -FilePath $service.Exe -ArgumentList $service.Args -WorkingDirectory $service.Directory -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $state "$($service.Name).out.log") -RedirectStandardError (Join-Path $state "$($service.Name).err.log")
- $records.Add([pscustomobject]@{name=$service.Name;pid=$process.Id;port=$service.Port;started_at=(Get-Date).ToUniversalTime().ToString('o')})
+ $created=(Get-CimInstance Win32_Process -Filter "ProcessId=$($process.Id)").CreationDate
+ $records.Add([pscustomobject]@{name=$service.Name;pid=$process.Id;port=$service.Port;started_at=$created.ToUniversalTime().ToString('o')})
 }
 } finally {
  foreach ($name in $modelEnvironment.Keys) { [Environment]::SetEnvironmentVariable($name,$modelEnvironment[$name],'Process') }

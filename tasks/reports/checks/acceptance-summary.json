@@ -77,5 +77,15 @@
     "deltas": 50,
     "citation": "demo-public",
     "report": "tasks/reports/real-browser-chat.json"
-  }
+  },
+  "runtime_restart": {
+    "stop_script_verified": true,
+    "all_four_services_restarted_from_main": true,
+    "data_copy_files_sha256_verified": 3017,
+    "data_location": "AICardHub/data",
+    "source_copy_retained": true,
+    "responses_blackbox_after_restart": "pass",
+    "report": "tasks/reports/responses-real-after-restart.json"
+  },
+  "ready_for_user_local_acceptance": true
 }
