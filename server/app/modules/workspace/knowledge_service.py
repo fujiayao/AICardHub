@@ -93,6 +93,7 @@ async def note_save(
         approved=approved,
         scope=scope,
         card_code=card_code,
+        description=payload.description if "description" in payload.model_fields_set else None,
     )
     index = await repo.optional(db, KnowledgeFile, KnowledgeFile.file_id == file_id)
     if index is None:

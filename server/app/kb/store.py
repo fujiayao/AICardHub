@@ -227,6 +227,7 @@ class KnowledgeStore:
         approved: bool = False,
         scope: str = "company",
         card_code: str | None = None,
+        description: str | None = None,
     ) -> dict[str, Any]:
         validate_id(file_id)
         validate_scope(scope, card_code)
@@ -236,6 +237,10 @@ class KnowledgeStore:
             raise ValueError("Invalid knowledge content")
         if type(public) is not bool or type(approved) is not bool:
             raise ValueError("Publication flags must be booleans")
+        if description is not None and (
+            not isinstance(description, str) or len(description) > 1000
+        ):
+            raise ValueError("Invalid knowledge description")
         with self._lock:
             versions = self._history(file_id)
             current = self._get(file_id)
@@ -250,7 +255,9 @@ class KnowledgeStore:
                 "file_id": file_id,
                 "title": title.strip(),
                 "content": content.strip(),
-                "description": "",
+                "description": description
+                if description is not None
+                else (previous or {}).get("description", ""),
                 "scope": scope,
                 "card_code": card_code,
                 "public": public,

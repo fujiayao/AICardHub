@@ -238,6 +238,9 @@ class CardData(Schema):
     name: str = ""
     dept: str = ""
     title: str = ""
+    company_id: int = 0
+    company_name: str = ""
+    company_short_name: str = ""
 
 
 class ShareData(Schema):
@@ -387,6 +390,15 @@ class AssistantData(AssistantInput):
     pass
 
 
+class AssistantMetrics(Schema):
+    answers: int
+    unanswered: int
+    disliked: int
+    notes: int
+    corrections: int
+    period_days: int = 7
+
+
 class PolishInput(Schema):
     text: str = Field(min_length=1, max_length=4000)
     field: Literal["intro", "persona_extra", "opening", "guide_questions", "persona"]
@@ -454,7 +466,16 @@ class TrafficSource(Schema):
     leads: int
 
 
+class DayMetrics(Schema):
+    visits: int = 0
+    visitors: int = 0
+    chats: int = 0
+    leads: int = 0
+
+
 class StatsData(Schema):
+    today: DayMetrics = Field(default_factory=DayMetrics)
+    yesterday: DayMetrics = Field(default_factory=DayMetrics)
     source_breakdown: list[TrafficSource] = Field(default_factory=list)
     visits: int
     visitors: int
@@ -474,6 +495,8 @@ class VisitorData(Schema):
     id: int
     anon_id: str
     last_seen_at: datetime
+    source: Source | None = None
+    intent_level: Literal["A", "B", "C"] | None = None
 
 
 class VisitorSession(Schema):
@@ -511,6 +534,7 @@ class CountData(Schema):
 
 class NoteInput(Schema):
     title: str = Field(min_length=1, max_length=200)
+    description: str = Field(default="", max_length=80)
     content: str = Field(min_length=1, max_length=100000)
     public: bool = False
     approved: bool = False
@@ -522,6 +546,8 @@ class NoteData(NoteInput):
     card_code: str | None = None
     file_id: str
     revision: int
+    updated: str = ""
+    tokens: int = 0
 
 
 class Draft(Schema):

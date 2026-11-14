@@ -58,6 +58,13 @@ async def profile(db: DB, staff: StaffDep) -> s.Staff:
 
 
 @router.get(
+    "/me/assistant/metrics", operation_id="me_assistant_metrics", response_model=s.AssistantMetrics
+)
+async def assistant_metrics(db: DB, staff: StaffDep) -> s.AssistantMetrics:
+    return await me.assistant_metrics(db, staff.id)
+
+
+@router.get(
     "/public/cards/{code}",
     operation_id="card_get_public",
     response_model=s.PublicCard,

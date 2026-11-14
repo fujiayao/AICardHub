@@ -254,6 +254,29 @@
         ]
       }
     },
+    "/api/v1/me/assistant/metrics": {
+      "get": {
+        "summary": "Assistant Metrics",
+        "operationId": "me_assistant_metrics",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantMetrics"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/public/cards/{code}": {
       "get": {
         "summary": "Public Card",
@@ -4574,6 +4597,12 @@
     "schemas": {
       "AdminStats": {
         "properties": {
+          "today": {
+            "$ref": "#/components/schemas/DayMetrics"
+          },
+          "yesterday": {
+            "$ref": "#/components/schemas/DayMetrics"
+          },
           "source_breakdown": {
             "items": {
               "$ref": "#/components/schemas/TrafficSource"
@@ -4711,6 +4740,45 @@
         "additionalProperties": false,
         "type": "object",
         "title": "AssistantInput"
+      },
+      "AssistantMetrics": {
+        "properties": {
+          "answers": {
+            "type": "integer",
+            "title": "Answers"
+          },
+          "unanswered": {
+            "type": "integer",
+            "title": "Unanswered"
+          },
+          "disliked": {
+            "type": "integer",
+            "title": "Disliked"
+          },
+          "notes": {
+            "type": "integer",
+            "title": "Notes"
+          },
+          "corrections": {
+            "type": "integer",
+            "title": "Corrections"
+          },
+          "period_days": {
+            "type": "integer",
+            "title": "Period Days",
+            "default": 7
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "answers",
+          "unanswered",
+          "disliked",
+          "notes",
+          "corrections"
+        ],
+        "title": "AssistantMetrics"
       },
       "AuditData": {
         "properties": {
@@ -5115,6 +5183,21 @@
             "type": "string",
             "title": "Title",
             "default": ""
+          },
+          "company_id": {
+            "type": "integer",
+            "title": "Company Id",
+            "default": 0
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name",
+            "default": ""
+          },
+          "company_short_name": {
+            "type": "string",
+            "title": "Company Short Name",
+            "default": ""
           }
         },
         "additionalProperties": false,
@@ -5503,6 +5586,33 @@
           "leads"
         ],
         "title": "DailyStat"
+      },
+      "DayMetrics": {
+        "properties": {
+          "visits": {
+            "type": "integer",
+            "title": "Visits",
+            "default": 0
+          },
+          "visitors": {
+            "type": "integer",
+            "title": "Visitors",
+            "default": 0
+          },
+          "chats": {
+            "type": "integer",
+            "title": "Chats",
+            "default": 0
+          },
+          "leads": {
+            "type": "integer",
+            "title": "Leads",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DayMetrics"
       },
       "Draft": {
         "properties": {
@@ -5981,6 +6091,11 @@
             "minLength": 1,
             "title": "Title"
           },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
           "content": {
             "type": "string",
             "maxLength": 100000,
@@ -6000,11 +6115,6 @@
           "file_id": {
             "type": "string",
             "title": "File Id"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "default": ""
           },
           "scope": {
             "type": "string",
@@ -6421,6 +6531,12 @@
             "minLength": 1,
             "title": "Title"
           },
+          "description": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Description",
+            "default": ""
+          },
           "content": {
             "type": "string",
             "maxLength": 100000,
@@ -6460,6 +6576,16 @@
           "revision": {
             "type": "integer",
             "title": "Revision"
+          },
+          "updated": {
+            "type": "string",
+            "title": "Updated",
+            "default": ""
+          },
+          "tokens": {
+            "type": "integer",
+            "title": "Tokens",
+            "default": 0
           }
         },
         "type": "object",
@@ -6478,6 +6604,12 @@
             "maxLength": 200,
             "minLength": 1,
             "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Description",
+            "default": ""
           },
           "content": {
             "type": "string",
@@ -7647,6 +7779,12 @@
       },
       "StatsData": {
         "properties": {
+          "today": {
+            "$ref": "#/components/schemas/DayMetrics"
+          },
+          "yesterday": {
+            "$ref": "#/components/schemas/DayMetrics"
+          },
           "source_breakdown": {
             "items": {
               "$ref": "#/components/schemas/TrafficSource"
@@ -7988,6 +8126,40 @@
             "type": "string",
             "format": "date-time",
             "title": "Last Seen At"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "nfc",
+                  "qr",
+                  "poster",
+                  "link",
+                  "sig"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "intent_level": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent Level"
           }
         },
         "additionalProperties": false,
@@ -8013,6 +8185,40 @@
             "type": "string",
             "format": "date-time",
             "title": "Last Seen At"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "nfc",
+                  "qr",
+                  "poster",
+                  "link",
+                  "sig"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "intent_level": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent Level"
           },
           "visits": {
             "items": {

@@ -307,3 +307,14 @@ def test_分词器失效使用保守估算与有界截断(monkeypatch: pytest.Mo
     monkeypatch.setattr(loader, "_encoding", lambda: None)
     assert estimate_tokens("中文 hello world!") == 6
     assert len(bounded_text("中" * 100, 10)) == 10
+
+
+def test_description_round_trip_preserve_and_clear(tmp_path):
+    store = KnowledgeStore(tmp_path / "described")
+    first = store.upsert("brief", "知识标题", "正文", description="何时使用这篇资料")
+    assert first["description"] == "何时使用这篇资料"
+    second = store.upsert("brief", "知识标题", "更新正文")
+    assert second["description"] == first["description"]
+    assert store.get("brief")["description"] == first["description"]
+    cleared = store.upsert("brief", "知识标题", "更新正文", description="")
+    assert cleared["description"] == ""

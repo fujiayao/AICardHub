@@ -1,5 +1,6 @@
-from datetime import timedelta
-from typing import Any
+from datetime import UTC, timedelta
+from typing import Any, cast
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,7 @@ from app.modules.workspace import service as shared
 from app.modules.workspace.models import (
     Card,
     ChatSession,
+    Correction,
     Employee,
     Lead,
     Message,
@@ -163,6 +165,38 @@ async def unread_count(db: AsyncSession, employee_id: int) -> s.CountData:
     return s.CountData(count=count or 0)
 
 
+async def assistant_metrics(db: AsyncSession, employee_id: int) -> s.AssistantMetrics:
+    from app.modules.workspace.knowledge_service import notes
+
+    card = await shared.own_card(db, employee_id)
+    start = utcnow() - timedelta(days=7)
+    sessions = select(ChatSession.id).where(
+        ChatSession.card_id == card.id, ChatSession.is_test.is_(False)
+    )
+    messages = list(
+        (
+            await db.scalars(
+                select(Message).where(
+                    Message.session_id.in_(sessions),
+                    Message.role == "assistant",
+                    Message.created_at >= start,
+                )
+            )
+        ).all()
+    )
+    personal = await notes(db, employee_id, 1, 1)
+    correction_count = await db.scalar(
+        select(func.count()).select_from(Correction).where(Correction.card_id == card.id)
+    )
+    return s.AssistantMetrics(
+        answers=len(messages),
+        unanswered=sum(row.nokb for row in messages),
+        disliked=sum(row.feedback == "down" for row in messages),
+        notes=personal.total,
+        corrections=correction_count or 0,
+    )
+
+
 async def notification_read(
     db: AsyncSession, employee_id: int, notification_id: int | None
 ) -> s.OK:
@@ -198,7 +232,32 @@ async def visitors(
         )
     )
     stmt = select(Visitor).where(Visitor.id.in_(ids)).order_by(Visitor.last_seen_at.desc())
-    return s.Page[s.VisitorData](**await repo.page(db, stmt, page, page_size))
+    result = await repo.page(db, stmt, page, page_size)
+    items = []
+    for row in result["items"]:
+        item = s.VisitorData.model_validate(row)
+        recent_visit = await db.scalar(
+            select(Visit)
+            .where(Visit.card_id.in_(card_ids), Visit.visitor_id == row.id)
+            .order_by(Visit.created_at.desc(), Visit.id.desc())
+            .limit(1)
+        )
+        recent_chat = await db.scalar(
+            select(ChatSession)
+            .where(
+                ChatSession.card_id.in_(card_ids),
+                ChatSession.visitor_id == row.id,
+                ChatSession.is_test.is_(False),
+            )
+            .order_by(ChatSession.last_msg_at.desc(), ChatSession.id.desc())
+            .limit(1)
+        )
+        if recent_visit:
+            item.source = cast(s.Source, recent_visit.source)
+        if recent_chat:
+            item.intent_level = cast(Any, recent_chat.intent_level)
+        items.append(item)
+    return s.Page[s.VisitorData](**{**result, "items": items})
 
 
 async def visitor_detail(db: AsyncSession, employee_id: int, visitor_id: int) -> s.VisitorDetail:
@@ -243,13 +302,20 @@ async def stats(
     if days is None:
         raise AppError(ErrorCode.VALIDATION_ERROR, 422, "统计范围支持today、7d、30d")
     now = utcnow()
-    start = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=days - 1)
+    business_tz = ZoneInfo("Asia/Shanghai")
+    today_start = (
+        now.astimezone(business_tz)
+        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .astimezone(UTC)
+    )
+    start = today_start - timedelta(days=days - 1)
+    fetch_start = min(start, today_start - timedelta(days=1))
     card_ids = select(Card.id)
     if employee_id is not None:
         card_ids = card_ids.where(Card.id.in_(await shared.customer_card_ids(db, employee_id)))
     visit_rows = (
         await db.scalars(
-            select(Visit).where(Visit.card_id.in_(card_ids), Visit.created_at >= start)
+            select(Visit).where(Visit.card_id.in_(card_ids), Visit.created_at >= fetch_start)
         )
     ).all()
     chat_rows = (
@@ -257,23 +323,43 @@ async def stats(
             select(ChatSession).where(
                 ChatSession.card_id.in_(card_ids),
                 ChatSession.is_test.is_(False),
-                ChatSession.created_at >= start,
+                ChatSession.created_at >= fetch_start,
             )
         )
     ).all()
-    lead_stmt = select(Lead).where(Lead.created_at >= start)
+    lead_stmt = select(Lead).where(Lead.created_at >= fetch_start)
     if employee_id is not None:
         lead_stmt = lead_stmt.where(Lead.owner_employee_id == employee_id)
     lead_rows = (await db.scalars(lead_stmt)).all()
+    day_metrics = []
+    for offset in (0, 1):
+        lower = today_start - timedelta(days=offset)
+        upper = lower + timedelta(days=1)
+        vv = [r for r in visit_rows if lower <= r.created_at < upper]
+        cc = [r for r in chat_rows if lower <= r.created_at < upper]
+        ll = [r for r in lead_rows if lower <= r.created_at < upper]
+        day_metrics.append(
+            s.DayMetrics(
+                visits=len(vv),
+                visitors=len(
+                    {r.visitor_id for r in vv} | {r.visitor_id for r in cc if r.visitor_id}
+                ),
+                chats=len(cc),
+                leads=len(ll),
+            )
+        )
+    visit_rows = [r for r in visit_rows if r.created_at >= start]
+    chat_rows = [r for r in chat_rows if r.created_at >= start]
+    lead_rows = [r for r in lead_rows if r.created_at >= start]
     daily = []
     for offset in range(days):
-        date = (start + timedelta(days=offset)).date()
+        date = (start + timedelta(days=offset)).astimezone(business_tz).date()
         daily.append(
             s.DailyStat(
                 date=date.isoformat(),
-                visits=sum(r.created_at.date() == date for r in visit_rows),
-                chats=sum(r.created_at.date() == date for r in chat_rows),
-                leads=sum(r.created_at.date() == date for r in lead_rows),
+                visits=sum(r.created_at.astimezone(business_tz).date() == date for r in visit_rows),
+                chats=sum(r.created_at.astimezone(business_tz).date() == date for r in chat_rows),
+                leads=sum(r.created_at.astimezone(business_tz).date() == date for r in lead_rows),
             )
         )
     visitor_count = len(
@@ -286,6 +372,8 @@ async def stats(
         leads=len(lead_rows),
         conversion_rate=round(len(lead_rows) / visitor_count, 4) if visitor_count else 0,
         daily=daily,
+        today=day_metrics[0],
+        yesterday=day_metrics[1],
         source_breakdown=[
             s.TrafficSource(
                 source=source,

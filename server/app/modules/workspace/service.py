@@ -171,6 +171,10 @@ async def card_data(db: AsyncSession, card: Card) -> s.CardData:
     employee = await repo.one(db, Employee, Employee.id == card.employee_id)
     result = s.CardData.model_validate(card)
     result.name, result.dept, result.title = employee.name, employee.dept, employee.title
+    company = await employee_company(db, employee)
+    result.company_id = company.id
+    result.company_name = company.name
+    result.company_short_name = company.short_name
     return result
 
 
