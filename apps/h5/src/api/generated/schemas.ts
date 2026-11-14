@@ -1,4 +1,4 @@
-// Generated from OpenAPI; DO NOT EDIT. SHA256 53e01e023e63f221fcd247e3f629de002a47c68aad18716d41de450c7b52bf6e
+// Generated from OpenAPI; DO NOT EDIT. SHA256 f409ed1fbf23f3a57b819c0de8198880bb9d75129943d8429abc1650a3084722
 export type AdminStats = { "visits": number; "visitors": number; "chats": number; "leads": number; "conversion_rate": number; "daily": Array<DailyStat>; "employees": number; "cards": number; "overdue_leads": number }
 export type AssistantData = { "template_id"?: (number | null); "persona_extra"?: string; "opening"?: string; "guide_questions"?: Array<string> }
 export type AssistantInput = { "template_id"?: (number | null); "persona_extra"?: string; "opening"?: string; "guide_questions"?: Array<string> }
@@ -12,14 +12,16 @@ export type BroadcastInput = { "title": string; "content": string; "employee_ids
 export type CardData = { "id": number; "code": string; "status": string; "employee_id": number; "display_title": string; "mobile": string; "email": string; "intro": string; "photo_url": string; "photo_bg_url": string; "wechat_qr_url": string; "name"?: string; "dept"?: string; "title"?: string }
 export type CardInput = { "display_title"?: string; "mobile"?: string; "email"?: string; "intro"?: string; "photo_url"?: (string | null); "photo_bg_url"?: (string | null); "wechat_qr_url"?: (string | null) }
 export type CompanyData = { "name": string; "short_name"?: string; "intro"?: string; "phone"?: string; "address"?: string; "website"?: string; "logo_url"?: string; "brand_color"?: string }
+export type CompanyItem = { "name": string; "short_name"?: string; "intro"?: string; "phone"?: string; "address"?: string; "website"?: string; "logo_url"?: string; "brand_color"?: string; "id": number; "is_primary": boolean }
+export type CompanyOption = { "id": number; "name": string; "short_name": string; "is_primary": boolean }
 export type CorrectionData = { "question": string; "correct_answer": string; "wrong_answer"?: string; "source"?: "test" | "visitor_chat" | "manual"; "message_id"?: (number | null); "id": number }
 export type CorrectionInput = { "question": string; "correct_answer": string; "wrong_answer"?: string; "source"?: "test" | "visitor_chat" | "manual"; "message_id"?: (number | null) }
 export type CountData = { "count": number }
 export type DailyStat = { "date": string; "visits": number; "chats": number; "leads": number }
 export type Draft = { "title": string; "content": string }
 export type EmployeeImportResult = { "items": Array<ImportRow> }
-export type EmployeeInput = { "name": string; "phone": string; "dept"?: string; "title"?: string; "password": string; "role"?: "employee" | "admin"; "email"?: string; "business_scope"?: string }
-export type EmployeeUpdate = { "name"?: (string | null); "phone"?: (string | null); "dept"?: (string | null); "title"?: (string | null); "email"?: (string | null); "business_scope"?: (string | null); "role"?: ("employee" | "admin" | null); "status"?: ("active" | "disabled" | null) }
+export type EmployeeInput = { "name": string; "phone"?: (string | null); "dept"?: string; "title"?: string; "password"?: (string | null); "role"?: "employee" | "admin"; "email"?: string; "business_scope"?: string; "company_id"?: (number | null) }
+export type EmployeeUpdate = { "name"?: (string | null); "phone"?: (string | null); "dept"?: (string | null); "title"?: (string | null); "email"?: (string | null); "business_scope"?: (string | null); "role"?: ("employee" | "admin" | null); "status"?: ("active" | "disabled" | null); "company_id"?: (number | null) }
 export type Empty = Record<string, unknown>
 export type FeedbackInput = { "feedback"?: "down" }
 export type HTTPValidationError = { "detail"?: Array<ValidationError> }
@@ -70,7 +72,7 @@ export type SessionResult = { "opening": string; "guide_questions": Array<string
 export type SettingData = { "key": string; "value": unknown }
 export type SettingInput = { "value"?: unknown; "clear_secret"?: boolean }
 export type ShareData = { "short_url": string; "qr_url": string; "poster_url": string }
-export type Staff = { "id": number; "name": string; "phone": string; "role": "employee" | "admin"; "dept"?: string; "title"?: string; "email"?: string; "business_scope"?: string; "status"?: string; "must_change_pwd"?: boolean; "card_code"?: string }
+export type Staff = { "id": number; "name": string; "phone"?: (string | null); "role": "employee" | "admin"; "dept"?: string; "title"?: string; "email"?: string; "business_scope"?: string; "status"?: string; "must_change_pwd"?: boolean; "card_code"?: string; "company_id"?: number; "company_name"?: string; "login_enabled"?: boolean }
 export type StatsData = { "visits": number; "visitors": number; "chats": number; "leads": number; "conversion_rate": number; "daily": Array<DailyStat> }
 export type StayInput = { "stay_seconds": number }
 export type TemplateData = { "name": string; "persona"?: string; "opening"?: string; "guide_questions"?: Array<string>; "is_default"?: boolean; "enabled"?: boolean; "id": number }

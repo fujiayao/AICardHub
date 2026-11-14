@@ -28,7 +28,7 @@ async function submit() {
 <style scoped>
 .login-page{padding:72px 24px 40px;min-height:100dvh}
 .masthead{display:flex;align-items:center;gap:var(--sp-4);margin-bottom:var(--sp-7)}
-.brand-mark{display:grid;place-items:center;background:var(--c-ink);color:#fff;width:56px;height:56px;border-radius:var(--r-lg);font-size:var(--fs-xl);flex-shrink:0}
+.brand-mark{display:grid;place-items:center;background:var(--c-ink);color:var(--c-surface);width:56px;height:56px;border-radius:var(--r-lg);font-size:var(--fs-xl);flex-shrink:0}
 .masthead h1{font-size:var(--fs-xl);line-height:1.2}
 .masthead .muted{font-size:var(--fs-sm);margin-top:4px}
 .form-panel{padding:var(--sp-6) var(--sp-5)}
