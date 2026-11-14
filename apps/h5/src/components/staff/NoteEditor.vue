@@ -9,10 +9,8 @@ watch(() => props.initial, (value) => { form.title = value?.title || ''; form.de
 function insert(value: string) { form.content += form.content ? `\n${value}` : value }
 function submit() {
   if (!form.title.trim() || !form.content.trim()) { showToast('请填写标题和正文'); return }
-  const note: NoteInput = { title: form.title, content: form.content, public: false, approved: false }
-  // 简介留空时不下发 description，避免覆盖后端已有简介
-  const description = form.description.trim()
-  if (description) note.description = description
+  // 始终下发 description（含空串），以便清空已有简介
+  const note: NoteInput = { title: form.title, content: form.content, description: form.description.trim(), public: false, approved: false }
   emit('save', note)
 }
 defineExpose({ submit })

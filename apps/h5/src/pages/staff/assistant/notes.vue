@@ -20,7 +20,7 @@ async function save(body: NoteInput) {
   const result = await run(() => selected.value
     ? saveNote({ path: { file_id: selected.value.file_id }, body: { ...body, public: selected.value.public, approved: false } })
     : createNote({ body }))
-  if (result) { editing.value = false; showToast('已保存，下一次对话生效'); reload() }
+  if (result) { editing.value = false; showToast('已保存，可用于本人试聊；公开需管理员批准'); reload() }
 }
 async function remove(note: NoteData) {
   try { await showConfirmDialog({ title: '删除知识', message: `确定删除「${note.title}」？` }) }
