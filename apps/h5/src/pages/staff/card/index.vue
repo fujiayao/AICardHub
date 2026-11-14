@@ -6,7 +6,7 @@ import StaffCard from '@/components/staff/StaffCard.vue'
 import StaffShell from '@/components/staff/StaffShell.vue'
 import StatsPanel from '@/components/staff/StatsPanel.vue'
 import { useResource } from '@/composables/useResource'
-import { dateLabel } from '@/utils/format'
+import { dateLabel, intentLevelLabels, sourceLabel } from '@/utils/format'
 const { data, loading, error, reload } = useResource(async () => {
   const [card, today, week, visitors] = await Promise.all([
     getCard(),
@@ -41,10 +41,13 @@ const { data, loading, error, reload } = useResource(async () => {
           <router-link v-for="visitor in data.visitors.items" :key="visitor.id" class="vis-item" :to="`/staff/customers/${visitor.id}?kind=visitor`">
             <span class="avatar anon"><span class="icon i-lucide-user" /></span>
             <div class="vis-main">
-              <div class="l1">访客 #{{ visitor.anon_id.slice(-4).toUpperCase() }}</div>
+              <div class="l1">访客 #{{ visitor.anon_id.slice(-4).toUpperCase() }}<span v-if="visitor.source" class="tag tag-gray">{{ sourceLabel(visitor.source) }}</span></div>
               <div class="l2">{{ dateLabel(visitor.last_seen_at) }}</div>
             </div>
-            <span class="icon i-lucide-chevron-right vis-arrow" />
+            <div class="vis-side">
+              <span class="icon i-lucide-chevron-right vis-arrow" />
+              <span v-if="visitor.intent_level" class="lv" :class="`lv-${visitor.intent_level}`" :aria-label="intentLevelLabels[visitor.intent_level]">{{ visitor.intent_level }}</span>
+            </div>
           </router-link>
         </div>
         <p v-else class="empty-inline">还没有访客，发送名片开启交流</p>
@@ -162,13 +165,49 @@ const { data, loading, error, reload } = useResource(async () => {
   min-width: 0;
 }
 .vis-main .l1 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--fs-base);
   color: var(--c-text);
+}
+.vis-main .l1 .tag-gray {
+  background: var(--c-tag-gray-bg);
+  color: var(--c-text-2);
 }
 .vis-main .l2 {
   font-size: var(--fs-sm);
   color: var(--c-text-3);
   margin-top: 2px;
+}
+.vis-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex: none;
+}
+.lv {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-num);
+}
+.lv-A {
+  background: var(--c-amber);
+  color: var(--c-surface);
+}
+.lv-B {
+  background: var(--c-primary-soft);
+  color: var(--c-primary);
+}
+.lv-C {
+  background: var(--c-tag-gray-bg);
+  color: var(--c-text-3);
 }
 .vis-arrow {
   width: 16px;

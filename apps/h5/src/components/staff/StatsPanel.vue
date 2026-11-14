@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import type { StatsData } from '@/api/generated'
 import { computed } from 'vue'
+import { deltaText, weekdayLabel } from '@/utils/format'
 // 今日数据来自 stats(range=today)，近7天柱状来自 stats(range=7d)。
-// 「较昨日」增量需后端导出 today/yesterday 字段后才显示；未导出时不编造增量。
+// 「较昨日」增量 = today.today 指标 − today.yesterday 指标（Asia/Shanghai 日历边界由后端给出）。
 const props = defineProps<{ today: StatsData, week: StatsData }>()
+const cur = computed(() => props.today.today ?? { visitors: props.today.visitors, chats: props.today.chats, leads: props.today.leads })
+const prev = computed(() => props.today.yesterday ?? {})
+const visitorsDelta = computed(() => deltaText(cur.value.visitors ?? 0, prev.value.visitors ?? 0))
+const chatsDelta = computed(() => deltaText(cur.value.chats ?? 0, prev.value.chats ?? 0))
 const maxVisits = computed(() => Math.max(1, ...props.week.daily.map(d => d.visits)))
 </script>
 
@@ -12,16 +17,16 @@ const maxVisits = computed(() => Math.max(1, ...props.week.daily.map(d => d.visi
     <div class="sec-title"><span>今日数据</span><small>较昨日</small></div>
     <div class="panel">
       <div class="stats">
-        <div class="stat"><b class="num">{{ today.visitors }}</b><span>访客</span></div>
-        <div class="stat"><b class="num">{{ today.chats }}</b><span>对话</span></div>
-        <div class="stat"><b class="num" :class="{ amber: today.leads > 0 }">{{ today.leads }}</b><span>新线索</span></div>
+        <div class="stat"><b class="num">{{ cur.visitors ?? 0 }}</b><span>访客<em v-if="visitorsDelta">{{ visitorsDelta }}</em></span></div>
+        <div class="stat"><b class="num">{{ cur.chats ?? 0 }}</b><span>对话<em v-if="chatsDelta">{{ chatsDelta }}</em></span></div>
+        <div class="stat"><b class="num" :class="{ amber: (cur.leads ?? 0) > 0 }">{{ cur.leads ?? 0 }}</b><span>新线索</span></div>
       </div>
       <div class="chart-wrap">
         <div class="panel-h"><span class="hint">近 7 天访客</span><span class="hint num">共 {{ week.visitors }}</span></div>
         <div v-if="week.daily.length" class="bars" aria-label="近七天访客柱状图">
           <div v-for="(day, index) in week.daily" :key="day.date" class="bar-col">
             <i :class="{ hi: index === week.daily.length - 1 }" :style="{ height: `${Math.max(4, day.visits / maxVisits * 56)}px` }" />
-            <span>{{ day.date.slice(5) }}</span>
+            <span>{{ weekdayLabel(day.date, index === week.daily.length - 1) }}</span>
           </div>
         </div>
         <p v-else class="hint empty-bars">还没有访问数据</p>
@@ -81,6 +86,12 @@ const maxVisits = computed(() => Math.max(1, ...props.week.daily.map(d => d.visi
 .stat span {
   font-size: var(--fs-xs);
   color: var(--c-text-3);
+}
+.stat em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--c-success);
+  margin-left: 2px;
 }
 .chart-wrap {
   padding: 0 16px;

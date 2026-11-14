@@ -1,10 +1,11 @@
 <script setup lang="ts">
 // B5 AI 状态卡：青绿渐变 + 三个指标（本周回答/没答上来/被点踩）。
-// 指标接口 me_assistant_metrics 尚未在 generated 中导出，导出前显示「—」占位，不编造数字。
+// 指标来自 GET /me/assistant/metrics（me_assistant_metrics），均为真实统计。
+import type { AssistantMetrics } from '@/api/generated'
 import AnonymousPortrait from '@/components/common/AnonymousPortrait.vue'
 defineProps<{
   templateName?: string
-  metrics?: { answers: number, unanswered: number, disliked: number }
+  metrics?: AssistantMetrics
 }>()
 </script>
 
@@ -18,9 +19,9 @@ defineProps<{
       </div>
     </div>
     <div class="nums">
-      <div><b>{{ metrics ? metrics.answers : '—' }}</b>本周回答</div>
-      <div><b>{{ metrics ? metrics.unanswered : '—' }}</b>没答上来</div>
-      <div><b>{{ metrics ? metrics.disliked : '—' }}</b>被点踩</div>
+      <div><b>{{ metrics?.answers ?? 0 }}</b>本周回答</div>
+      <div><b>{{ metrics?.unanswered ?? 0 }}</b>没答上来</div>
+      <div><b>{{ metrics?.disliked ?? 0 }}</b>被点踩</div>
     </div>
   </section>
 </template>

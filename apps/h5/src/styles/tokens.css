@@ -12,6 +12,7 @@
   --c-ai-line:#B4E3DF;
   --c-amber:#E08A1E;        /* 提醒：A 级意向、超时未读、新线索 */
   --c-amber-soft:#FDF2E2;
+  --c-amber-ink:#8A520A;    /* 琥珀浅底上的文字（待处理提醒条） */
   --c-danger:#E5484D;       /* 错误、删除、未读角标 */
   --c-danger-soft:#FDECEC;
   --c-success:#1E9E5A;
@@ -20,6 +21,7 @@
   --c-bg:#F3F5F8;
   --c-surface:#FFFFFF;
   --c-line:#E5E9EF;
+  --c-tag-gray-bg:#EEF1F5;   /* 灰色标签底（来源标签、C 级意向） */
   --c-text:#1A2433;
   --c-text-2:#5A6677;
   --c-text-3:#8D97A5;
