@@ -1,0 +1,8 @@
+<script setup lang="ts">
+import type { PublicCard } from '@/api/generated'
+import { share } from '@/platform'
+defineProps<{ card: PublicCard }>()
+const origin = window.location.origin
+</script>
+<template><header class="hero"><img v-if="card.photo_url" class="portrait" :src="card.photo_url" :alt="`${card.name}的职业照`"><div v-else class="portrait-placeholder"><span class="icon i-lucide-user-round" aria-hidden="true" /></div><div class="shade" /><div class="hero-top row between"><div class="row"><img v-if="card.company.logo_url" :src="card.company.logo_url" alt="公司标识" width="28"><span>{{ card.company.short_name || card.company.name }}</span></div><button class="share icon-button" aria-label="分享名片" @click="share(`${card.name}｜${card.title}`, `${origin}/c/${card.code}?s=link`)"><span class="icon i-lucide-share-2" /></button></div><div class="identity"><h1>{{ card.name }}</h1><p>{{ [card.title, card.dept].filter(Boolean).join(' ｜ ') }}</p><p class="small">{{ card.company.name }}</p></div></header></template>
+<style scoped>.hero{height:440px;position:relative;background:var(--c-ink);color:var(--c-surface);overflow:hidden}.portrait,.shade,.portrait-placeholder{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}.portrait-placeholder{display:grid;place-items:center;background:var(--c-ink-2)}.portrait-placeholder .icon{width:140px;height:140px;opacity:.3}.shade{background:linear-gradient(180deg,transparent 30%,var(--c-ink) 100%)}.hero-top{position:relative;padding:16px}.share{background:var(--c-ink-2);color:var(--c-surface)}.identity{position:absolute;bottom:58px;left:24px;right:24px}.identity h1{font-size:var(--fs-xxl);color:var(--c-surface);margin-bottom:4px}.identity p{margin-top:4px}</style>
