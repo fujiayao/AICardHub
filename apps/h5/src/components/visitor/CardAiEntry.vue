@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import AnonymousPortrait from '@/components/common/AnonymousPortrait.vue'
 const props = defineProps<{ card: PublicCard }>()
 const emit = defineEmits<{ chat: [question?: string] }>()
-const opening = computed(() => props.card.assistant?.opening || '您好，我是我的 AI 分身，有什么可以帮您？')
+const opening = computed(() => props.card.assistant?.opening || (props.card.name ? `您好，我是${props.card.name}的 AI 分身，有什么可以帮您？` : '您好，有什么可以帮您？'))
 const questions = computed(() => props.card.assistant?.guide_questions ?? [])
 </script>
 

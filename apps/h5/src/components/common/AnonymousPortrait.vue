@@ -10,7 +10,7 @@ const s = `ap-${uid}-s`
 </script>
 
 <template>
-  <svg class="portrait-illustration" viewBox="0 0 300 400" preserveAspectRatio="xMidYMax meet" role="img" aria-label="职业照占位图">
+  <svg class="portrait-illustration" viewBox="0 0 300 400" preserveAspectRatio="xMidYMax meet" role="img" aria-label="匿名人物插画占位，非真实照片">
     <defs>
       <radialGradient :id="l" cx="50%" cy="34%" r="45%">
         <stop offset="0" class="stop-highlight" stop-opacity=".22" />
