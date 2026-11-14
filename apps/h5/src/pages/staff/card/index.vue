@@ -22,6 +22,7 @@ const { data, loading, error, reload } = useResource(async () => {
   <StaffShell title="我的名片">
     <ResourceState :loading="loading" :error="error" @retry="reload">
       <template v-if="data">
+        <div class="b2-body">
         <div class="banner banner-ai">
           <span class="icon i-lucide-smartphone" aria-hidden="true" />
           <span class="grow">把员工端添加到手机桌面，新线索一打开就能看到</span>
@@ -55,12 +56,18 @@ const { data, loading, error, reload } = useResource(async () => {
           <span class="icon i-lucide-nfc nfc-ico" aria-hidden="true" />
           <span class="grow">NFC 功能未启用</span>
         </div>
+        </div>
       </template>
     </ResourceState>
   </StaffShell>
 </template>
 
 <style scoped>
+/* B2 作为 .content 的唯一子节点，避免外层 grid gap 与各块自身 margin 叠加成双倍间距；
+   纵向节奏完全由下面各块的 margin/padding 控制，对齐原型 page-body。 */
+.b2-body {
+  display: block;
+}
 .banner {
   margin: 0 0 14px;
   padding: 10px 12px;

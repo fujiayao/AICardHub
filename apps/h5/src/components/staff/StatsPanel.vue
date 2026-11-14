@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import type { StatsData } from '@/api/generated'
 import { computed } from 'vue'
-import { deltaText, weekdayLabel } from '@/utils/format'
+import { deltaValue, weekdayLabel } from '@/utils/format'
 // 今日数据来自 stats(range=today)，近7天柱状来自 stats(range=7d)。
-// 「较昨日」增量 = today.today 指标 − today.yesterday 指标（Asia/Shanghai 日历边界由后端给出）。
+// 「较昨日」增量 = today 指标 − yesterday 指标（Asia/Shanghai 日历边界由后端给出）。
+// 仅当 today 与 yesterday 两段数据都存在时才显示增量，缺失不编造；0/负数如实显示。
 const props = defineProps<{ today: StatsData, week: StatsData }>()
 const cur = computed(() => props.today.today ?? { visitors: props.today.visitors, chats: props.today.chats, leads: props.today.leads })
-const prev = computed(() => props.today.yesterday ?? {})
-const visitorsDelta = computed(() => deltaText(cur.value.visitors ?? 0, prev.value.visitors ?? 0))
-const chatsDelta = computed(() => deltaText(cur.value.chats ?? 0, prev.value.chats ?? 0))
+const prev = computed(() => props.today.yesterday)
+const visitorsDelta = computed(() => prev.value ? deltaValue(cur.value.visitors ?? 0, prev.value.visitors ?? 0) : null)
+const chatsDelta = computed(() => prev.value ? deltaValue(cur.value.chats ?? 0, prev.value.chats ?? 0) : null)
 const maxVisits = computed(() => Math.max(1, ...props.week.daily.map(d => d.visits)))
 </script>
 
@@ -17,8 +18,8 @@ const maxVisits = computed(() => Math.max(1, ...props.week.daily.map(d => d.visi
     <div class="sec-title"><span>今日数据</span><small>较昨日</small></div>
     <div class="panel">
       <div class="stats">
-        <div class="stat"><b class="num">{{ cur.visitors ?? 0 }}</b><span>访客<em v-if="visitorsDelta">{{ visitorsDelta }}</em></span></div>
-        <div class="stat"><b class="num">{{ cur.chats ?? 0 }}</b><span>对话<em v-if="chatsDelta">{{ chatsDelta }}</em></span></div>
+        <div class="stat"><b class="num">{{ cur.visitors ?? 0 }}</b><span>访客<em v-if="visitorsDelta" :class="`d-${visitorsDelta.dir}`">{{ visitorsDelta.text }}</em></span></div>
+        <div class="stat"><b class="num">{{ cur.chats ?? 0 }}</b><span>对话<em v-if="chatsDelta" :class="`d-${chatsDelta.dir}`">{{ chatsDelta.text }}</em></span></div>
         <div class="stat"><b class="num" :class="{ amber: (cur.leads ?? 0) > 0 }">{{ cur.leads ?? 0 }}</b><span>新线索</span></div>
       </div>
       <div class="chart-wrap">
@@ -90,8 +91,16 @@ const maxVisits = computed(() => Math.max(1, ...props.week.daily.map(d => d.visi
 .stat em {
   font-style: normal;
   font-size: 11px;
-  color: var(--c-success);
   margin-left: 2px;
+}
+.stat em.d-up {
+  color: var(--c-success);
+}
+.stat em.d-down {
+  color: var(--c-danger);
+}
+.stat em.d-flat {
+  color: var(--c-text-3);
 }
 .chart-wrap {
   padding: 0 16px;
