@@ -176,9 +176,9 @@ async def card_data(db: AsyncSession, card: Card) -> s.CardData:
 
 async def update_card(db: AsyncSession, card: Card, payload: s.CardInput) -> s.CardData:
     repo.assign(card, payload.model_dump(exclude_none=True))
-    from app.modules.workspace.render_service import render_card
+    from app.modules.workspace.render_service import enqueue_card
 
-    await render_card(db, card)
+    await enqueue_card(db, card)
     await db.commit()
     return await card_data(db, card)
 
@@ -194,9 +194,9 @@ async def assistant_update(
         await repo.one(db, Template, Template.id == payload.template_id, Template.enabled.is_(True))
     assistant = await assistant_get(db, card)
     repo.assign(assistant, payload.model_dump())
-    from app.modules.workspace.render_service import render_card
+    from app.modules.workspace.render_service import enqueue_card
 
-    await render_card(db, card)
+    await enqueue_card(db, card)
     await db.commit()
     return s.AssistantData.model_validate(assistant)
 
@@ -254,9 +254,9 @@ async def create_employee(
         )
     )
     await db.flush()
-    from app.modules.workspace.render_service import render_card
+    from app.modules.workspace.render_service import enqueue_card
 
-    await render_card(db, card)
+    await enqueue_card(db, card)
     return employee
 
 

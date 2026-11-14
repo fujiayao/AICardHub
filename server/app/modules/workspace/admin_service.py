@@ -154,9 +154,9 @@ async def employee_update(
     card = await shared.own_card(db, row.id)
     card.status = row.status
     card.mobile = row.phone or ""
-    from app.modules.workspace.render_service import render_card
+    from app.modules.workspace.render_service import enqueue_card
 
-    await render_card(db, card)
+    await enqueue_card(db, card)
     await shared.audit(db, actor.id, "employee.update", str(row.id))
     await db.commit()
     return await shared.staff_data(db, row)

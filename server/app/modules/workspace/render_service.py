@@ -57,12 +57,23 @@ async def render_card(db: AsyncSession, card: Card) -> None:
         )
 
 
-async def render_all(db: AsyncSession, template_id: int | None = None) -> None:
-    """Enqueue derived files in the same transaction as their source change."""
+async def enqueue_card(db: AsyncSession, card: Card) -> None:
+    """Queue one private derived-document refresh in the source transaction."""
     from uuid import uuid4
 
     from app.modules.workspace.models import Setting
 
+    key = f"render_pending-{card.code}"
+    row = await repo.optional(db, Setting, Setting.key == key)
+    value = {"card_id": card.id, "version": uuid4().hex}
+    if row is None:
+        db.add(Setting(key=key, value=value))
+    else:
+        row.value = value
+
+
+async def render_all(db: AsyncSession, template_id: int | None = None) -> None:
+    """Enqueue derived files in the same transaction as their source change."""
     stmt = (
         select(Card)
         .join(Employee, Employee.id == Card.employee_id)
@@ -73,13 +84,7 @@ async def render_all(db: AsyncSession, template_id: int | None = None) -> None:
             Assistant.template_id == template_id
         )
     for card in (await db.scalars(stmt)).all():
-        key = f"render_pending-{card.code}"
-        row = await repo.optional(db, Setting, Setting.key == key)
-        value = {"card_id": card.id, "version": uuid4().hex}
-        if row is None:
-            db.add(Setting(key=key, value=value))
-        else:
-            row.value = value
+        await enqueue_card(db, card)
 
 
 async def template_previews(db: AsyncSession, employee_id: int) -> list[Any]:
