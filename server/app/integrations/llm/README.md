@@ -1,0 +1,77 @@
+# AI 内核接入
+
+实现 `contracts/IMPLEMENTATION.md` 的本地冻结协议，不依赖 core、数据库或 FastAPI。
+运行依赖由后端所有者统一添加：`python-frontmatter`、`filelock`、`tiktoken`、`openai`。
+测试工具：`pytest`、`pytest-asyncio`、`pytest-cov`；静态检查：`ruff`、`mypy`。
+
+## 知识存储
+
+`KnowledgeStore(root)` 及其所有方法同步，包含文件锁、分词与 Git 操作；在异步
+服务中必须将整次方法调用放入线程池。不得让 router、loader 或其他业务模块直接
+读写知识文件。每次新消息使用 `store.search(question, card_code)` 获取新结果，不能
+缓存此前检索快照，否则撤回后会继续使用旧正文。
+
+冻结签名见契约。记录返回字段为：`file_id,title,content,description,scope,card_code,
+public,approved,deleted,revision,updated,hash,tokens`。`updated` 是 UTC ISO 字符串，
+`revision` 为递增整数，`hash` 是规范化记录的 SHA1，覆盖公开状态、归属和版本。
+SHA1 用于完整性检查和缓存失效，不提供防恶意文件系统所有者篡改的签名保证。
+搜索额外返回 `truncated`；截断后的 `content` 是片段，`hash/tokens` 仍指原始版本。
+
+`scope` 支持 `company`（`card_code=None`）与 `personal` / `card`（必须有合法
+`card_code`）。ID 全局唯一，创建后归属不可变。`get/list_files/history` 属于管理
+接口，不进行调用者鉴权，也可能返回私有正文，后端必须先验证员工/管理员权限。
+`search` 只返回公开且批准的公司资料和当前名片资料，无 card 参数时仅公司资料。
+最多四个文件，每文件 1500 Token、12000 字符，总正文不超过 6000 Token。
+
+`upsert` 的公开/批准默认都是 False；员工写入时后端必须强制 approved=False，
+不能接受员工自行批准。修改正文后需要管理员明确批准该次 revision。`delete`
+立即移除当前文件并保留撤回快照；`rollback` 创建新 revision，保留当前公开/批准
+状态；已删除文档恢复为未公开、未批准。历史按 revision 降序，包含完整快照。
+普通参数错误为 `ValueError`；回滚不存在版本为 `KeyError`；读取不存在 ID 返回
+None，重复删除无操作；Git/IO 故障原样抛出，由后端映射已登记的 AppError。
+
+锁按整个 store 串行化，覆盖历史、当前文件、检索与 Git 索引；不同 worker 安全。
+当前文件和快照均原子替换，Git 提交失败时恢复原文。KB 根目录必须是专用本地
+目录，由服务端独占；禁止符号链接、junction、路径 ID 和 Windows 设备名。
+本地 Git 无远程、无 push、禁用 hooks/签名，不改全局 Git 配置。
+
+## 客户端与流
+
+`build_client(settings)` 支持对象属性或 mapping，键：
+
+- `llm_mode`: `fake` / `openai`，无隐式演示降级。
+- `llm_base_url`, `llm_api_key`, `llm_model`: openai 模式必填。
+- `llm_timeout`: 总请求秒数，默认 30；首内容期限最多 15 秒。
+
+`LLMClient.stream(messages)` 返回 `AsyncIterator[str]`。Fake 固定合成回复明确含
+“本地演示模型”，可配置 chunks、delay、fail_after、error 做离线故障测试。
+自动测试不请求真实供应商。OpenAI SDK 禁用自动重试，返回的流在完成、故障和
+取消时关闭。后端 lifespan 结束必须对主、备 OpenAILLMClient 分别调用
+`await client.aclose()`；Fake 不需要关闭网络连接。
+
+`ChatEngine(primary, fallback=None).stream(question, knowledge, history, persona='')`
+异步产生 `{event,data}`：delta 的 data 为 `{text}`；done 为
+`{kb_refs:list[str],nokb:bool,model:str}`，后端保存消息后补 `message_id`。
+kb_refs 为本轮提供给模型的资料 ID，不表示已经由模型逐条验证的引文。
+拒答和无资料回答的 model 为 `policy`；成功备用返回备用的 model 标识。
+engine 没有 card 身份或 store 参数，因此调用者必须提供当前名片的新 search 结果。
+engine 会再次排除未公开、未批准、删除或未知 scope 的记录。
+
+手机号在所有有效问题分支触发一次 `lead_prompt`，reason=`phone`；报价、折扣、
+交付、合同问题本地拒绝承诺并提示留资，reason=`keyword`（手机号已提示则不重复）。
+engine 从不创建线索；仅在用户明确同意并提交后由后端创建。
+无资料直接诚实说明、nokb=True，不调用模型。历史只接受最近十二条 user/assistant
+消息并逐条限长；拒绝历史伪造 system。资料以 JSON 数据放在 user 消息，系统
+声明资料不是指令，persona 服从回答规则。此结构不能证明真实模型永不受提示注入
+影响，真实模型合成样本评测应独立进行。
+
+仅第一段非空供应商内容前故障可以切一次备用。即便内容只是尚未向用户显示的
+内部标记，也禁止切备用。部分输出失败发 `LLM_STREAM_INTERRUPTED`；主备首段
+前均失败发 `LLM_UNAVAILABLE`；两种错误后都不发 done、不重放。取消向上传播，
+后端应关闭 engine 生成器并保存已生成部分。`<<NOKB>>` 跨分片过滤；只输出
+前 200 个字符（业务方案 §4.7 限制），目前可能在半句截断。
+
+本次范围不包含数据库会话、权限、限流、落库、问题池、文档导入、tool calling
+能力探测、模型路由评测 CLI 或真实模型评测，均不应当宣称 T13–T16 全量旧任务
+已经完成。普通无 frontmatter Markdown 可以解析为默认未公开/未批准；不会为
+缺 description 的私人草稿自动调用云模型。
