@@ -2,7 +2,7 @@ import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { format } from "prettier";
+import { format, resolveConfig } from "prettier";
 import openapiTS, { astToString } from "openapi-typescript";
 import { operations } from "./operations.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -19,6 +19,8 @@ if (!schema.openapi || !schema.paths || !schema.components)
 const hash = createHash("sha256").update(bytes).digest("hex");
 const header = `// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: ${hash}\n`;
 const output = path.join(root, "src/api/generated");
+const prettierOptions =
+  (await resolveConfig(path.join(root, ".prettierrc.json"))) ?? {};
 const names = new Set();
 const bindings = [];
 // Match normalized path shape so parameter names are taken from the real backend, never guessed.
@@ -59,12 +61,13 @@ await mkdir(output, { recursive: true });
 await writeFile(
   path.join(output, "schema.ts"),
   await format(header + astToString(await openapiTS(schema)), {
+    ...prettierOptions,
     parser: "typescript",
   }),
 );
 await writeFile(
   path.join(output, "operations.ts"),
-  await format(funcs, { parser: "typescript" }),
+  await format(funcs, { ...prettierOptions, parser: "typescript" }),
 );
 await writeFile(
   path.join(output, "source.json"),

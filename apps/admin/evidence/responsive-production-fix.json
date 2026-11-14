@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "name": "dev",
+      "base": "http://127.0.0.1:5174",
+      "mobile": "390x844 login/dashboard/knowledge editor/navigation/NFC passed",
+      "desktop": "collapsed navigation passed",
+      "reload": "deep link passed",
+      "errors": [],
+      "failed": []
+    },
+    {
+      "name": "production",
+      "base": "http://127.0.0.1:5175/admin",
+      "mobile": "390x844 login/dashboard/knowledge editor/navigation/NFC passed",
+      "desktop": "collapsed navigation passed",
+      "reload": "deep link passed",
+      "errors": [],
+      "failed": [],
+      "assetsUnderProductionBase": true
+    }
+  ]
+}

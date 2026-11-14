@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { reactive, useTemplateRef, watch } from "vue";
-import { MdEditor } from "md-editor-v3";
+import { MdEditor, config } from "md-editor-v3";
 import DOMPurify from "dompurify";
 import "md-editor-v3/lib/style.css";
 import type { FormInstance, FormRules } from "element-plus";
 import type { Note } from "@/api/schema";
+// The unused browser-fullscreen extension otherwise injects a CDN script on mount.
+// Explicitly disable it; fullscreen is not exposed in this editor's toolbar.
+config({
+  editorExtensions: { screenfull: { instance: { isEnabled: false } } },
+});
 const props = defineProps<{
   initial: Pick<Note, "title" | "content" | "public" | "approved">;
   busy: boolean;
@@ -41,6 +46,7 @@ const sanitize = (html: string) => DOMPurify.sanitize(html);
 </script>
 <template>
   <el-form
+    :disabled="busy"
     ref="form"
     :model="model"
     :rules="rules"
@@ -48,7 +54,7 @@ const sanitize = (html: string) => DOMPurify.sanitize(html);
     @submit.prevent="save"
     ><el-form-item label="标题" prop="title"
       ><el-input v-model="model.title" maxlength="200" /></el-form-item
-    ><el-form-item label="Markdown 内容" prop="content"
+    ><el-form-item class="markdown-field" label="Markdown 内容" prop="content"
       ><MdEditor
         v-model="model.content"
         :sanitize="sanitize"
@@ -72,11 +78,16 @@ const sanitize = (html: string) => DOMPurify.sanitize(html);
         :no-katex="true"
         :no-mermaid="true"
         :no-highlight="true"
-        :no-prettier="true" /></el-form-item
+        :no-prettier="true"
+        :preview="false" /></el-form-item
     ><el-form-item label="公开给访客"
-      ><el-switch v-model="model.public" /></el-form-item
+      ><el-switch
+        aria-label="公开给访客"
+        v-model="model.public" /></el-form-item
     ><el-form-item label="管理员批准"
-      ><el-switch v-model="model.approved" /></el-form-item
+      ><el-switch
+        aria-label="管理员批准"
+        v-model="model.approved" /></el-form-item
     ><el-alert
       title="只有同时公开并批准的版本才可用于访客回答。保存草稿不等于发布；撤回后立即停止用于检索。"
       type="warning"

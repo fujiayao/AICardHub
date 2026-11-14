@@ -1,0 +1,9 @@
+{
+  "files": 73,
+  "simulation": "independent copy of checked sources converted entirely to CRLF",
+  "eslint": "passed",
+  "prettier_check": "passed",
+  "config": {
+    "endOfLine": "auto"
+  }
+}

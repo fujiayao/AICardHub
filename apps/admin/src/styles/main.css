@@ -106,3 +106,23 @@ p {
     padding: 16px;
   }
 }
+
+/* Contain rich editor and tables within narrow task surfaces. */
+.el-form-item__content {
+  min-width: 0;
+}
+.el-message-box {
+  max-width: calc(100vw - 32px);
+}
+@media (max-width: 760px) {
+  .metric {
+    padding: 16px 8px;
+  }
+  .el-pagination .el-pagination__total {
+    margin-left: 8px;
+  }
+  .md-editor {
+    width: 100%;
+    min-width: 0;
+  }
+}

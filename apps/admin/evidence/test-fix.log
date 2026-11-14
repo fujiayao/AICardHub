@@ -1,0 +1,15 @@
+$ node --test tests/*.test.mjs
+✔ admin session rejects staff/visitor storage and uses only its own key (94.2475ms)
+✔ expired, malformed and missing-expiry tokens require login (19.4096ms)
+✔ login never sends an existing bearer; direct response remains unwrapped (16.6544ms)
+✔ 401 expires only admin session and never retries or refreshes (14.7481ms)
+✔ path values are escaped and /api/v1 prefix remains intact (14.6228ms)
+✔ password-required response forces password route without retry (12.209ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 531.0206

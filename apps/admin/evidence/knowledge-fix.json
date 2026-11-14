@@ -1,0 +1,18 @@
+{
+  "results": [
+    {
+      "step": "clean prior owned synthetic knowledge",
+      "count": 0
+    },
+    "draft not retrievable",
+    "published revision retrieved via real SSE",
+    "withdraw persisted after reload and excluded from real SSE refs",
+    "delete returns 404 absent after reload and excluded from SSE refs",
+    "personal scope and card ownership visible and preserved on admin edit"
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "httpErrors": [],
+  "externalRequests": [],
+  "cleanupRemaining": 0
+}

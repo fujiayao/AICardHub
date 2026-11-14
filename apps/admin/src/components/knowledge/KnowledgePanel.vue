@@ -51,7 +51,7 @@ async function save(
     body.public &&
     body.approved &&
     !(await confirmAction(
-      "确认该资料已获批准并允许向所有访客公开？保存后即可被回答引用。",
+      "确认该资料已获批准并允许在其所属知识范围内向访客公开？保存后即可被回答引用。",
     ))
   )
     return;
@@ -121,7 +121,7 @@ onMounted(() => load());
     <div>
       <h1>公开知识</h1>
       <p class="muted">
-        先审核内容，再公开发布。私人笔记只有明确批准后才可用于访客回答。
+        先审核内容，再公开发布。个人笔记保留所属名片范围，只有公开且批准后才可用于该名片的访客回答。
       </p>
     </div>
     <div class="panel">
@@ -139,7 +139,14 @@ onMounted(() => load());
           label="标题"
           min-width="180"
         /><el-table-column label="范围"
-          ><template #default>公司知识</template></el-table-column
+          ><template #default="{ row }"
+            ><el-tag :type="row.scope === 'card' ? 'warning' : 'info'">{{
+              row.scope === "card" ? "个人笔记" : "公司知识"
+            }}</el-tag>
+            <div v-if="row.scope === 'card'" class="muted">
+              名片 {{ row.card_code }}
+            </div></template
+          ></el-table-column
         ><el-table-column prop="revision" label="版本" /><el-table-column
           label="状态"
           width="120"
@@ -184,7 +191,10 @@ onMounted(() => load());
     <div v-if="draft" class="panel">
       <h2>{{ selected ? "编辑知识" : "新建草稿" }}</h2>
       <p class="muted">
-        {{ selected?.file_id ?? "保存后由服务器创建文件编号" }}
+        {{ selected?.file_id ?? "保存后由服务器创建公司知识编号" }}
+        <span v-if="selected?.scope === 'card'">
+          · 个人笔记，仅限名片 {{ selected.card_code }}</span
+        >
       </p>
       <NoteEditor
         :key="editorKey"

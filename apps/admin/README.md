@@ -33,3 +33,7 @@ C8 物理 NFC 管理延期。知识批量上传、格式校验、评测、Excel 
 前端可独立检查；全仓检查入口由主线程维护 `scripts/check.ps1`，需要先集成其他所有者成果。
 
 当前设置接口只持久化配置表，后端运行参数仍由环境读取；页面明确提示不保证立即生效，运行时应用待后端接入。
+
+本轮修复提供可复用浏览器检查：`scripts/browser-knowledge-fix.mjs`（真实知识草稿/发布/撤回/删除及SSE检索引用、个人scope、合成资料清理、外部资源请求拦截）和 `scripts/browser-layout-fix.mjs`（390×844、桌面折叠菜单、生产/admin静态资源与深链刷新）。通过 `PLAYWRIGHT_MODULE` 指定已安装Playwright入口，`ADMIN_CREDENTIALS` 指向本地未跟踪seed凭据，脚本不输出口令。`ADMIN_URL` 可切换知识检查的根路径与生产子路径。
+
+应用 `.prettierrc.json` 使用 `endOfLine: auto` 兼容 Windows 的 CRLF checkout。`gen:api` 使用同一配置格式化真实生成文件；不忽略格式检查文件。
