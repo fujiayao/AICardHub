@@ -2,11 +2,14 @@
   /* 品牌与功能色 */
   --c-ink:#13294B;          /* 品牌深蓝：名字、标题、名片底色 */
   --c-ink-2:#22406E;        /* 品牌深蓝·浅：渐变、次级深色面 */
+  --c-ink-3:#3A5A8C;        /* 品牌深蓝·更浅：深色面上的次级文字/描边 */
   --c-primary:#2F6BFF;      /* 主操作：按钮、链接、选中 */
   --c-primary-press:#1F56E0;
   --c-primary-soft:#EAF0FF;
+  --c-primary-line:#C9D8FF;
   --c-ai:#0E9E98;           /* AI 分身身份色：AI 头像、AI 标识、试聊 */
   --c-ai-soft:#E2F5F3;
+  --c-ai-line:#B4E3DF;
   --c-amber:#E08A1E;        /* 提醒：A 级意向、超时未读、新线索 */
   --c-amber-soft:#FDF2E2;
   --c-danger:#E5484D;       /* 错误、删除、未读角标 */
@@ -27,6 +30,14 @@
   /* 阴影：只有“浮起”的元素用阴影，普通卡片用描边 */
   --sh-float:0 10px 30px rgba(19,41,75,.16);
   --sh-soft:0 2px 8px rgba(19,41,75,.06);
+  --sh-card:0 1px 2px rgba(19,41,75,.04),0 4px 16px rgba(19,41,75,.06);
+  --sh-dock:0 -6px 20px rgba(19,41,75,.05);
+  --c-overlay:rgba(10,22,42,.72);
+  --c-on-ink-2:rgba(255,255,255,.72); /* 深色面上的次级文字 */
+  --c-on-ink-line:rgba(255,255,255,.16);
+  /* 间距：4px 阶梯 */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:32px; --sp-8:40px;
+  --hero-photo-h:420px;
   /* 字体 */
   --font:"PingFang SC","HarmonyOS Sans SC","MiSans","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
   --font-num:"DIN Alternate","Roboto","PingFang SC",system-ui,sans-serif;
