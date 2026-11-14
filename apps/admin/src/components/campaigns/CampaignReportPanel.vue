@@ -69,11 +69,12 @@ function loadMore() {
 }
 
 async function ensurePinned() {
+  // Invalidate any in-flight lookup and stale error on every selection change.
+  const seq = ++pinSeq;
+  pinnedError.value = "";
   const id = selected.value;
   if (id === null || campaigns.value.some((c) => c.id === id)) return;
   if (pinned.value?.id === id) return;
-  const seq = ++pinSeq;
-  pinnedError.value = "";
   try {
     const row = await api.campaign(id);
     if (seq === pinSeq) pinned.value = row;
@@ -187,6 +188,7 @@ onMounted(loadCampaigns);
         <p v-if="pinnedError && !current" class="meta">
           活动信息加载失败：{{ pinnedError }}（报表仍按活动 ID
           {{ selected }} 加载）
+          <el-button link type="primary" @click="ensurePinned">重试</el-button>
         </p>
         <p v-if="current" class="meta">
           {{ formatTime(current.start_at) }} 至 {{ formatTime(current.end_at) }}

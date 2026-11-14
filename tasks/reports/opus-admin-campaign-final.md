@@ -22,7 +22,7 @@
   - Delete works only for draft campaigns and asks for confirmation. A server 409 opens an explanation dialog; other errors are already shown by `request()`.
   - Once a campaign is saved as ended it cannot be reactivated (status locked). Times are sent as UTC ISO (`toISOString`), and end must be later than start. Limits: name 1–120, booth 80, location 255, opening 2000, at most 6 guides of 1–255 characters each (blank guide rows are rejected).
   - Filter label for `active` is 已启用.
-  - Report: the selector loads pages of 100 and has a "加载更多" button. If `?campaign_id` points to a campaign not in the loaded pages, it fetches that campaign via GET for its label and meta, and fetches the report regardless. KPIs come only from server totals; visitors is the server union and is never summed from sources. The source table shows only the real schema columns (visits/visitors), with labels nfc/qr/poster/link/sig; unknown codes appear as sent. Report loading has a sequence guard and full empty/loading/error/retry states. The presentation part was split into `CampaignReportView.vue` to stay under 300 lines.
+  - Report: the selector loads pages of 100 and has a "加载更多" button. If `?campaign_id` points to a campaign not in the loaded pages, it fetches that campaign via GET for its label and meta, and fetches the report regardless. KPIs come only from server totals; visitors is the server union and is never summed from sources. The source table shows all four real `SourceBreakdownRow` metrics (visits/visitors/chats/leads, each optional default 0, rendered `row.field ?? 0`, never summed into totals), with labels nfc/qr/poster/link/sig; unknown codes appear as sent. Report loading has a sequence guard and full empty/loading/error/retry states. The presentation part was split into `CampaignReportView.vue` to stay under 300 lines.
 - `router/modules/admin.ts`: removed the `pending` flags from activities and reports only.
 
 All campaign source files are ≤ 271 lines. No dependencies, invented metrics, invented company facts or NFC claims were added.
@@ -34,3 +34,9 @@ typecheck (vue-tsc) PASS · eslint PASS · prettier check PASS · tests 16/16 PA
 ## Pending
 
 No browser, live API or 5194 testing was done. Main owns real UI and API acceptance. Specifically unverified: the server 409 message text, the real source codes in `source_breakdown`, and pagination with more than 100 campaigns on real data.
+
+HOST REVIEW REQUIRES CORRECTION BEFORE COMMIT: SourceBreakdownRow actual main schema DOES have chats/leads (optional defaults0). Report currently incorrectly says onlyvisits/visitors; restore chats/leads source columns (all four metrics with ??0), correct report. Read tasks/reports/opus-admin-campaign-coordination.md latest21:41 for retry/sequence notes. Host checks already allpassed but missing business columns is real correctness issue, not perfection scope.
+
+## Opus correction after host review (same onceai/claude-opus-5-5)
+
+Host review found a real regression in 5ebe314: the earlier statement that SourceBreakdownRow had only visits/visitors was FALSE (my schema grep was truncated). Restored chats/leads source columns; all four use `?? 0`. Also: pinned-campaign lookup invalidates its sequence and clears stale error on every selection change (before early returns) and offers a retry button; CampaignForm is disabled while a save is in flight; openCreate already resets item.busy after invalidating itemSeq (verified). Files: CampaignReportView.vue, CampaignReportPanel.vue, CampaignForm.vue, this report.

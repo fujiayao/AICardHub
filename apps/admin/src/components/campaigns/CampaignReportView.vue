@@ -38,18 +38,18 @@ const kpis = computed(() => [
         <el-table-column label="来源" min-width="130">
           <template #default="{ row }">{{ sourceName(row) }}</template>
         </el-table-column>
-        <el-table-column
-          prop="visits"
-          label="访问次数"
-          min-width="100"
-          align="right"
-        />
-        <el-table-column
-          prop="visitors"
-          label="访客数"
-          min-width="90"
-          align="right"
-        />
+        <el-table-column label="访问次数" min-width="100" align="right">
+          <template #default="{ row }">{{ row.visits ?? 0 }}</template>
+        </el-table-column>
+        <el-table-column label="访客数" min-width="90" align="right">
+          <template #default="{ row }">{{ row.visitors ?? 0 }}</template>
+        </el-table-column>
+        <el-table-column label="有效对话" min-width="100" align="right">
+          <template #default="{ row }">{{ row.chats ?? 0 }}</template>
+        </el-table-column>
+        <el-table-column label="线索" min-width="80" align="right">
+          <template #default="{ row }">{{ row.leads ?? 0 }}</template>
+        </el-table-column>
       </el-table>
     </div>
     <p class="note">

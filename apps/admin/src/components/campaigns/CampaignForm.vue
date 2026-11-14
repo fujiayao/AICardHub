@@ -103,6 +103,7 @@ async function save() {
     ref="form"
     :model="model"
     :rules="rules"
+    :disabled="busy"
     label-position="top"
     aria-label="活动表单"
     @submit.prevent="save"
