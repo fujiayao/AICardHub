@@ -13,6 +13,7 @@ config({
 const props = defineProps<{
   initial: Pick<Note, "title" | "content" | "public" | "approved">;
   busy: boolean;
+  draftOnly?: boolean;
 }>();
 const emit = defineEmits<{
   save: [value: Pick<Note, "title" | "content" | "public" | "approved">];
@@ -80,11 +81,11 @@ const sanitize = (html: string) => DOMPurify.sanitize(html);
         :no-highlight="true"
         :no-prettier="true"
         :preview="false" /></el-form-item
-    ><el-form-item label="公开给访客"
+    ><el-form-item v-if="!draftOnly" label="公开给访客"
       ><el-switch
         aria-label="公开给访客"
         v-model="model.public" /></el-form-item
-    ><el-form-item label="管理员批准"
+    ><el-form-item v-if="!draftOnly" label="管理员批准"
       ><el-switch
         aria-label="管理员批准"
         v-model="model.approved" /></el-form-item

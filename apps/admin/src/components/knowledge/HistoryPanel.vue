@@ -16,7 +16,7 @@ async function load() {
 async function rollback(row: Revision) {
   if (
     !(await confirmAction(
-      `回滚到版本 ${row.revision}？会恢复该版本正文及公开/批准状态，请确认资料仍可公开。`,
+      `回滚到版本 ${row.revision}？仅恢复正文为未发布草稿；重新审核批准后方可公开。`,
     ))
   )
     return;

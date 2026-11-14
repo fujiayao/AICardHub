@@ -7,6 +7,7 @@ import { usePage } from "@/composables/usePage";
 import { useTask, confirmAction } from "@/composables/useTask";
 import LoadState from "@/components/LoadState.vue";
 import NoteEditor from "./NoteEditor.vue";
+import KnowledgeUpload from "./KnowledgeUpload.vue";
 import HistoryPanel from "./HistoryPanel.vue";
 const { data, page, busy, error, load } = usePage((p) =>
   api.notes({ page: p, page_size: 20 }),
@@ -19,6 +20,7 @@ const selected = ref<Note | null>(null),
   historyId = shallowRef(""),
   editorKey = shallowRef(0);
 const dirty = shallowRef(false);
+const uploading = shallowRef(false);
 async function switchAllowed() {
   return !dirty.value || (await confirmAction("编辑内容尚未保存，放弃修改？"));
 }
@@ -112,7 +114,7 @@ async function restored() {
   draft.value = null;
   dirty.value = false;
   await load();
-  ElMessage.success("历史版本已恢复，请核对发布状态");
+  ElMessage.success("正文已恢复为未发布草稿，请重新审核批准后发布");
 }
 onMounted(() => load());
 </script>
@@ -127,6 +129,7 @@ onMounted(() => load());
     <div class="panel">
       <div class="toolbar">
         <el-button type="primary" @click="create">新建 Markdown</el-button
+        ><el-button @click="uploading = true">批量上传 Markdown</el-button
         ><el-button :loading="busy" @click="load()">刷新列表</el-button>
       </div>
       <LoadState
@@ -205,6 +208,13 @@ onMounted(() => load());
       />
     </div>
     <el-dialog
+      v-model="uploading"
+      title="批量上传 Markdown"
+      width="1000px"
+      :close-on-click-modal="false"
+      ><KnowledgeUpload v-if="uploading" @saved="load()"
+    /></el-dialog>
+    <el-dialog
       :model-value="!!historyId"
       title="版本历史"
       width="760px"
@@ -219,7 +229,7 @@ onMounted(() => load());
         :file-id="historyId"
         @restored="restored" /></el-dialog
     ><el-alert
-      title="当前交付在线 Markdown 编辑、审核发布、撤回、历史和回滚。批量/文件夹上传、格式检查及评测运行未提供冻结接口，暂未交付。"
+      title="当前支持批量Markdown解析预览并逐篇存草稿、审核发布、撤回、历史和回滚；文件夹递归导入及评测运行尚未交付。"
       type="info"
       :closable="false"
     />

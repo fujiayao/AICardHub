@@ -37,17 +37,22 @@ export async function request<T>(
   const timeout = window.setTimeout(() => controller.abort(), 30000);
   const abort = () => controller.abort();
   options.signal?.addEventListener("abort", abort, { once: true });
+  const multipart = options.body instanceof FormData;
   try {
     const response = await fetch(path + (query.size ? `?${query}` : ""), {
       method,
       headers: {
-        "Content-Type": "application/json",
+        ...(!multipart ? { "Content-Type": "application/json" } : {}),
         ...(!login && session
           ? { Authorization: `Bearer ${session.token}` }
           : {}),
       },
       body:
-        options.body === undefined ? undefined : JSON.stringify(options.body),
+        options.body === undefined
+          ? undefined
+          : multipart
+            ? (options.body as FormData)
+            : JSON.stringify(options.body),
       signal: controller.signal,
     });
     if (response.status === 204) return undefined as T;

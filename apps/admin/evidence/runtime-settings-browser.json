@@ -1,0 +1,11 @@
+{
+  "results": [
+    "openai disabled until complete primary config",
+    "saved sensitive words immediately block real SSE before generation",
+    "limits persisted and refetched after reload in messages_per_day",
+    "key input never refills mask or secret; empty cannot overwrite",
+    "explicit clear_secret clears only after confirmation"
+  ],
+  "errors": [],
+  "restored": true
+}

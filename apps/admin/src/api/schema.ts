@@ -29,3 +29,6 @@ export type ProductInput = Schemas["ProductInput"];
 export type TemplateInput = Schemas["TemplateInput"];
 export type AssistantInput = Schemas["AssistantInput"];
 export type IssueStatus = Schemas["IssuePatch"]["status"];
+
+export type EmployeeImportResult = Schemas["EmployeeImportResult"];
+export type KnowledgeUploadRow = Schemas["KnowledgeUploadRow"];

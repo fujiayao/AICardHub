@@ -16,7 +16,10 @@ const rules: FormRules = {
   old_password: [{ required: true, message: "请输入原密码" }],
   new_password: [
     { required: true, message: "请输入新密码" },
-    { min: 8, max: 72, message: "密码长度为8–72位" },
+    {
+      pattern: /^(?=.*[A-Za-z])(?=.*\d).{8,20}$/,
+      message: "请输入8–20位，至少含字母和数字（可含符号）",
+    },
   ],
   confirm: [
     { required: true, message: "请再次输入新密码" },
@@ -37,12 +40,12 @@ async function save() {
       old_password: model.old_password,
       new_password: model.new_password,
     });
-    auth.changedPassword();
+    auth.logout();
     model.old_password = "";
     model.new_password = "";
     model.confirm = "";
-    ElMessage.success("密码已更新");
-    await router.replace("/dashboard");
+    ElMessage.success("密码已更新，请使用新密码重新登录");
+    await router.replace("/login");
   });
 }
 </script>
@@ -72,13 +75,15 @@ async function save() {
           v-model="model.new_password"
           type="password"
           show-password
-          autocomplete="new-password" /></el-form-item
+          autocomplete="new-password"
+          maxlength="20" /></el-form-item
       ><el-form-item label="确认新密码" prop="confirm"
         ><el-input
           v-model="model.confirm"
           type="password"
           show-password
           autocomplete="new-password"
+          maxlength="20"
       /></el-form-item>
       <div class="toolbar">
         <el-button native-type="submit" type="primary" :loading="busy"

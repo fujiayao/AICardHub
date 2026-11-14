@@ -1,3 +1,4 @@
+import { verifyPrivateRollback } from "./knowledge-rollback-check.mjs";
 import { chatRefs as checkRefs } from "./knowledge-chat-check.mjs";
 import assert from "node:assert/strict";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
@@ -89,27 +90,6 @@ try {
     "",
   );
   adminToken = auth.token;
-  // Only clean the previous executions' exact synthetic knowledge markers, not unrelated QA data.
-  const legacyTitles = new Set([
-    "本地验收临时知识",
-    "本地验收临时知识2",
-    "本地验收临时知识3",
-  ]);
-  let legacy = 0;
-  const files = await call("GET", "/admin/kb/files?page=1&page_size=100");
-  for (const note of files.items) {
-    if (
-      legacyTitles.has(note.title) &&
-      note.content.includes("用于后台验收，不代表公司事实。")
-    ) {
-      await call("DELETE", `/admin/kb/files/${note.file_id}`);
-      legacy++;
-    }
-  }
-  results.push({
-    step: "clean prior owned synthetic knowledge",
-    count: legacy,
-  });
   await page.goto(base + "/login");
   await page.getByLabel("管理员手机号").fill(creds.admin.phone);
   await page.getByLabel("密码", { exact: true }).fill(creds.admin.password);
@@ -155,6 +135,20 @@ try {
   await row.getByText("已发布", { exact: true }).waitFor();
   assert.ok((await chatRefs(marker)).includes(note.file_id));
   results.push("published revision retrieved via real SSE");
+  await verifyPrivateRollback({
+    page,
+    row,
+    call,
+    filePath,
+    actionResponse,
+    confirm,
+    chatRefs,
+    marker,
+    note,
+    saved,
+    setSwitch,
+    results,
+  });
   await page.reload();
   await page
     .getByRole("row")

@@ -1,4 +1,4 @@
-// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: 6e06c35ef71cd5cd99b25f7047942d3cea3197a7fe26c99938859040af1bfadc
+// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: 53e01e023e63f221fcd247e3f629de002a47c68aad18716d41de450c7b52bf6e
 export interface paths {
   "/health": {
     parameters: {
@@ -322,6 +322,23 @@ export interface paths {
     put?: never;
     /** Card Photo */
     post: operations["me_card_photo"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/me/card/wechat-qr": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Card Wechat Qr */
+    post: operations["me_card_wechat_qr"];
     delete?: never;
     options?: never;
     head?: never;
@@ -749,6 +766,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/admin/employees/import": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Employee Import */
+    post: operations["employee_import"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/admin/employees/{id}": {
     parameters: {
       query?: never;
@@ -940,6 +974,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/admin/kb/upload": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Knowledge Upload */
+    post: operations["kb_admin_upload"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/admin/kb/files": {
     parameters: {
       query?: never;
@@ -1056,6 +1107,23 @@ export interface paths {
     get: operations["rules_get"];
     /** Rules Update */
     put: operations["rules_update"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/runtime-settings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Runtime Configuration */
+    get: operations["runtime_settings_get"];
+    put?: never;
     post?: never;
     delete?: never;
     options?: never;
@@ -1194,8 +1262,23 @@ export interface components {
        */
       created_at: string;
     };
+    /** Body_employee_import */
+    Body_employee_import: {
+      /** File */
+      file: string;
+    };
+    /** Body_kb_admin_upload */
+    Body_kb_admin_upload: {
+      /** Files */
+      files: string[];
+    };
     /** Body_me_card_photo */
     Body_me_card_photo: {
+      /** File */
+      file: string;
+    };
+    /** Body_me_card_wechat_qr */
+    Body_me_card_wechat_qr: {
       /** File */
       file: string;
     };
@@ -1387,6 +1470,11 @@ export interface components {
       /** Content */
       content: string;
     };
+    /** EmployeeImportResult */
+    EmployeeImportResult: {
+      /** Items */
+      items: components["schemas"]["ImportRow"][];
+    };
     /** EmployeeInput */
     EmployeeInput: {
       /** Name */
@@ -1504,6 +1592,16 @@ export interface components {
       /** Drafts */
       drafts: components["schemas"]["Draft"][];
     };
+    /** ImportRow */
+    ImportRow: {
+      /** Row */
+      row: number;
+      /** Ok */
+      ok: boolean;
+      /** Message */
+      message: string;
+      employee?: components["schemas"]["Staff"] | null;
+    };
     /** IssueData */
     IssueData: {
       /** Id */
@@ -1537,8 +1635,55 @@ export interface components {
        */
       status: "open" | "resolved" | "ignored";
     };
+    /** KnowledgeUploadDraft */
+    KnowledgeUploadDraft: {
+      /** Title */
+      title: string;
+      /** Content */
+      content: string;
+      /**
+       * Public
+       * @default false
+       */
+      public: boolean;
+      /**
+       * Approved
+       * @default false
+       */
+      approved: boolean;
+      /** File Id */
+      file_id: string;
+      /**
+       * Description
+       * @default
+       */
+      description: string;
+      /**
+       * Scope
+       * @default company
+       * @constant
+       */
+      scope: "company";
+    };
+    /** KnowledgeUploadResult */
+    KnowledgeUploadResult: {
+      /** Items */
+      items: components["schemas"]["KnowledgeUploadRow"][];
+    };
+    /** KnowledgeUploadRow */
+    KnowledgeUploadRow: {
+      /** Filename */
+      filename: string;
+      /** Valid */
+      valid: boolean;
+      /** Message */
+      message: string;
+      draft?: components["schemas"]["KnowledgeUploadDraft"] | null;
+    };
     /** LeadData */
     LeadData: {
+      /** Visitor Id */
+      visitor_id: number;
       /** Id */
       id: number;
       /** Name */
@@ -1687,6 +1832,13 @@ export interface components {
     };
     /** NotificationData */
     NotificationData: {
+      /**
+       * Target Type
+       * @default
+       */
+      target_type: string;
+      /** Target Id */
+      target_id?: number | null;
       /** Id */
       id: number;
       /** Title */
@@ -1955,6 +2107,19 @@ export interface components {
       /** Content */
       content: string;
     };
+    /** RuntimeConfiguration */
+    RuntimeConfiguration: {
+      /** Settings */
+      settings: {
+        [key: string]: unknown;
+      };
+      /**
+       * Limits Unit
+       * @default messages_per_day
+       * @constant
+       */
+      limits_unit: "messages_per_day";
+    };
     /** SessionInput */
     SessionInput: {
       /** Card Code */
@@ -1971,15 +2136,20 @@ export interface components {
     };
     /** SettingData */
     SettingData: {
-      /** Value */
-      value: unknown;
       /** Key */
       key: string;
+      /** Value */
+      value: unknown;
     };
     /** SettingInput */
     SettingInput: {
       /** Value */
-      value: unknown;
+      value?: unknown;
+      /**
+       * Clear Secret
+       * @default false
+       */
+      clear_secret: boolean;
     };
     /** ShareData */
     ShareData: {
@@ -2176,6 +2346,8 @@ export interface components {
        * Format: date-time
        */
       last_seen_at: string;
+      /** Visits */
+      visits?: components["schemas"]["VisitorVisit"][];
       /** Sessions */
       sessions: components["schemas"]["VisitorSession"][];
     };
@@ -2188,12 +2360,40 @@ export interface components {
     };
     /** VisitorSession */
     VisitorSession: {
+      /**
+       * Intent Level
+       * @default C
+       * @enum {string}
+       */
+      intent_level: "A" | "B" | "C";
+      /** Tags */
+      tags?: string[];
       /** Id */
       id: number;
       /** Summary */
       summary: string;
       /** Messages */
       messages: components["schemas"]["MessageData"][];
+    };
+    /** VisitorVisit */
+    VisitorVisit: {
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: "nfc" | "qr" | "poster" | "link" | "sig";
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Stay Seconds */
+      stay_seconds: number;
+    };
+    /** WechatQRData */
+    WechatQRData: {
+      /** Wechat Qr Url */
+      wechat_qr_url: string;
     };
     /** DeltaEvent */
     DeltaEvent: {
@@ -2853,6 +3053,39 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["PhotoData"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  me_card_wechat_qr: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_me_card_wechat_qr"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["WechatQRData"];
         };
       };
       /** @description Validation Error */
@@ -3901,6 +4134,39 @@ export interface operations {
       };
     };
   };
+  employee_import: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_employee_import"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["EmployeeImportResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   employee_update: {
     parameters: {
       query?: never;
@@ -4384,6 +4650,39 @@ export interface operations {
       };
     };
   };
+  kb_admin_upload: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "multipart/form-data": components["schemas"]["Body_kb_admin_upload"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["KnowledgeUploadResult"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   kb_admin_list: {
     parameters: {
       query?: {
@@ -4729,6 +5028,26 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  runtime_settings_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["RuntimeConfiguration"];
         };
       };
     };

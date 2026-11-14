@@ -44,13 +44,17 @@ for (const { alias, method, actual, name } of bindings) {
   const type = `paths[${JSON.stringify(actual)}][${JSON.stringify(method)}]`;
   const hasPath = actual.includes("{");
   const body = !!schema.paths[actual][method].requestBody;
+  const multipart =
+    !!schema.paths[actual][method].requestBody?.content?.[
+      "multipart/form-data"
+    ];
   const hasQuery = (schema.paths[actual][method].parameters ?? []).some(
     (p) => p.in === "query",
   );
   const args = [
     ...(hasPath ? [`path:Param<${type},'path'>`] : []),
     ...(hasQuery ? [`query?:Param<${type},'query'>`] : []),
-    ...(body ? [`body:Body<${type}>`] : []),
+    ...(body ? [multipart ? "body:FormData" : [`body:Body<${type}>`][0]] : []),
     "signal?:AbortSignal",
   ];
   const optional = !hasPath && !body;

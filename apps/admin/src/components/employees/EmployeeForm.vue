@@ -21,7 +21,10 @@ const rules: FormRules = {
   ],
   password: [
     { required: !props.initial, message: "请设置初始密码" },
-    { min: 8, max: 72, message: "密码长度8–72位" },
+    {
+      pattern: /^(?=.*[A-Za-z])(?=.*\d).{8,20}$/,
+      message: "请输入8–20位，至少含字母和数字（可含符号）",
+    },
   ],
 };
 async function save() {
@@ -48,16 +51,26 @@ async function save() {
     label-position="top"
     @submit.prevent="save"
     ><el-form-item label="姓名" prop="name"
-      ><el-input v-model="model.name" maxlength="100" /></el-form-item
+      ><el-input
+        v-model="model.name"
+        aria-label="姓名"
+        maxlength="100" /></el-form-item
     ><el-form-item label="手机号" prop="phone"
       ><el-input
         v-model="model.phone"
+        aria-label="手机号"
         maxlength="11"
         inputmode="tel" /></el-form-item
     ><el-form-item label="部门"
-      ><el-input v-model="model.dept" maxlength="100" /></el-form-item
+      ><el-input
+        v-model="model.dept"
+        aria-label="部门"
+        maxlength="100" /></el-form-item
     ><el-form-item label="职务"
-      ><el-input v-model="model.title" maxlength="100" /></el-form-item
+      ><el-input
+        v-model="model.title"
+        aria-label="职务"
+        maxlength="100" /></el-form-item
     ><el-form-item v-if="!initial" label="角色"
       ><el-select v-model="model.role"
         ><el-option label="员工" value="employee" /><el-option
@@ -66,10 +79,11 @@ async function save() {
     ><el-form-item v-if="!initial" label="初始密码" prop="password"
       ><el-input
         v-model="model.password"
+        aria-label="初始密码"
         type="password"
         show-password
         autocomplete="new-password"
-        maxlength="72"
+        maxlength="20"
       /><span class="muted"
         >首次登录需修改密码。请通过安全渠道交付口令。</span
       ></el-form-item

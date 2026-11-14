@@ -1,4 +1,4 @@
-// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: 6e06c35ef71cd5cd99b25f7047942d3cea3197a7fe26c99938859040af1bfadc
+// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: 53e01e023e63f221fcd247e3f629de002a47c68aad18716d41de450c7b52bf6e
 import type { paths } from "./schema";
 import { request } from "../client";
 type Json<T> = T extends { content: { "application/json": infer J } }
@@ -19,6 +19,37 @@ type Result<T> = T extends { responses: infer R }
           : never;
     }[keyof R]
   : never;
+
+/** importEmployees: POST /api/v1/admin/employees/import */
+export function employee_import(options: {
+  body: FormData;
+  signal?: AbortSignal;
+}): Promise<Result<paths["/api/v1/admin/employees/import"]["post"]>> {
+  return request("POST", "/api/v1/admin/employees/import", {
+    body: options.body,
+    signal: options.signal,
+  });
+}
+
+/** uploadKnowledge: POST /api/v1/admin/kb/upload */
+export function kb_admin_upload(options: {
+  body: FormData;
+  signal?: AbortSignal;
+}): Promise<Result<paths["/api/v1/admin/kb/upload"]["post"]>> {
+  return request("POST", "/api/v1/admin/kb/upload", {
+    body: options.body,
+    signal: options.signal,
+  });
+}
+
+/** runtimeSettings: GET /api/v1/admin/runtime-settings */
+export function runtime_settings_get(
+  options: { signal?: AbortSignal } = {},
+): Promise<Result<paths["/api/v1/admin/runtime-settings"]["get"]>> {
+  return request("GET", "/api/v1/admin/runtime-settings", {
+    signal: options.signal,
+  });
+}
 
 /** health: GET /api/v1/health */
 export function api_health(
@@ -487,6 +518,9 @@ export function admin_lead_list(
 }
 
 export const operations = {
+  importEmployees: employee_import,
+  uploadKnowledge: kb_admin_upload,
+  runtimeSettings: runtime_settings_get,
   health: api_health,
   login: admin_auth_login,
   changePassword: auth_change_password,

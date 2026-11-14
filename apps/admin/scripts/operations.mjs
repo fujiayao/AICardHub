@@ -1,5 +1,8 @@
 // Local binding names map to frozen endpoint signatures. Schemas and function types come only from real OpenAPI.
 export const operations = {
+  importEmployees: ["post", "/api/v1/admin/employees/import"],
+  uploadKnowledge: ["post", "/api/v1/admin/kb/upload"],
+  runtimeSettings: ["get", "/api/v1/admin/runtime-settings"],
   health: ["get", "/api/v1/health"],
   login: ["post", "/api/v1/admin/auth/login"],
   changePassword: ["post", "/api/v1/auth/change-password"],

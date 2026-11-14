@@ -18,6 +18,17 @@ export interface PageQuery {
   status?: string;
 }
 export const api = {
+  importEmployees: (file: File) => {
+    const body = new FormData();
+    body.append("file", file);
+    return ops.importEmployees({ body });
+  },
+  uploadKnowledge: (files: File[]) => {
+    const body = new FormData();
+    for (const file of files) body.append("files", file);
+    return ops.uploadKnowledge({ body });
+  },
+  runtimeSettings: () => ops.runtimeSettings(),
   health: () => ops.health(),
   login: (body: { phone: string; password: string }) => ops.login({ body }),
   changePassword: (body: { old_password: string; new_password: string }) =>
@@ -72,8 +83,8 @@ export const api = {
   rules: () => ops.rules(),
   saveRules: (content: string) => ops.saveRules({ body: { content } }),
   setting: (key: string) => ops.setting({ path: { key } }),
-  saveSetting: (key: string, value: unknown) =>
-    ops.saveSetting({ path: { key }, body: { value } }),
+  saveSetting: (key: string, value: unknown, clear_secret = false) =>
+    ops.saveSetting({ path: { key }, body: { value, clear_secret } }),
   audits: (query: PageQuery) => ops.audits({ query }),
   leads: (query: PageQuery) => ops.leads({ query }),
 };

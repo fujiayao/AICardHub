@@ -22,7 +22,10 @@ const form = useTemplateRef<FormInstance>("form");
 const rules: FormRules = {
   password: [
     { required: true, message: "请输入新密码" },
-    { min: 8, max: 72, message: "密码长度8–72位" },
+    {
+      pattern: /^(?=.*[A-Za-z])(?=.*\d).{8,20}$/,
+      message: "请输入8–20位，至少含字母和数字（可含符号）",
+    },
   ],
   to_employee_id: [{ required: true, message: "请选择接收员工" }],
 };
@@ -80,7 +83,7 @@ onMounted(load);
         type="password"
         show-password
         autocomplete="new-password"
-        maxlength="72" /></el-form-item
+        maxlength="20" /></el-form-item
     ><el-form-item v-else label="接收员工" prop="to_employee_id"
       ><el-select
         v-model="model.to_employee_id"

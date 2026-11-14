@@ -26,14 +26,16 @@ pnpm gen:api ../../../backend/contracts/openapi.json
 
 管理员只调用管理员登录入口，sessionStorage 使用 `aicardhub.admin.session.v1`，与 H5 的访客/员工存储隔离。JWT 到期和401退出；不调用 refresh token。首次改密有路由限制。管理员权限最终由后端验证。
 
-设置采用非敏感键白名单，不读取/回填/提交密钥或掩码，不展示原始审计 detail。图片使用已有公开 URL，不假装支持上传。
+设置采用固定键白名单，密钥状态仅转成已配置标记；不回填原值或掩码，空输入不提交覆盖，清空必须显式确认，不展示原始审计 detail。图片使用已有公开 URL，不假装支持上传。
 
-C8 物理 NFC 管理延期。知识批量上传、格式校验、评测、Excel 导入、来源分布、员工排行等未冻结接口功能明确标在页面。没有 mock 登录、假数据或无效操作按钮。
+C8 物理 NFC 管理延期。知识文件夹递归导入、评测、来源分布、员工排行等未冻结接口功能明确标在页面。没有 mock 登录、假数据或无效操作按钮。
 
 前端可独立检查；全仓检查入口由主线程维护 `scripts/check.ps1`，需要先集成其他所有者成果。
 
-当前设置接口只持久化配置表，后端运行参数仍由环境读取；页面明确提示不保证立即生效，运行时应用待后端接入。
+运行时配置使用真实 `GET /api/v1/admin/runtime-settings` 和逐项 `PUT /admin/settings/{key}`。限额单位是每日对话次数，敏感词与主备模型从后续请求应用；保留天数由清理任务使用。切换真实模型前先逐项保存地址、名称、密钥；没有多项原子保存。`inline_token_limit` 目前不支持。
 
 本轮修复提供可复用浏览器检查：`scripts/browser-knowledge-fix.mjs`（真实知识草稿/发布/撤回/删除及SSE检索引用、个人scope、合成资料清理、外部资源请求拦截）和 `scripts/browser-layout-fix.mjs`（390×844、桌面折叠菜单、生产/admin静态资源与深链刷新）。通过 `PLAYWRIGHT_MODULE` 指定已安装Playwright入口，`ADMIN_CREDENTIALS` 指向本地未跟踪seed凭据，脚本不输出口令。`ADMIN_URL` 可切换知识检查的根路径与生产子路径。
 
 应用 `.prettierrc.json` 使用 `endOfLine: auto` 兼容 Windows 的 CRLF checkout。`gen:api` 使用同一配置格式化真实生成文件；不忽略格式检查文件。
+
+员工导入支持后端规定的xlsx表头与逐行结果；Markdown批量上传只生成预览，每篇确认才保存成未公开、未批准草稿。合成浏览器导入检查前可运行 `python scripts/create-import-fixture.py`，文件在应用忽略目录`.local`内，初始密码随机生成且不输出。随后运行 `browser-import-fix.mjs`。运行时检查 `browser-runtime-fix.mjs` 只在Fake且主密钥未配置的本地环境执行，finally恢复敏感词/限额并清除合成密钥；不调用真实模型。

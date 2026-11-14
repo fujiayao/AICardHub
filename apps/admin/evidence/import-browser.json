@@ -1,0 +1,8 @@
+{
+  "results": [
+    "real multipart xlsx import creates success row and presents failure row",
+    "batch Markdown parses each file without persistence; explicit per-file save forces private unapproved draft"
+  ],
+  "errors": [],
+  "cleanup": true
+}

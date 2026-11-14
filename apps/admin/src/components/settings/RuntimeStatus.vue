@@ -28,6 +28,8 @@ onMounted(load);
     <p v-else-if="mode">
       当前模型方式：{{ mode }}。连接状态不代表质量评测通过。
     </p>
-    <p class="muted">模型凭据由后端安全保存；此页面不请求或回填密钥。</p>
+    <p class="muted">
+      模型凭据由后端安全保存；仅展示运行状态；配置表单只显示密钥是否已配置，不回填密钥值。
+    </p>
   </section>
 </template>

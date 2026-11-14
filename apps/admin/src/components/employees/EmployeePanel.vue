@@ -10,6 +10,7 @@ import LoadState from "@/components/LoadState.vue";
 import EmployeeTable from "./EmployeeTable.vue";
 import EmployeeForm from "./EmployeeForm.vue";
 import EmployeeActions from "./EmployeeActions.vue";
+import EmployeeImport from "./EmployeeImport.vue";
 import CardEditor from "./CardEditor.vue";
 const auth = useAuthStore(),
   q = shallowRef(""),
@@ -18,6 +19,7 @@ const { data, page, busy, error, load } = usePage((p) =>
   api.employees({ page: p, page_size: 20, q: search.value }),
 );
 const mutate = useTask();
+const importing = shallowRef(false);
 const open = shallowRef(false),
   selected = shallowRef<Staff | null>(null),
   action = shallowRef<"reset" | "transfer" | null>(null),
@@ -81,6 +83,7 @@ onMounted(() => load());
           aria-label="搜索员工"
         /><el-button native-type="submit" :loading="busy">搜索</el-button
         ><el-button type="primary" @click="edit()">新增员工</el-button
+        ><el-button @click="importing = true">Excel 导入</el-button
         ><el-button :loading="busy" @click="load()">刷新</el-button>
       </form>
       <LoadState
@@ -104,6 +107,13 @@ onMounted(() => load());
         @current-change="load"
       />
     </div>
+    <el-dialog
+      v-model="importing"
+      title="Excel 导入员工"
+      width="900px"
+      :close-on-click-modal="false"
+      ><EmployeeImport v-if="importing" @imported="load()"
+    /></el-dialog>
     <el-dialog
       v-model="open"
       :title="selected ? '编辑员工' : '新增员工'"
@@ -143,7 +153,7 @@ onMounted(() => load());
       "
       ><CardEditor v-if="card?.card_code" :code="card.card_code" /></el-drawer
     ><el-alert
-      title="Excel 批量导入、独立启用接口不在本地冻结契约内，当前仅交付新增、修改、停用、重置、转交及代改。"
+      title="Excel 导入会逐行创建并显示结果。物理NFC管理延期；独立启用操作仍未交付。"
       type="info"
       :closable="false"
     />
