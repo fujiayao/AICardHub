@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AiStatusCard: typeof import('./../components/staff/AiStatusCard.vue')['default']
     AnonymousPortrait: typeof import('./../components/common/AnonymousPortrait.vue')['default']
     AssistantEditor: typeof import('./../components/staff/AssistantEditor.vue')['default']
     CardAiEntry: typeof import('./../components/visitor/CardAiEntry.vue')['default']
