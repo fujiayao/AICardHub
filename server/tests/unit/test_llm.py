@@ -311,8 +311,14 @@ async def test_OpenAI适配器离线检查请求清理与不重试(
         async def __aiter__(self):
             async for text in source.stream([]):
                 yield SimpleNamespace(
-                    choices=[SimpleNamespace(delta=SimpleNamespace(content=text))]
+                    choices=[
+                        SimpleNamespace(delta=SimpleNamespace(content=text), finish_reason=None)
+                    ]
                 )
+            yield SimpleNamespace(choices=[])
+            yield SimpleNamespace(
+                choices=[SimpleNamespace(delta=SimpleNamespace(content=None), finish_reason="stop")]
+            )
 
     response = Response()
 
@@ -341,6 +347,229 @@ async def test_OpenAI适配器离线检查请求清理与不重试(
     assert response.closed is True
     await client.aclose()
     assert calls[-1] == "closed"
+
+
+def chat_chunk(
+    text: str | None = None,
+    finish_reason: str | None = None,
+    *,
+    missing_finish: bool = False,
+) -> SimpleNamespace:
+    choice = SimpleNamespace(delta=SimpleNamespace(content=text, role="assistant"))
+    if not missing_finish:
+        choice.finish_reason = finish_reason
+    return SimpleNamespace(choices=[choice])
+
+
+class FakeChatSDK:
+    """Offline Chat transport; never replaces the adapter or engine under test."""
+
+    def __init__(self, chunks: list[SimpleNamespace]) -> None:
+        self.chunks = chunks
+        self.requests: list[dict[str, Any]] = []
+        self.stream_closed = False
+        self.client_closed = False
+        self.chat = SimpleNamespace(completions=SimpleNamespace(create=self.create))
+
+    async def create(self, **kwargs: Any) -> FakeChatSDK:
+        self.requests.append(kwargs)
+        return self
+
+    async def __aenter__(self) -> FakeChatSDK:
+        return self
+
+    async def __aexit__(self, *args: Any) -> None:
+        self.stream_closed = True
+
+    async def __aiter__(self) -> AsyncIterator[SimpleNamespace]:
+        for chunk in self.chunks:
+            yield chunk
+
+    async def close(self) -> None:
+        self.client_closed = True
+
+
+def chat_client(monkeypatch: pytest.MonkeyPatch, sdk: FakeChatSDK) -> OpenAILLMClient:
+    from app.integrations.llm import client as client_module
+
+    def factory(**kwargs: Any) -> FakeChatSDK:
+        assert kwargs["max_retries"] == 0
+        return sdk
+
+    monkeypatch.setattr(client_module, "AsyncOpenAI", factory)
+    return OpenAILLMClient("https://synthetic.invalid/v1", "synthetic-key", "synthetic-model")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("same_frame", [False, True])
+@pytest.mark.parametrize("text", ["合成正文", " "])
+async def test_Chat正常stop兼容usage空帧且保留非空正文(
+    monkeypatch: pytest.MonkeyPatch, same_frame: bool, text: str
+) -> None:
+    chunks = [chat_chunk(), SimpleNamespace(choices=[])]
+    chunks += (
+        [chat_chunk(text, "stop")]
+        if same_frame
+        else [chat_chunk(text), chat_chunk(finish_reason="stop")]
+    )
+    chunks.append(SimpleNamespace(choices=[]))
+    sdk = FakeChatSDK(chunks)
+    client = chat_client(monkeypatch, sdk)
+    assert [part async for part in client.stream([])] == [text]
+    assert len(sdk.requests) == 1 and sdk.requests[0]["stream"] is True
+    assert sdk.stream_closed
+    await client.aclose()
+    assert sdk.client_closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "reason",
+    ["length", "content_filter", "tool_calls", "function_call", "synthetic-secret-reason"],
+)
+@pytest.mark.parametrize("text", ["", "唯一部分"])
+async def test_Chat非正常终态先交付同帧正文再抛安全异常并关闭(
+    monkeypatch: pytest.MonkeyPatch, reason: str, text: str
+) -> None:
+    sdk = FakeChatSDK([chat_chunk(text, reason)])
+    client = chat_client(monkeypatch, sdk)
+    received = []
+    with pytest.raises(RuntimeError) as exc:
+        async for part in client.stream([]):
+            received.append(part)
+    assert received == ([text] if text else [])
+    assert str(exc.value) and reason not in str(exc.value)
+    assert sdk.stream_closed and len(sdk.requests) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "chunks",
+    [
+        [],
+        [SimpleNamespace(choices=[])],
+        [chat_chunk()],
+        [chat_chunk("")],
+        [chat_chunk(finish_reason="stop")],
+        [chat_chunk("", "stop")],
+        [chat_chunk(missing_finish=True)],
+        [chat_chunk("唯一部分")],
+        [chat_chunk("唯一部分", missing_finish=True)],
+    ],
+    ids=[
+        "empty",
+        "usage-only",
+        "role-only",
+        "empty-text",
+        "empty-stop",
+        "empty-text-stop",
+        "missing-finish",
+        "premature-eof",
+        "missing-finish-with-text",
+    ],
+)
+async def test_Chat空完成与缺失终态不能假成功且关闭流(
+    monkeypatch: pytest.MonkeyPatch, chunks: list[SimpleNamespace]
+) -> None:
+    sdk = FakeChatSDK(chunks)
+    client = chat_client(monkeypatch, sdk)
+    received = []
+    with pytest.raises(RuntimeError):
+        async for part in client.stream([]):
+            received.append(part)
+    assert received == [
+        chunk.choices[0].delta.content
+        for chunk in chunks
+        if chunk.choices and chunk.choices[0].delta.content
+    ]
+    assert sdk.stream_closed and len(sdk.requests) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "chunks",
+    [
+        [],
+        [SimpleNamespace(choices=[])],
+        [chat_chunk()],
+        [chat_chunk("")],
+        [chat_chunk(finish_reason="stop")],
+        [chat_chunk("", "stop")],
+        [chat_chunk(missing_finish=True)],
+    ],
+)
+async def test_Chat无正文空完成或缺结束仅调用一次备用(
+    monkeypatch: pytest.MonkeyPatch, chunks: list[SimpleNamespace]
+) -> None:
+    sdk = FakeChatSDK(chunks)
+    client = chat_client(monkeypatch, sdk)
+    backup = FakeLLMClient(reply="备用合成内容")
+    tertiary = FakeLLMClient(reply="禁止兜底重放")
+    result = await collect(ChatEngine(client, fallbacks=[backup, tertiary]))
+    assert text_of(result) == "备用合成内容"
+    assert result[-1]["event"] == "done"
+    assert len(backup.calls) == 1 and not tertiary.calls
+    assert sdk.stream_closed and len(sdk.requests) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "reason",
+    ["length", "content_filter", "tool_calls", "function_call", "synthetic-secret-reason", None],
+)
+@pytest.mark.parametrize("partial", ["", "唯一部分", "<<NO"])
+@pytest.mark.parametrize("same_frame", [False, True])
+async def test_Chat失败仅首正文前备用且部分输出绝不进入备用或兜底(
+    monkeypatch: pytest.MonkeyPatch, reason: str | None, partial: str, same_frame: bool
+) -> None:
+    chunks = (
+        [chat_chunk(partial, reason)]
+        if same_frame
+        else [chat_chunk(partial), chat_chunk(finish_reason=reason)]
+    )
+    sdk = FakeChatSDK(chunks)
+    client = chat_client(monkeypatch, sdk)
+    backup = FakeLLMClient(reply="备用合成内容")
+    tertiary = FakeLLMClient(reply="禁止兜底重放")
+    result = await collect(ChatEngine(client, fallbacks=[backup, tertiary]))
+    assert sdk.stream_closed and len(sdk.requests) == 1
+    assert not tertiary.calls
+    assert "synthetic-secret-reason" not in json.dumps(result)
+    if partial:
+        assert not backup.calls
+        assert text_of(result) == ("" if partial == "<<NO" else partial)
+        assert result[-1] == {
+            "event": "error",
+            "data": {
+                "code": "LLM_STREAM_INTERRUPTED",
+                "message": "回答中断，请联系名片本人。",
+            },
+        }
+        assert not any(event["event"] == "done" for event in result)
+    else:
+        assert len(backup.calls) == 1
+        assert text_of(result) == "备用合成内容"
+        assert result[-1]["event"] == "done"
+        assert result[-1]["data"]["model"] == backup.model
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("reason", ["stop", "length", "content_filter", None])
+async def test_Chat显示满200字仍校验终态而非假完成(
+    monkeypatch: pytest.MonkeyPatch, reason: str | None
+) -> None:
+    sdk = FakeChatSDK([chat_chunk("合" * 250), chat_chunk(finish_reason=reason)])
+    client = chat_client(monkeypatch, sdk)
+    backup, tertiary = FakeLLMClient(), FakeLLMClient()
+    result = await collect(ChatEngine(client, fallbacks=[backup, tertiary]))
+    assert len(text_of(result)) == 200
+    assert sdk.stream_closed and len(sdk.requests) == 1
+    assert not backup.calls and not tertiary.calls
+    if reason == "stop":
+        assert result[-1]["event"] == "done"
+    else:
+        assert result[-1]["data"]["code"] == "LLM_STREAM_INTERRUPTED"
+        assert not any(event["event"] == "done" for event in result)
 
 
 def response_event(kind: str, text: str = "合成正文") -> ResponseStreamEvent:

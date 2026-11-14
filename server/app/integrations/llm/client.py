@@ -90,6 +90,7 @@ class OpenAILLMClient:
     """One OpenAI streaming attempt; ChatEngine owns fallback before first content.
 
     timeout is the total request deadline, first content also has a 15s deadline.
+    Chat completion requires text and a stop frame; partial failures propagate.
     Provider settings are constructor arguments, never imported from shared core.
     """
 
@@ -133,10 +134,24 @@ class OpenAILLMClient:
             messages=cast(list[ChatCompletionMessageParam], messages),
             stream=True,
         )
+        has_text = False
         async with response:
             async for chunk in response:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
+                # Usage-only frames have no choices and are not terminal events.
+                if not chunk.choices:
+                    continue
+                choice = chunk.choices[0]
+                if choice.delta.content:
+                    has_text = True
+                    yield choice.delta.content
+                finish_reason = getattr(choice, "finish_reason", None)
+                if finish_reason is not None:
+                    if finish_reason != "stop":
+                        raise RuntimeError("Chat stream reported unsuccessful completion")
+                    if not has_text:
+                        raise RuntimeError("Chat completion has no valid text")
+                    return
+        raise RuntimeError("Chat stream ended without completion")
 
     async def aclose(self) -> None:
         await self._client.close()
