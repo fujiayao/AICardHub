@@ -103,6 +103,7 @@ class OpenAILLMClient:
             api_key=api_key,
             timeout=timeout,
             max_retries=0,
+            default_headers={"User-Agent": "AICardHub/0.1"},
         )
 
     async def stream(self, messages: list[dict[str, str]]) -> AsyncIterator[str]:

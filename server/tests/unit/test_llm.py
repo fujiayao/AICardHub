@@ -335,6 +335,8 @@ async def test_OpenAI适配器离线检查请求清理与不重试(
         "流式",
     ]
     assert calls[0]["max_retries"] == 0
+    assert calls[0]["default_headers"] == {"User-Agent": "AICardHub/0.1"}
+    assert "http_client" not in calls[0]
     assert calls[1]["stream"] is True and calls[1]["model"] == "synthetic-model"
     assert response.closed is True
     await client.aclose()
@@ -428,6 +430,8 @@ def responses_client(
 
     def factory(**kwargs: Any) -> FakeResponsesSDK:
         assert kwargs["max_retries"] == 0
+        assert kwargs["default_headers"] == {"User-Agent": "AICardHub/0.1"}
+        assert "http_client" not in kwargs
         return sdk
 
     monkeypatch.setattr(client_module, "AsyncOpenAI", factory)

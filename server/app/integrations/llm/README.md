@@ -45,6 +45,11 @@ None，重复删除无操作；Git/IO 故障原样抛出，由后端映射已登
 - `llm_base_url`, `llm_api_key`, `llm_model`: openai 模式必填。
 - `llm_timeout`: 总请求秒数，默认 30；首内容期限最多 15 秒。
 
+两种适配器均使用应用身份 `User-Agent: AICardHub/0.1`，保留 SDK 默认网络与环境
+代理行为，不传自定义 http_client、不禁用系统代理。HTTP 403 原始 SDK 异常会向
+直接调用者传播；ChatEngine 对访客返回安全的流错误，不能据此把 403 诊断为模型
+不可用。HTTP/SSE 首行成功也不等于已完成正文与 completed 事件验证。
+
 `LLMClient.stream(messages)` 返回 `AsyncIterator[str]`。Fake 固定合成回复明确含
 “本地演示模型”，可配置 chunks、delay、fail_after、error 做离线故障测试。
 自动测试不请求真实供应商。OpenAI SDK 禁用自动重试，返回的流在完成、故障和
