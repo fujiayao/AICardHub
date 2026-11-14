@@ -93,8 +93,6 @@ async def attribution(
     source: str,
     session_id: int | None = None,
 ) -> tuple[int | None, int | None, str]:
-    session = None
-    visit = None
     if session_id is not None:
         session = await repo.one(
             db,
@@ -104,27 +102,22 @@ async def attribution(
             ChatSession.visitor_id == visitor_id,
             ChatSession.is_test.is_(False),
         )
+        return session.visit_id, session.campaign_id, session.source
     if visit_id is not None:
-        visit = await repo.one(
+        visit = await repo.optional(
             db,
             Visit,
             Visit.id == visit_id,
             Visit.card_id == card.id,
             Visit.visitor_id == visitor_id,
         )
-    if session is not None:
-        if visit is not None and session.visit_id != visit.id:
-            raise AppError(ErrorCode.VALIDATION_ERROR, 422, "访问记录与会话不一致")
-        if campaign_id is not None and campaign_id != session.campaign_id:
-            raise AppError(ErrorCode.VALIDATION_ERROR, 422, "活动与会话不一致")
-        return session.visit_id, session.campaign_id, session.source
-    if visit is not None:
-        if campaign_id is not None and campaign_id != visit.campaign_id:
-            raise AppError(ErrorCode.VALIDATION_ERROR, 422, "活动与访问记录不一致")
-        # A verified historical visit can convert after the event ends.
-        return visit.id, visit.campaign_id, visit.source
+        if visit is not None:
+            # A verified historical visit can convert after the event ends.
+            return visit.id, visit.campaign_id, visit.source
     if campaign_id is not None:
-        await get(db, campaign_id, public=True)
+        campaign = await repo.optional(db, Campaign, Campaign.id == campaign_id)
+        if campaign is None or not live(campaign):
+            campaign_id = None
     return None, campaign_id, source
 
 

@@ -58,20 +58,16 @@ async def test_campaign_live_attribution_dedup_and_join_free_report(db, employee
         assert session.opening == "活动专属欢迎"
         public = await shared.public_card(db, card.code, event.id)
         assert public.campaign.id == event.id and public.assistant.opening == "活动专属欢迎"
-        with pytest.raises(AppError) as error:
-            await campaigns.attribution(
+        # Attribution is optional: foreign visits are discarded, not exposed.
+        for context_card, visitor_id in [(other_card, visitor.id), (card, second.id)]:
+            assert await campaigns.attribution(
                 db,
-                other_card,
-                visitor.id,
+                context_card,
+                visitor_id,
                 visit_id=visit.visit_id,
                 campaign_id=event.id,
                 source="link",
-            )
-        assert error.value.status == 404
-        with pytest.raises(AppError):
-            await campaigns.attribution(
-                db, card, second.id, visit_id=visit.visit_id, campaign_id=event.id, source="link"
-            )
+            ) == (None, event.id, "link")
         lead_input = s.LeadInput(
             card_code=card.code,
             session_id=session.session_id,
@@ -113,7 +109,7 @@ async def test_campaign_live_attribution_dedup_and_join_free_report(db, employee
         with pytest.raises(AppError) as err:
             await campaigns.get(db, event.id, public=True)
         assert err.value.status == 404
-        # Existing verified context can convert late but a new event context cannot.
+        # Verified history converts late; an unverified ended-event hint is discarded.
         assert (
             await campaigns.attribution(
                 db,
@@ -125,10 +121,9 @@ async def test_campaign_live_attribution_dedup_and_join_free_report(db, employee
                 session_id=session.session_id,
             )
         )[1] == event.id
-        with pytest.raises(AppError):
-            await campaigns.attribution(
-                db, card, second.id, visit_id=None, campaign_id=event.id, source="link"
-            )
+        assert await campaigns.attribution(
+            db, card, second.id, visit_id=None, campaign_id=event.id, source="link"
+        ) == (None, None, "link")
         with pytest.raises(AppError):
             await campaigns.remove(db, actor, event.id)
     finally:
