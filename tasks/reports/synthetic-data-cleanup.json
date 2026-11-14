@@ -1,0 +1,19 @@
+{
+  "removed_test_employees": 20,
+  "removed_test_cards": 20,
+  "removed_test_sessions": 305,
+  "remaining_counts": {
+    "employee": 1,
+    "card": 1,
+    "lead": 0,
+    "visitor": 0,
+    "chat_session": 0,
+    "visit": 0,
+    "notification": 0
+  },
+  "administrator_preserved_public_card_hidden": true,
+  "private_test_documents": "archived outside active KB to local backup",
+  "company_knowledge_and_model_config_preserved": true,
+  "backup": "before-business-redesign-20261114T120353Z",
+  "private_doc_retirement_note": "逐文件版本化删除有部分完成；剩余旧cards目录已整体移入备份，不再被当前KB检索。历史Git记录本地保留。"
+}

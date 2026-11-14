@@ -24,7 +24,7 @@ const { data: card, loading, error, reload } = useResource(async () => {
  const result = await publicCard({ path: { code: code.value }, query: { e: eventId.value } })
  return result
 })
-watch(card, value => { if (!value) return; document.title = value.status === 'disabled' ? '该名片已停用' : `${value.name}｜${value.title}｜数科`; if (value.status === 'active') void trackVisit() })
+watch(card, value => { if (!value) return; document.title = value.status === 'disabled' ? '该名片已停用' : `${value.name}｜${value.title}｜${value.company.short_name || value.company.name}`; if (value.status === 'active') void trackVisit() })
 async function trackVisit() {
  const revision = ++visitRevision; const activeCode = code.value
  try { await visitor.ensure(); const source = ['nfc', 'qr', 'poster', 'link', 'sig'].includes(String(route.query.s)) ? String(route.query.s) as 'nfc' | 'qr' | 'poster' | 'link' | 'sig' : 'link'; const result = await createVisit({ body: { card_code: activeCode, source, campaign_id: eventId.value } }); if (revision === visitRevision) { visitId = result.visit_id; sessionStorage.setItem(sceneKey(activeCode, eventId.value, activeSource.value), String(result.visit_id)) } else await updateVisit({ path: { id: result.visit_id }, body: { stay_seconds: Math.min(86400, Math.floor((Date.now() - started) / 1000)) } }) }

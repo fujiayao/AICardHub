@@ -1,0 +1,108 @@
+{
+  "source": "义乌数科_词元科技_公司知识库.md",
+  "source_sha256": "4950a7d028d896ecd269413fc828ef32d451c1a6fa27834bbe721c210ba19e1e",
+  "records": [
+    {
+      "id": 22,
+      "name": "楼航宇",
+      "title": "执行董事、总经理",
+      "company": "义乌市词元数据科技有限公司",
+      "card_code": "5dbb1d43",
+      "url": "http://127.0.0.1:5173/card/5dbb1d43",
+      "login_enabled": false,
+      "contacts_empty": true
+    },
+    {
+      "id": 23,
+      "name": "楼自立",
+      "title": "副总经理",
+      "company": "义乌市词元数据科技有限公司",
+      "card_code": "f9fde58c",
+      "url": "http://127.0.0.1:5173/card/f9fde58c",
+      "login_enabled": false,
+      "contacts_empty": true
+    },
+    {
+      "id": 24,
+      "name": "吴翔",
+      "title": "财务负责人",
+      "company": "义乌市词元数据科技有限公司",
+      "card_code": "97810544",
+      "url": "http://127.0.0.1:5173/card/97810544",
+      "login_enabled": false,
+      "contacts_empty": true
+    },
+    {
+      "id": 25,
+      "name": "楼跃进",
+      "title": "董事长",
+      "company": "义乌市数智产业发展集团有限公司",
+      "card_code": "ffe358d1",
+      "url": "http://127.0.0.1:5173/card/ffe358d1",
+      "login_enabled": false,
+      "contacts_empty": true
+    },
+    {
+      "id": 26,
+      "name": "陈强",
+      "title": "董事、总经理",
+      "company": "义乌市数智产业发展集团有限公司",
+      "card_code": "5da37a30",
+      "url": "http://127.0.0.1:5173/card/5da37a30",
+      "login_enabled": false,
+      "contacts_empty": true
+    },
+    {
+      "id": 27,
+      "name": "王怀天",
+      "title": "董事",
+      "company": "义乌市数智产业发展集团有限公司",
+      "card_code": "f05fa37f",
+      "url": "http://127.0.0.1:5173/card/f05fa37f",
+      "login_enabled": false,
+      "contacts_empty": true
+    },
+    {
+      "id": 28,
+      "name": "黄永健",
+      "title": "副总经理",
+      "company": "义乌市数智产业发展集团有限公司",
+      "card_code": "5dd79d7e",
+      "url": "http://127.0.0.1:5173/card/5dd79d7e",
+      "login_enabled": false,
+      "contacts_empty": true
+    },
+    {
+      "id": 29,
+      "name": "陈霞",
+      "title": "副总经理",
+      "company": "义乌市数智产业发展集团有限公司",
+      "card_code": "ddeb91f6",
+      "url": "http://127.0.0.1:5173/card/ddeb91f6",
+      "login_enabled": false,
+      "contacts_empty": true
+    },
+    {
+      "id": 30,
+      "name": "吴翔",
+      "title": "财务负责人",
+      "company": "义乌市数智产业发展集团有限公司",
+      "card_code": "538a02ac",
+      "url": "http://127.0.0.1:5173/card/538a02ac",
+      "login_enabled": false,
+      "contacts_empty": true
+    },
+    {
+      "id": 31,
+      "name": "朱鹏",
+      "title": "监事",
+      "company": "义乌市数智产业发展集团有限公司",
+      "card_code": "8071cc85",
+      "url": "http://127.0.0.1:5173/card/8071cc85",
+      "login_enabled": false,
+      "contacts_empty": true
+    }
+  ],
+  "no_fake_credentials_or_portraits": true,
+  "date": "2026-11-14"
+}

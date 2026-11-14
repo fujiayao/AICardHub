@@ -1,0 +1,72 @@
+{
+  "checked_on": "2026-11-14",
+  "scope": "Opus business visual redesign, business/exhibition completion, synthetic cleanup and executive setup",
+  "models": {
+    "visual": "claude-2/claude-opus-5-5 then onceai/claude-opus-5-5 via Magpie",
+    "original_route": "429 rate_limit, stopped",
+    "alternate_probe": "200 marker verified",
+    "integration": "Codex coordinator campaign and scene integration explicitly separate"
+  },
+  "checks": {
+    "server_pytest": 278,
+    "server_seconds": 108.19,
+    "server_ruff": true,
+    "server_mypy_source_files": 39,
+    "h5_unit_tests": 17,
+    "admin_unit_tests": 16,
+    "h5_typecheck": true,
+    "admin_typecheck": true,
+    "h5_lint": true,
+    "admin_lint": true,
+    "h5_build": true,
+    "admin_build": true,
+    "campaign_and_org_tests": 7,
+    "campaign_regression_tests": 2
+  },
+  "data": {
+    "removed_synthetic_employees": 20,
+    "removed_synthetic_sessions": 305,
+    "executive_profiles": 10,
+    "organizations": 2,
+    "remaining_employee_count": 11,
+    "preserved_admin": true,
+    "phones_portraits_not_fabricated": true,
+    "executive_logins_enabled": false,
+    "temporary_event_and_lead_cleaned": true
+  },
+  "browser": {
+    "real_card_codes": [
+      "5dbb1d43",
+      "ffe358d1"
+    ],
+    "widths": [
+      360,
+      390,
+      430
+    ],
+    "horizontal_overflow": false,
+    "no_phone_controls_hidden": true,
+    "campaign": {
+      "public_entry": true,
+      "parameters_preserved": true,
+      "custom_opening": true,
+      "consented_lead": true,
+      "report_source_qr": {
+        "visits": 1,
+        "leads": 1
+      },
+      "temporary_data_removed": true
+    },
+    "desktop_dashboard": true,
+    "executive_list_company_affiliation_correct": true,
+    "known_limitations": [
+      "not every state of all18pages signed off",
+      "real mobile/physical NFC not tested",
+      "no real portrait or verified executive contact supplied"
+    ]
+  },
+  "real_model": {
+    "provider": "gpt-6.1-terra",
+    "executive_identity_answers": "correct company/title for Lou Hangyu and Lou Yuejin; source snapshot caveat included"
+  }
+}

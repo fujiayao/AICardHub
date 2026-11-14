@@ -1,0 +1,32 @@
+[
+  {
+    "card_code": "5dbb1d43",
+    "session_id": 308,
+    "answer": "这张名片对应的公司是义乌市词元数据科技有限公司（义乌数科），名片本人楼航宇的职务为执行董事、总经理。\n\n以上任职信息来自资料快照，最新任职情况请以公司确认为准。",
+    "done": {
+      "message_id": 500,
+      "kb_refs": [
+        "identity-5dbb1d43",
+        "demo-public",
+        "note-1b5a22b4e67545259f30924b2adc1c20"
+      ],
+      "nokb": false,
+      "model": "gpt-6.1-terra"
+    }
+  },
+  {
+    "card_code": "ffe358d1",
+    "session_id": 307,
+    "answer": "这张名片的本人是楼跃进，资料显示其所属公司为义乌市数智产业发展集团有限公司，职务为董事长。最新任职信息请以公司确认为准。",
+    "done": {
+      "message_id": 499,
+      "kb_refs": [
+        "identity-ffe358d1",
+        "demo-public",
+        "note-1b5a22b4e67545259f30924b2adc1c20"
+      ],
+      "nokb": false,
+      "model": "gpt-6.1-terra"
+    }
+  }
+]
