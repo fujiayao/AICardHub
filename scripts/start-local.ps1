@@ -33,14 +33,14 @@ foreach ($service in $services) {
  $process = Start-Process -FilePath $service.Exe -ArgumentList $service.Args -WorkingDirectory $service.Directory -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $state "$($service.Name).out.log") -RedirectStandardError (Join-Path $state "$($service.Name).err.log")
  $records.Add([pscustomobject]@{name=$service.Name;pid=$process.Id;port=$service.Port;started_at=(Get-Date).ToUniversalTime().ToString('o')})
 }
-if ($records.Count -gt 0) { $records | ConvertTo-Json -AsArray | Set-Content -LiteralPath (Join-Path $state 'services.json') -Encoding utf8 }
+if ($records.Count -gt 0) { ConvertTo-Json -InputObject @($records.ToArray()) -Depth 4 | Set-Content -LiteralPath (Join-Path $state 'services.json') -Encoding utf8 }
 $deadline = (Get-Date).AddSeconds(50)
 $ready = $false
 do {
  try {
   $health = Invoke-RestMethod -Uri 'http://127.0.0.1:8000/health' -TimeoutSec 2
-  $h5 = Invoke-WebRequest -Uri 'http://127.0.0.1:5173/card/demo' -TimeoutSec 2
-  $admin = Invoke-WebRequest -Uri 'http://127.0.0.1:5174' -TimeoutSec 2
+  $h5 = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:5173/card/demo' -TimeoutSec 2
+  $admin = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:5174' -TimeoutSec 2
   $ready = $health.status -eq 'ok' -and $h5.StatusCode -eq 200 -and $admin.StatusCode -eq 200
  } catch { Start-Sleep -Milliseconds 500 }
 } until ($ready -or (Get-Date) -ge $deadline)
