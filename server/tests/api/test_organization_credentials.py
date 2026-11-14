@@ -69,7 +69,7 @@ async def test_无凭据员工补手机再设密码后才可提升管理员(db, 
         result = await admin.employee_update(db, actor, employee_id, s.EmployeeUpdate(role="admin"))
         assert result.login_enabled and result.role == "admin"
     finally:
-        await db.rollback()
+        await db.commit()
         await db.execute(delete(AuditLog).where(AuditLog.target == str(employee_id)))
         await db.execute(delete(Assistant).where(Assistant.card_id == card_id))
         await db.execute(delete(Card).where(Card.id == card_id))

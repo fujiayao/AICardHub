@@ -21,6 +21,7 @@ async def test_创建与保存只入队单卡且不访问知识Git(db, employees
     created = await admin.employee_create(db, actor, s.EmployeeInput(name="合成无电话队列名片"))
     created_id = created.id
     created_card = await shared.own_card(db, created_id)
+    created_card_id = created_card.id
     existing_card = await shared.own_card(db, employee.id)
     other_card = await shared.own_card(db, colleague.id)
     key = f"render_pending-{existing_card.code}"
@@ -38,21 +39,21 @@ async def test_创建与保存只入队单卡且不访问知识Git(db, employees
         assert pending is not None
         previous_version = pending.value["version"]
         assert (await shared.public_card(db, existing_card.code)).intro == "合成即时名片简介"
-        await shared.assistant_update(
-            db, existing_card, s.AssistantInput(opening="合成即时开场白")
-        )
+        await shared.assistant_update(db, existing_card, s.AssistantInput(opening="合成即时开场白"))
         pending = await db.scalar(select(Setting).where(Setting.key == key))
         assert pending is not None and pending.value["version"] != previous_version
-        assert (await shared.public_card(db, existing_card.code)).assistant.opening == "合成即时开场白"
+        assert (
+            await shared.public_card(db, existing_card.code)
+        ).assistant.opening == "合成即时开场白"
         await admin.employee_update(db, actor, employee.id, s.EmployeeUpdate(name="合成新姓名"))
         assert (await shared.public_card(db, existing_card.code)).name == "合成新姓名"
         assert other_pending.value["version"] == other_version
         assert len((await db.scalars(select(Setting).where(Setting.key == key))).all()) == 1
     finally:
-        await db.rollback()
+        await db.commit()
         await db.execute(delete(Setting).where(Setting.key.in_([key, own_pending_key, other_key])))
         await db.execute(delete(AuditLog).where(AuditLog.target == str(created_id)))
-        await db.execute(delete(Assistant).where(Assistant.card_id == created_card.id))
-        await db.execute(delete(Card).where(Card.id == created_card.id))
+        await db.execute(delete(Assistant).where(Assistant.card_id == created_card_id))
+        await db.execute(delete(Card).where(Card.id == created_card_id))
         await db.execute(delete(Employee).where(Employee.id == created_id))
         await db.commit()
