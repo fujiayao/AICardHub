@@ -28,14 +28,15 @@ test('A1→A2→A3→B13→B10→B11 真实访客明确同意留资后员工标�
     await capture(staff, testInfo, 'B2', 'lead-arrived');
     await expect.poll(async () => {
       const messages = await allItems(request, '/me/notifications', employee.token);
-      return messages.some(message => `${message.title} ${message.content}`.includes(lead.name));
+      return messages.some(message => `${message.title} ${message.content}`.includes(lead.name)
+        && message.target_type === 'lead' && message.target_id === lead.id);
     }, { timeout: 30_000, message: '留资 30 秒内必须产生对应员工站内信' }).toBe(true);
     await staff.goto(`${settings.h5}/staff/messages`);
     const notification = staff.getByText(new RegExp(lead.name)).first();
     await expect(notification).toBeVisible();
     await capture(staff, testInfo, 'B13', 'lead-notification');
     await notification.click();
-    await expect(staff).toHaveURL(/\/staff\/customers\/[^/?#]+/);
+    await expect(staff).toHaveURL(new RegExp(`/staff/customers/${lead.id}(?:[?#]|$)`));
     await expectText(staff, lead.name);
     await capture(staff, testInfo, 'B11', 'new-lead');
 

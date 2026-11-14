@@ -1,0 +1,27 @@
+{
+  "checked_on": "2026-11-14",
+  "h5": {
+    "commit": "ce98bc1",
+    "frozen_install": true,
+    "typecheck": true,
+    "lint": true,
+    "tests": 8,
+    "build": true,
+    "warnings": [
+      "PostCSS from option",
+      "Vite plugin timing"
+    ]
+  },
+  "admin": {
+    "commit": "4fbdf82",
+    "frozen_install": true,
+    "typecheck": true,
+    "tests": 6,
+    "build": true,
+    "lint": false,
+    "lint_issue": "Prettier68files CRLF/LF mismatch on clean Windows checkout, owner adding endOfLine configuration",
+    "warnings": [
+      "ElementPlus/Markdown chunk sizes"
+    ]
+  }
+}

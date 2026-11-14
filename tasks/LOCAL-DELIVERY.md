@@ -5,10 +5,12 @@
 | 任务 | 执行者 | 工作区 | 状态 |
 |---|---|---|---|
 | 契约、环境、MySQL、最终集成与浏览器验收 | 总控Codex | AICardHub | 进行中 |
-| 后端、迁移、鉴权、管理接口与OpenAPI | Pauli | worktrees/backend | 进行中 |
-| 知识库与模型流式适配、边界测试 | Euclid | worktrees/ai | 进行中 |
-| 访客与员工H5、原型实现 | Maxwell | worktrees/h5 | 进行中 |
-| 管理后台 | Erdos | worktrees/admin | 进行中 |
-| Magpie四执行器可用入口核查 | Leibniz | 研究报告 | 进行中 |
+| 后端、迁移、鉴权、管理接口与OpenAPI | Pauli | worktrees/backend | 85操作候选已合并；正在补独立jobs、导入、动态配置、转交授权与审查修复 |
+| 知识库与模型流式适配、边界测试 | Euclid | worktrees/ai | 内核、评测CLI与回滚批准修复已合并；全仓回归中 |
+| 访客与员工H5、原型实现 | Maxwell | worktrees/h5 | 18页面候选已合并；通知目标/二维码上传/改密退出联调中 |
+| 管理后台 | Erdos | worktrees/admin | 模板候选与知识生命周期/移动布局修复已合并；动态设置与导入补全中 |
+| Magpie四执行器可用入口核查 | Leibniz | 研究报告 | 已完成；DeepSeek映射400、Claude限时无输出；GPT独立审查四项缺陷已派修 |
 
 原T卡逐项验收后更新，本表不自动将原卡标为完成。交付报告需记录真实测试、页面截图与未完成项。
+
+已通过的独立证据：本地HTTP12项、并发读卡50/50、Fake流链路50/50、员工修改名片可见/恢复浏览器用例、360/430主要页布局26状态零溢出/浏览器错误。完整visitor通知跳转、新员工改密跨端、补全功能及最终主干检查仍待通过。

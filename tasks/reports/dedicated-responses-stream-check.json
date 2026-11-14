@@ -1,0 +1,24 @@
+{
+  "checked_on": "2026-11-14",
+  "scope": "three dedicated product models; one synthetic streaming request each; no private knowledge",
+  "results": [
+    {
+      "model_requested": "gpt-6.1-terra",
+      "scope": "synthetic native Responses stream",
+      "http_status": 403,
+      "elapsed_seconds": 2.95
+    },
+    {
+      "model_requested": "gpt-5.6-sol",
+      "scope": "synthetic native Responses stream",
+      "error_type": "URLError",
+      "elapsed_seconds": 35.34
+    },
+    {
+      "model_requested": "deepseek-v4.1-flash",
+      "scope": "synthetic native Responses stream",
+      "http_status": 403,
+      "elapsed_seconds": 0.93
+    }
+  ]
+}

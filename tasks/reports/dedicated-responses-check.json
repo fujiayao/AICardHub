@@ -1,0 +1,7 @@
+{
+  "checked_on": "2026-11-14",
+  "scope": "dedicated product Responses API, synthetic single turn, primary only",
+  "model_requested": "gpt-6.1-terra",
+  "error_type": "TimeoutError",
+  "elapsed_seconds": 47.5
+}

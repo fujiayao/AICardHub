@@ -1,0 +1,29 @@
+{
+  "checked_on": "2026-11-14",
+  "commit": "9f7fee0",
+  "server": {
+    "ruff": true,
+    "format": true,
+    "mypy_source_files": 38,
+    "pytest_passed": 201,
+    "pytest_seconds": 314.35
+  },
+  "h5": {
+    "lint": true,
+    "typecheck": true,
+    "unit_tests_passed": 15,
+    "build": true
+  },
+  "admin": {
+    "lint": true,
+    "typecheck": true,
+    "unit_tests_passed": 16,
+    "build": true
+  },
+  "browser": {
+    "status": "four of six passed; two H5 timeout diagnostics pending",
+    "evidence": "e2e/browser/artifacts/main-final-20261114-01"
+  },
+  "runtime": "FakeLLM automatic acceptance; real dedicated primary/backup SDK streaming independently verified; tertiary503",
+  "remaining": "ClaudeCode ChatCompletions terminal-reason fix and final browser diagnosis"
+}

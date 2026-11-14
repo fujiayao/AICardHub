@@ -1,0 +1,26 @@
+{
+  "checked_on": "2026-11-14",
+  "code_commit": "214a432",
+  "server": {
+    "ruff": true,
+    "format": true,
+    "mypy_source_files": 38,
+    "pytest_passed": 165,
+    "pytest_seconds": 265.09,
+    "alembic_upgrade": true,
+    "openapi_operations": 89
+  },
+  "h5": {
+    "default_generator": true,
+    "lint": true,
+    "typecheck": true,
+    "tests_passed": 13,
+    "build": true
+  },
+  "live_http": {
+    "tests_passed": 12,
+    "seconds": 27.388,
+    "password_change_revokes_previous_token": true
+  },
+  "scope": "before final scheduler registration/admin imports/customer details fixes"
+}

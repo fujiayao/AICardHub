@@ -19,7 +19,7 @@ test('C1→C2→C3 后台登录并修改公司简介，访客可见后恢复', a
   try {
     await loginUi(page, account, { admin: true, testInfo });
     await capture(page, testInfo, 'C2', 'dashboard');
-    await page.getByRole('menuitem', { name: /企业信息|公司资料/ }).click();
+    await page.getByRole('menuitem', { name: '企业与产品', exact: true }).click();
     await page.getByLabel(/^(公司简介|企业简介)$/).fill(marker);
     dirty = true;
     const changed = await saveUi(page, '/admin/company');
@@ -65,21 +65,30 @@ test('C7→B1→B2→A4 管理员新建员工，首次登录改密并停用验�
     await page.getByRole('button', { name: /^(新建员工|新增员工)$/ }).click();
     const dialog = page.getByRole('dialog', { name: /新建员工|新增员工/ });
     await dialog.getByLabel('姓名', { exact: true }).fill(contact.name);
-    await dialog.getByLabel(labels.phone).fill(contact.phone);
+    const phone = dialog.getByRole('textbox', { name: /^\*?\s*手机号$/ });
+    await expect(phone).toHaveCount(1);
+    await expect(phone).toBeVisible();
+    await expect(phone).toBeEditable();
+    await phone.fill(contact.phone);
     await dialog.getByLabel('部门', { exact: true }).fill('合成验收部门');
-    await dialog.getByLabel('职位', { exact: true }).fill('合成验收岗位');
+    await dialog.getByLabel('职务', { exact: true }).fill('合成验收岗位');
     await fillSecret(dialog.getByLabel(/^(初始密码|密码)$/), initialPassword);
     const response = responseFor(page, 'POST', '/admin/employees');
-    await dialog.getByRole('button', { name: /^(确定|保存|创建)$/ }).click();
+    await dialog.getByRole('button', { name: '保存员工', exact: true }).click();
     // Save the returned ID before assertions so finally can disable it on later failure.
     created = await assertResponse(response);
     expect(Boolean(created.id)).toBe(true);
     expect(typeof created.card_code).toBe('string');
     expect(created.card_code.length).toBeGreaterThan(0);
+    await expect(dialog).not.toBeVisible();
+    await page.getByRole('textbox', { name: '搜索员工', exact: true }).fill(contact.name);
+    await page.getByRole('button', { name: '搜索', exact: true }).click();
     await expectText(page, contact.name);
     await capture(page, testInfo, 'C7', 'employee-created');
 
-    await loginUi(staff, { phone: contact.phone, password: initialPassword }, { firstLogin: true, testInfo });
+    const beforeChange = await loginUi(staff, { phone: contact.phone, password: initialPassword }, { firstLogin: true, testInfo });
+    // /me/profile is allowed before the first password change: prove this token worked.
+    expect((await api(request, 'GET', '/me/profile', { token: beforeChange.token })).id).toBe(created.id);
     await expect(staff.getByRole('heading', { name: /首次.*密|修改密码|设置.*密码/ })).toBeVisible();
     await capture(staff, testInfo, 'B1', 'first-password');
     await fillSecret(staff.getByLabel(/^(原密码|旧密码)$/), initialPassword);
@@ -88,11 +97,22 @@ test('C7→B1→B2→A4 管理员新建员工，首次登录改密并停用验�
     const changedResponse = responseFor(staff, 'POST', '/auth/change-password');
     await staff.getByRole('button', { name: /^(确认并进入|确认修改|修改密码)$/ }).click();
     expect((await assertResponse(changedResponse)).ok).toBe(true);
-    await expect(staff.getByRole('heading', { name: '我的名片', exact: true })).toBeVisible();
+    await expect(staff).toHaveURL(/\/staff\/login(?:[?#]|$)/);
+    await expect(staff.getByLabel('手机号', { exact: true })).toBeVisible();
+    await expect(staff.getByRole('button', { name: '登录', exact: true })).toBeVisible();
+    await expect(staff.getByRole('heading', { name: '我的名片', exact: true })).toHaveCount(0);
+    await capture(staff, testInfo, 'B1', 'password-changed-relogin-required');
+
+    await api(request, 'GET', '/me/profile', { token: beforeChange.token, status: 401 });
+    await api(request, 'GET', '/me/card', { token: beforeChange.token, status: 401 });
+    await api(request, 'POST', '/auth/login', {
+      data: { phone: contact.phone, password: initialPassword }, status: 401,
+    });
+    const changed = await loginUi(staff, { phone: contact.phone, password: newPassword });
+    expect(changed.must_change_pwd).toBe(false);
+    expect(changed.staff.id).toBe(created.id);
     await expectText(staff, contact.name);
     await capture(staff, testInfo, 'B2', 'new-employee');
-    const changed = await loginApi(request, { phone: contact.phone, password: newPassword });
-    expect(changed.must_change_pwd).toBe(false);
     const card = await api(request, 'GET', '/me/card', { token: changed.token });
     expect(card.code).toBe(created.card_code);
     const assistant = await api(request, 'GET', '/me/assistant', { token: changed.token });

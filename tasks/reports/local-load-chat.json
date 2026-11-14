@@ -4,309 +4,309 @@
   "concurrency": 50,
   "passed": 50,
   "failed": 0,
-  "elapsed_seconds": 6.847,
-  "median_seconds": 4.9595,
-  "p95_seconds": 6.5211,
+  "elapsed_seconds": 29.813,
+  "median_seconds": 21.4765,
+  "p95_seconds": 27.891,
   "results": [
     {
       "user": 0,
       "passed": true,
       "status": 200,
-      "seconds": 6.5347
+      "seconds": 18.234
     },
     {
       "user": 1,
       "passed": true,
       "status": 200,
-      "seconds": 3.7459
+      "seconds": 20.687
     },
     {
       "user": 2,
       "passed": true,
       "status": 200,
-      "seconds": 2.3533
+      "seconds": 18.203
     },
     {
       "user": 3,
       "passed": true,
       "status": 200,
-      "seconds": 3.984
+      "seconds": 22.515
     },
     {
       "user": 4,
       "passed": true,
       "status": 200,
-      "seconds": 3.7316
+      "seconds": 23.906
     },
     {
       "user": 5,
       "passed": true,
       "status": 200,
-      "seconds": 5.0321
+      "seconds": 21.375
     },
     {
       "user": 6,
       "passed": true,
       "status": 200,
-      "seconds": 1.9082
+      "seconds": 21.89
     },
     {
       "user": 7,
       "passed": true,
       "status": 200,
-      "seconds": 5.2734
+      "seconds": 20.687
     },
     {
       "user": 8,
       "passed": true,
       "status": 200,
-      "seconds": 3.7495
+      "seconds": 18.203
     },
     {
       "user": 9,
       "passed": true,
       "status": 200,
-      "seconds": 3.7269
+      "seconds": 20.734
     },
     {
       "user": 10,
       "passed": true,
       "status": 200,
-      "seconds": 3.7583
+      "seconds": 20.765
     },
     {
       "user": 11,
       "passed": true,
       "status": 200,
-      "seconds": 5.0821
+      "seconds": 19.953
     },
     {
       "user": 12,
       "passed": true,
       "status": 200,
-      "seconds": 5.154
+      "seconds": 20.64
     },
     {
       "user": 13,
       "passed": true,
       "status": 200,
-      "seconds": 3.7307
+      "seconds": 21.281
     },
     {
       "user": 14,
       "passed": true,
       "status": 200,
-      "seconds": 3.8632
+      "seconds": 20.281
     },
     {
       "user": 15,
       "passed": true,
       "status": 200,
-      "seconds": 3.6628
+      "seconds": 20.344
     },
     {
       "user": 16,
       "passed": true,
       "status": 200,
-      "seconds": 3.643
+      "seconds": 21.562
     },
     {
       "user": 17,
       "passed": true,
       "status": 200,
-      "seconds": 5.0167
+      "seconds": 28.437
     },
     {
       "user": 18,
       "passed": true,
       "status": 200,
-      "seconds": 6.4734
+      "seconds": 20.969
     },
     {
       "user": 19,
       "passed": true,
       "status": 200,
-      "seconds": 4.9535
+      "seconds": 20.422
     },
     {
       "user": 20,
       "passed": true,
       "status": 200,
-      "seconds": 3.7591
+      "seconds": 24.297
     },
     {
       "user": 21,
       "passed": true,
       "status": 200,
-      "seconds": 6.5211
+      "seconds": 21.484
     },
     {
       "user": 22,
       "passed": true,
       "status": 200,
-      "seconds": 3.7695
+      "seconds": 22.578
     },
     {
       "user": 23,
       "passed": true,
       "status": 200,
-      "seconds": 5.0971
+      "seconds": 20.953
     },
     {
       "user": 24,
       "passed": true,
       "status": 200,
-      "seconds": 6.174
+      "seconds": 21.562
     },
     {
       "user": 25,
       "passed": true,
       "status": 200,
-      "seconds": 3.6823
+      "seconds": 21.5
     },
     {
       "user": 26,
       "passed": true,
       "status": 200,
-      "seconds": 5.2993
+      "seconds": 20.422
     },
     {
       "user": 27,
       "passed": true,
       "status": 200,
-      "seconds": 6.326
+      "seconds": 21.515
     },
     {
       "user": 28,
       "passed": true,
       "status": 200,
-      "seconds": 3.7742
+      "seconds": 25.39
     },
     {
       "user": 29,
       "passed": true,
       "status": 200,
-      "seconds": 6.4222
+      "seconds": 21.469
     },
     {
       "user": 30,
       "passed": true,
       "status": 200,
-      "seconds": 6.5543
+      "seconds": 20.375
     },
     {
       "user": 31,
       "passed": true,
       "status": 200,
-      "seconds": 5.124
+      "seconds": 28.922
     },
     {
       "user": 32,
       "passed": true,
       "status": 200,
-      "seconds": 3.7544
+      "seconds": 21.469
     },
     {
       "user": 33,
       "passed": true,
       "status": 200,
-      "seconds": 3.8979
+      "seconds": 26.688
     },
     {
       "user": 34,
       "passed": true,
       "status": 200,
-      "seconds": 3.7275
+      "seconds": 21.532
     },
     {
       "user": 35,
       "passed": true,
       "status": 200,
-      "seconds": 5.0516
+      "seconds": 25.891
     },
     {
       "user": 36,
       "passed": true,
       "status": 200,
-      "seconds": 6.2402
+      "seconds": 21.579
     },
     {
       "user": 37,
       "passed": true,
       "status": 200,
-      "seconds": 3.8788
+      "seconds": 27.344
     },
     {
       "user": 38,
       "passed": true,
       "status": 200,
-      "seconds": 3.6915
+      "seconds": 20.391
     },
     {
       "user": 39,
       "passed": true,
       "status": 200,
-      "seconds": 5.1807
+      "seconds": 20.313
     },
     {
       "user": 40,
       "passed": true,
       "status": 200,
-      "seconds": 4.9864
+      "seconds": 27.891
     },
     {
       "user": 41,
       "passed": true,
       "status": 200,
-      "seconds": 6.3663
+      "seconds": 21.594
     },
     {
       "user": 42,
       "passed": true,
       "status": 200,
-      "seconds": 3.7141
+      "seconds": 21.516
     },
     {
       "user": 43,
       "passed": true,
       "status": 200,
-      "seconds": 6.1968
+      "seconds": 29.391
     },
     {
       "user": 44,
       "passed": true,
       "status": 200,
-      "seconds": 5.0156
+      "seconds": 17.829
     },
     {
       "user": 45,
       "passed": true,
       "status": 200,
-      "seconds": 6.5765
+      "seconds": 24.844
     },
     {
       "user": 46,
       "passed": true,
       "status": 200,
-      "seconds": 5.049
+      "seconds": 22.985
     },
     {
       "user": 47,
       "passed": true,
       "status": 200,
-      "seconds": 3.7699
+      "seconds": 21.438
     },
     {
       "user": 48,
       "passed": true,
       "status": 200,
-      "seconds": 4.9655
+      "seconds": 20.219
     },
     {
       "user": 49,
       "passed": true,
       "status": 200,
-      "seconds": 3.7282
+      "seconds": 21.61
     }
   ]
 }

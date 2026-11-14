@@ -63,7 +63,7 @@ test('C1→C7 后台创建员工、自动开通名片助手并停用（H5改密�
     await test.step('通过真实后台表单创建合成员工', async () => {
       const dialog = page.getByRole('dialog', { name: '新增员工', exact: true });
       await dialog.getByLabel('姓名', { exact: true }).fill(contact.name);
-      const phone = dialog.getByRole('textbox', { name: '手机号', exact: true });
+      const phone = dialog.getByRole('textbox', { name: /^\*?\s*手机号$/ });
       await expect(phone, '新增员工手机号控件必须唯一').toHaveCount(1);
       await expect(phone, '新增员工手机号控件必须可见').toBeVisible();
       await expect(phone, '新增员工手机号控件必须可编辑').toBeEditable();

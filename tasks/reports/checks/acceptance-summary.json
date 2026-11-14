@@ -1,0 +1,81 @@
+{
+  "checked_on": "2026-11-14",
+  "phase": "local acceptance candidate",
+  "server": {
+    "full_pytest_before_CC_terminal_patch": 201,
+    "cc_terminal_patch_llm_tests": 138,
+    "ruff": true,
+    "format": true,
+    "mypy_files": 38,
+    "full_pytest_final": 271,
+    "full_pytest_seconds": 217.83
+  },
+  "h5": {
+    "tests": 15,
+    "lint": true,
+    "typecheck": true,
+    "build": true
+  },
+  "admin": {
+    "tests": 16,
+    "lint": true,
+    "typecheck": true,
+    "build": true
+  },
+  "browser_production_build": {
+    "preflight": 1,
+    "business_and_layout": 6,
+    "passed": 7,
+    "failed": 0,
+    "evidence": "e2e/browser/artifacts/main-production-preview-final-20261114-02"
+  },
+  "browser_dev_after_CC_optimize": {
+    "preflight": 1,
+    "business": 2,
+    "passed": 3,
+    "failed": 0,
+    "evidence": "e2e/browser/artifacts/main-dev-optimized-final-20261114-01"
+  },
+  "http_fake": {
+    "tests_passed": 12,
+    "seconds": 17.135
+  },
+  "load_fake": {
+    "users": 50,
+    "passed": 50,
+    "seconds": 29.813,
+    "p95_seconds": 27.891,
+    "note": "includes local DB and background tasks; not real model concurrency"
+  },
+  "product_real_responses": {
+    "status": "pass",
+    "primary_model": "gpt-6.1-terra",
+    "deltas": 63,
+    "complete": true,
+    "synthetic_answer_and_citation": true,
+    "no_knowledge_honesty": true,
+    "secrets_masked": true,
+    "cleanup": true,
+    "report": "tasks/reports/responses-real-product-check-01.json"
+  },
+  "provider_sdk": {
+    "primary": "completed",
+    "backup": "completed",
+    "tertiary": "503_not_verified"
+  },
+  "not_completed": [
+    "正式公司资料导入与正式知识准确率评测",
+    "真机微信/iOS/Android和物理NFC验收",
+    "生产部署和一周灰度",
+    "原计划Token计费预算、文档AI自动拆篇、BIGINT转换等非闭环增强项（见交付限制）"
+  ],
+  "commit_tested": "5b1c36f plus seed wording and launch/check scripts",
+  "runtime_services": "main API and scheduler real dedicated Responses; H5/admin dev local",
+  "real_browser": {
+    "passed": true,
+    "model": "gpt-6.1-terra",
+    "deltas": 50,
+    "citation": "demo-public",
+    "report": "tasks/reports/real-browser-chat.json"
+  }
+}

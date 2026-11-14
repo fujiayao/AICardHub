@@ -1,0 +1,19 @@
+{
+  "checked_on": "2026-11-14",
+  "mode": "real_product_UI",
+  "base_url": "http://127.0.0.1:5173",
+  "scenario": "A1 guided question -> A2 actual provider answer",
+  "http_status": 200,
+  "delta_events": 50,
+  "done_events": 1,
+  "model": "gpt-6.1-terra",
+  "kb_refs": [
+    "demo-public"
+  ],
+  "nokb": false,
+  "visible_answer": "这张演示名片用于本地验证名片展示、AI对话、客户自愿留资和员工跟进流程。名片内容是合成演示数据，不代表任何真实公司的产品、价格或承诺。",
+  "screenshots": [
+    "tasks/reports/screenshots/A1-real-model-390.png",
+    "tasks/reports/screenshots/A2-real-model-390.png"
+  ]
+}

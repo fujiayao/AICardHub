@@ -225,7 +225,7 @@ class LocalAcceptance(unittest.TestCase):
     def test_admin_creates_staff_and_requires_first_password_change(self) -> None:
         suffix = secrets.randbelow(100_000_000)
         phone = f"138{suffix:08d}"
-        password = secrets.token_urlsafe(20)
+        password = "Aa9" + secrets.token_hex(7)
         status, created = request(
             "POST",
             "/api/v1/admin/employees",
@@ -247,13 +247,22 @@ class LocalAcceptance(unittest.TestCase):
         token = login["token"]
         status, _ = request("GET", "/api/v1/me/leads", token=token)
         self.assertEqual(status, 403)
+        new_password = "Bb8" + secrets.token_hex(7)
         status, changed = request(
             "POST",
             "/api/v1/auth/change-password",
-            {"old_password": password, "new_password": secrets.token_urlsafe(20)},
+            {"old_password": password, "new_password": new_password},
             token,
         )
         self.assertEqual(status, 200, changed)
+        status, _ = request("GET", "/api/v1/me/card", token=token)
+        self.assertEqual(status, 401, "改密后旧会话必须失效")
+        status, relogin = request(
+            "POST", "/api/v1/auth/login", {"phone": phone, "password": new_password}
+        )
+        self.assertEqual(status, 200, relogin)
+        self.assertFalse(relogin["must_change_pwd"])
+        token = relogin["token"]
         status, card = request("GET", "/api/v1/me/card", token=token)
         self.assertEqual(status, 200, card)
         self.assertEqual(card["name"], "自动验收员工")

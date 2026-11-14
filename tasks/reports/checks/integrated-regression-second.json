@@ -1,0 +1,18 @@
+{
+  "checked_on": "2026-11-14",
+  "code_commit": "837e480",
+  "server": {
+    "ruff": true,
+    "format": true,
+    "mypy_source_files": 32,
+    "pytest_passed": 137,
+    "pytest_seconds": 101.95
+  },
+  "admin": {
+    "lint": true,
+    "typecheck": true,
+    "tests_passed": 6,
+    "build": true
+  },
+  "scope": "candidate before backend extensions and final frontend fixes; not final acceptance"
+}

@@ -1,0 +1,66 @@
+{
+  "status": "pass",
+  "scope": "manual_real_provider_black_box",
+  "expected_mode": "real",
+  "checks": {
+    "health_secrets_masked": true,
+    "runtime_secrets_masked": true,
+    "llm_api_key_masked": true,
+    "llm_fallback_api_key_masked": true,
+    "llm_tertiary_api_key_masked": true,
+    "real_mode": true,
+    "responses_configured": true,
+    "health_model_matches_runtime": true,
+    "synthetic_ref_present": true,
+    "synthetic_answer_present": true,
+    "no_knowledge_empty_refs": true,
+    "no_knowledge_flag": true,
+    "no_knowledge_honest_text": true
+  },
+  "streams": {
+    "grounded": {
+      "event_count": 64,
+      "delta_count": 63,
+      "done_count": 1,
+      "error_count": 0,
+      "complete_stream": true,
+      "real_model": true,
+      "model": "gpt-6.1-terra"
+    },
+    "no_knowledge": {
+      "event_count": 2,
+      "delta_count": 1,
+      "done_count": 1,
+      "error_count": 0,
+      "complete_stream": true,
+      "real_model": false
+    }
+  },
+  "errors": [],
+  "created_file_ids": [
+    "note-934a876cf1b6441d8fe80018d8585195"
+  ],
+  "created_session_ids": [
+    297,
+    298
+  ],
+  "cleanup": {
+    "attempted": true,
+    "success": true
+  },
+  "limitations": [
+    "demo card receives synthetic sessions; no session-delete API, sessions retained",
+    "protocol is runtime API declaration plus real generation, not provider wire capture",
+    "enabled primary/fallback/tertiary llm_api_mode must be responses; no protocol downgrade required",
+    "random control can retrieve fixed/company documents; this fails strict nokb/empty-refs checks",
+    "honesty text heuristic is not semantic proof; no existing business documents are fetched",
+    "lost create response can leave an unidentifiable synthetic document; never search/delete others"
+  ],
+  "protocol": "responses",
+  "runtime_models": [
+    "deepseek-v4.1-flash",
+    "gpt-5.6-sol",
+    "gpt-6.1-terra"
+  ],
+  "elapsed_seconds": 15.5
+}

@@ -20,7 +20,7 @@ export default class SafeReporter {
       // The first line of arbitrary assertion errors can also contain a secret.
       // Only expose a stable error category and location, never error.message/stack.
       process.stdout.write(`  失败类型: ${error.message?.includes('Timeout') ? 'timeout' : 'assertion/setup'}；请在本地检查对应断言\n`);
-      const source = error.stack?.match(/(?:admin-only\.spec\.mjs|h5-visitor-lead\.spec\.mjs|h5-card\.spec\.mjs|visitor\.mjs|ui\.mjs|api\.mjs|evidence\.mjs|fixtures\.mjs):\d+:\d+/)?.[0];
+      const source = error.stack?.match(/(?:admin-only\.spec\.mjs|admin\.spec\.mjs|h5-visitor-lead\.spec\.mjs|h5-card\.spec\.mjs|visitor\.mjs|ui\.mjs|api\.mjs|evidence\.mjs|fixtures\.mjs):\d+:\d+/)?.[0];
       if (source) process.stdout.write(`  断言位置: ${source}\n`);
     }
   }

@@ -1,0 +1,27 @@
+{
+  "results": [
+    {
+      "path": "/models",
+      "model": null,
+      "error_type": "URLError",
+      "reason_type": "TimeoutError",
+      "seconds": 12.44
+    },
+    {
+      "path": "/responses",
+      "model": "gpt-6.1-terra",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "body_kind": "non_json",
+      "seconds": 12.14
+    },
+    {
+      "path": "/responses",
+      "model": "deepseek-v4.1-flash",
+      "status": 403,
+      "content_type": "text/plain; charset=UTF-8",
+      "body_kind": "non_json",
+      "seconds": 1.0
+    }
+  ]
+}

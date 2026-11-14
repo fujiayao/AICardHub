@@ -1,0 +1,31 @@
+{
+  "status": "pass",
+  "scope": "fake_configuration_only",
+  "expected_mode": "fake",
+  "checks": {
+    "health_secrets_masked": true,
+    "runtime_secrets_masked": true,
+    "llm_api_key_masked": true,
+    "llm_fallback_api_key_masked": true,
+    "llm_tertiary_api_key_masked": true,
+    "real_mode": false,
+    "fake_configuration_only": true
+  },
+  "streams": {},
+  "errors": [],
+  "created_file_ids": [],
+  "created_session_ids": [],
+  "cleanup": {
+    "attempted": false,
+    "success": null
+  },
+  "limitations": [
+    "demo card receives synthetic sessions; no session-delete API, sessions retained",
+    "protocol is runtime API declaration plus real generation, not provider wire capture",
+    "enabled primary/fallback/tertiary llm_api_mode must be responses; no protocol downgrade required",
+    "random control can retrieve fixed/company documents; this fails strict nokb/empty-refs checks",
+    "honesty text heuristic is not semantic proof; no existing business documents are fetched",
+    "lost create response can leave an unidentifiable synthetic document; never search/delete others"
+  ],
+  "elapsed_seconds": 1.219
+}

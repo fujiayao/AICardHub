@@ -1,0 +1,7 @@
+{
+  "scope": "one bounded diagnostic with app user-agent",
+  "status": 200,
+  "content_type": "text/event-stream",
+  "first_line_type": "sse",
+  "seconds": 3.55
+}
