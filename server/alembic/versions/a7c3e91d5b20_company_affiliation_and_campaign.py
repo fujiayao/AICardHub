@@ -85,6 +85,19 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    # MySQL DDL commits implicitly: reject incompatible rows before the first DDL.
+    missing_credentials = (
+        op.get_bind()
+        .execute(
+            sa.text("SELECT COUNT(*) FROM employee WHERE phone IS NULL OR password_hash IS NULL")
+        )
+        .scalar_one()
+    )
+    if missing_credentials:
+        raise RuntimeError(
+            "Cannot downgrade while employees have NULL phone or password_hash; "
+            "no schema changes were applied"
+        )
     op.drop_constraint("fk_lead_campaign_id", "lead", type_="foreignkey")
     op.drop_constraint("fk_lead_visit_id", "lead", type_="foreignkey")
     op.drop_index(op.f("ix_lead_campaign_id"), table_name="lead")
