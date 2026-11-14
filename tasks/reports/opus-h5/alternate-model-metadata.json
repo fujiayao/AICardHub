@@ -1,0 +1,18 @@
+{
+  "at": "2026-11-14T12:40:58.652846+00:00",
+  "models": [
+    {
+      "id": "auto/claude-opus-5-5",
+      "owned_by": "claude-2"
+    },
+    {
+      "id": "claude-2/claude-opus-5-5",
+      "owned_by": "claude-2"
+    },
+    {
+      "id": "onceai/claude-opus-5-5",
+      "owned_by": "onceai"
+    }
+  ],
+  "evidence": "metadata_only"
+}

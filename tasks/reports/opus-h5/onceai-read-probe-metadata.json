@@ -1,0 +1,7 @@
+{
+  "model_argument": "onceai/claude-opus-5-5",
+  "timeout_seconds": 110,
+  "global_config_changed": false,
+  "pid": 48884,
+  "returncode": 0
+}
