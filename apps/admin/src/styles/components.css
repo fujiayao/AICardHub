@@ -1,0 +1,61 @@
+/* Element Plus density and containment overrides for the console. */
+.el-form-item .el-select {
+  width: 100%;
+}
+.el-form-item__content {
+  min-width: 0;
+}
+.el-pagination {
+  margin-top: var(--ac-space-4);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.el-dialog {
+  max-width: calc(100vw - 24px);
+  border-radius: var(--ac-radius);
+}
+.el-drawer {
+  max-width: 100vw;
+}
+.el-drawer__header {
+  margin-bottom: 0;
+  padding: var(--ac-space-4) var(--ac-space-5);
+  border-bottom: 1px solid var(--ac-border);
+  color: var(--ac-text);
+  font-weight: 650;
+}
+.el-message-box {
+  max-width: calc(100vw - 32px);
+}
+.el-table {
+  width: 100%;
+  --el-table-header-bg-color: var(--ac-surface-muted);
+  --el-table-header-text-color: var(--ac-text-muted);
+  --el-table-row-hover-bg-color: var(--ac-primary-soft);
+  font-size: 14px;
+}
+.el-table th.el-table__cell {
+  font-weight: 600;
+  font-size: 13px;
+}
+.el-button {
+  font-weight: 500;
+}
+.el-tag {
+  font-weight: 500;
+}
+.el-alert {
+  border-radius: var(--ac-radius-sm);
+}
+.md-editor {
+  width: 100%;
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .el-pagination .el-pagination__total {
+    margin-left: var(--ac-space-2);
+  }
+  .el-pagination {
+    justify-content: flex-start;
+  }
+}

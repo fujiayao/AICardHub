@@ -1,43 +1,52 @@
 <script setup lang="ts">
+// Breadcrumb derived from route meta (replaces upstream tag chrome).
+import { computed } from "vue";
 import { useRoute } from "vue-router";
-import TagChrome from "./components/TagChrome.vue";
 const route = useRoute();
+const group = computed(() => route.meta.group ?? "管理后台");
 </script>
 <template>
-  <nav class="tags" aria-label="当前位置">
-    <span>管理后台 /</span
-    ><span class="tag"
-      ><TagChrome class="shape" /><span class="title">{{
-        route.meta.title
-      }}</span></span
-    >
+  <nav class="crumbs" aria-label="当前位置">
+    <ol>
+      <li class="crumb-group">{{ group }}</li>
+      <li aria-current="page" class="current">{{ route.meta.title }}</li>
+    </ol>
   </nav>
 </template>
 <style scoped>
-.tags {
+.crumbs {
+  min-width: 0;
+}
+ol {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 6px 24px;
-  border-bottom: 1px solid var(--el-border-color-light);
-  font-size: 13px;
-  color: var(--el-text-color-secondary);
+  gap: var(--ac-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  white-space: nowrap;
 }
-.tag {
-  position: relative;
-  padding: 8px 20px;
-  color: var(--el-color-primary);
-  min-width: 100px;
-  text-align: center;
+li + li::before {
+  content: "/";
+  margin-right: var(--ac-space-2);
+  color: var(--ac-border-strong);
 }
-.shape {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.08;
+.crumb-group {
+  color: var(--ac-text-subtle);
 }
-.title {
-  position: relative;
+.current {
+  color: var(--ac-text);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 760px) {
+  .crumb-group {
+    display: none;
+  }
+  li + li::before {
+    content: none;
+  }
 }
 </style>

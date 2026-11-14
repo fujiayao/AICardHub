@@ -1,0 +1,12 @@
+<script setup lang="ts">
+defineProps<{ title: string; desc?: string }>();
+</script>
+<template>
+  <header class="page-header">
+    <div class="page-heading">
+      <h1>{{ title }}</h1>
+      <p v-if="desc" class="page-desc">{{ desc }}</p>
+    </div>
+    <div v-if="$slots.default" class="page-actions"><slot /></div>
+  </header>
+</template>

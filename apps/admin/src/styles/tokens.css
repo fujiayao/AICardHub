@@ -1,0 +1,67 @@
+/* Central semantic tokens. Raw colour literals are allowed only in this file. */
+:root {
+  --ac-navy: #0f172a;
+  --ac-navy-2: #1e293b;
+  --ac-navy-3: #334155;
+  --ac-on-navy: #f8fafc;
+  --ac-on-navy-muted: #94a3b8;
+  --ac-primary: #0369a1;
+  --ac-primary-hover: #075985;
+  --ac-primary-soft: #e0f2fe;
+  --ac-teal: #0f766e;
+  --ac-teal-soft: #ccfbf1;
+  --ac-success: #15803d;
+  --ac-success-soft: #dcfce7;
+  --ac-warning: #b45309;
+  --ac-warning-soft: #fef3c7;
+  --ac-danger: #b91c1c;
+  --ac-danger-soft: #fee2e2;
+  --ac-bg: #f1f5f9;
+  --ac-surface: #ffffff;
+  --ac-surface-muted: #f8fafc;
+  --ac-border: #e2e8f0;
+  --ac-border-strong: #cbd5e1;
+  --ac-text: #0f172a;
+  --ac-text-muted: #475569;
+  --ac-text-subtle: #64748b;
+  --ac-focus: #0284c7;
+  --ac-radius: 8px;
+  --ac-radius-sm: 6px;
+  --ac-shadow: 0 1px 2px rgb(15 23 42 / 6%), 0 1px 3px rgb(15 23 42 / 8%);
+  --ac-shadow-lg: 0 10px 30px rgb(15 23 42 / 12%);
+  --ac-space-1: 4px;
+  --ac-space-2: 8px;
+  --ac-space-3: 12px;
+  --ac-space-4: 16px;
+  --ac-space-5: 24px;
+  --ac-space-6: 32px;
+  --ac-header-h: 56px;
+  --ac-sidebar-w: 232px;
+  --ac-sidebar-w-collapsed: 64px;
+  --ac-font:
+    "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui,
+    -apple-system, "Segoe UI", sans-serif;
+  --ac-font-mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  /* Map Element Plus onto the semantic palette. */
+  --el-color-primary: var(--ac-primary);
+  --el-color-primary-light-3: #3b8fc0;
+  --el-color-primary-light-5: #81b4d3;
+  --el-color-primary-light-7: #b3d2e3;
+  --el-color-primary-light-8: #cde1ec;
+  --el-color-primary-light-9: #e6f0f6;
+  --el-color-primary-dark-2: var(--ac-primary-hover);
+  --el-color-success: var(--ac-success);
+  --el-color-warning: var(--ac-warning);
+  --el-color-danger: var(--ac-danger);
+  --el-text-color-primary: var(--ac-text);
+  --el-text-color-regular: var(--ac-navy-3);
+  --el-text-color-secondary: var(--ac-text-muted);
+  --el-border-color: var(--ac-border-strong);
+  --el-border-color-light: var(--ac-border);
+  --el-border-color-lighter: var(--ac-border);
+  --el-fill-color-light: var(--ac-surface-muted);
+  --el-bg-color-page: var(--ac-bg);
+  --el-border-radius-base: var(--ac-radius-sm);
+  --el-font-family: var(--ac-font);
+}
