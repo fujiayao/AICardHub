@@ -1,0 +1,26 @@
+{
+  "checked_on": "2026-11-14",
+  "code_commit": "6fc5dfd",
+  "python": "3.12.12",
+  "pytest": {
+    "passed": 98,
+    "seconds": 39.86
+  },
+  "mypy": {
+    "passed": true,
+    "source_files": 31
+  },
+  "ruff": {
+    "passed": false,
+    "issue": "ASYNC110 test_llm.py event synchronization; AI owner fixing"
+  },
+  "format": {
+    "passed": false,
+    "files": 7,
+    "issue": "AI isolated formatter line length differs from project100; owner fixing"
+  },
+  "contract": {
+    "operations": 85,
+    "passed": true
+  }
+}

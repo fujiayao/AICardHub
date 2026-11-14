@@ -1,0 +1,32 @@
+{
+  "checked_on": "2026-11-14",
+  "scope": "synthetic single-turn generation; no tool or product knowledge evaluation",
+  "results": [
+    {
+      "model": "gptpro/gpt-6.1-sol",
+      "status": 200,
+      "elapsed_seconds": 5.31,
+      "content_present": true,
+      "marker_found": true,
+      "usage": {
+        "completion_tokens": 8,
+        "total_tokens": 325,
+        "prompt_tokens": 317,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_creation_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      }
+    },
+    {
+      "model": "liangkeai-gg-g/deepseek-v4.1-flash",
+      "status": 400,
+      "elapsed_seconds": 3.84,
+      "result": "http_error_body_not_logged"
+    }
+  ]
+}

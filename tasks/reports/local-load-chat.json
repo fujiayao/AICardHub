@@ -1,0 +1,312 @@
+{
+  "scenario": "50 local clients, each card+visitor+session+SSE",
+  "limitations": "localhost desktop network; chat only meaningful as FakeLLM capacity unless separately configured; not 4G, NFC or real-model throughput",
+  "concurrency": 50,
+  "passed": 50,
+  "failed": 0,
+  "elapsed_seconds": 6.847,
+  "median_seconds": 4.9595,
+  "p95_seconds": 6.5211,
+  "results": [
+    {
+      "user": 0,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.5347
+    },
+    {
+      "user": 1,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7459
+    },
+    {
+      "user": 2,
+      "passed": true,
+      "status": 200,
+      "seconds": 2.3533
+    },
+    {
+      "user": 3,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.984
+    },
+    {
+      "user": 4,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7316
+    },
+    {
+      "user": 5,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.0321
+    },
+    {
+      "user": 6,
+      "passed": true,
+      "status": 200,
+      "seconds": 1.9082
+    },
+    {
+      "user": 7,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.2734
+    },
+    {
+      "user": 8,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7495
+    },
+    {
+      "user": 9,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7269
+    },
+    {
+      "user": 10,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7583
+    },
+    {
+      "user": 11,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.0821
+    },
+    {
+      "user": 12,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.154
+    },
+    {
+      "user": 13,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7307
+    },
+    {
+      "user": 14,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.8632
+    },
+    {
+      "user": 15,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.6628
+    },
+    {
+      "user": 16,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.643
+    },
+    {
+      "user": 17,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.0167
+    },
+    {
+      "user": 18,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.4734
+    },
+    {
+      "user": 19,
+      "passed": true,
+      "status": 200,
+      "seconds": 4.9535
+    },
+    {
+      "user": 20,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7591
+    },
+    {
+      "user": 21,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.5211
+    },
+    {
+      "user": 22,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7695
+    },
+    {
+      "user": 23,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.0971
+    },
+    {
+      "user": 24,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.174
+    },
+    {
+      "user": 25,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.6823
+    },
+    {
+      "user": 26,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.2993
+    },
+    {
+      "user": 27,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.326
+    },
+    {
+      "user": 28,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7742
+    },
+    {
+      "user": 29,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.4222
+    },
+    {
+      "user": 30,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.5543
+    },
+    {
+      "user": 31,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.124
+    },
+    {
+      "user": 32,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7544
+    },
+    {
+      "user": 33,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.8979
+    },
+    {
+      "user": 34,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7275
+    },
+    {
+      "user": 35,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.0516
+    },
+    {
+      "user": 36,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.2402
+    },
+    {
+      "user": 37,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.8788
+    },
+    {
+      "user": 38,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.6915
+    },
+    {
+      "user": 39,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.1807
+    },
+    {
+      "user": 40,
+      "passed": true,
+      "status": 200,
+      "seconds": 4.9864
+    },
+    {
+      "user": 41,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.3663
+    },
+    {
+      "user": 42,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7141
+    },
+    {
+      "user": 43,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.1968
+    },
+    {
+      "user": 44,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.0156
+    },
+    {
+      "user": 45,
+      "passed": true,
+      "status": 200,
+      "seconds": 6.5765
+    },
+    {
+      "user": 46,
+      "passed": true,
+      "status": 200,
+      "seconds": 5.049
+    },
+    {
+      "user": 47,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7699
+    },
+    {
+      "user": 48,
+      "passed": true,
+      "status": 200,
+      "seconds": 4.9655
+    },
+    {
+      "user": 49,
+      "passed": true,
+      "status": 200,
+      "seconds": 3.7282
+    }
+  ]
+}

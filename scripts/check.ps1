@@ -12,6 +12,7 @@ function Check([string]$Directory, [string]$Executable, [string[]]$Arguments) {
  } finally { Pop-Location }
 }
 $server = Join-Path $repo 'server'
+Check $server $uv @('run','python','../scripts/check-contract.py')
 Check $server $uv @('run','ruff','check','app','tests')
 Check $server $uv @('run','ruff','format','--check','app','tests')
 Check $server $uv @('run','mypy','app')
@@ -24,5 +25,8 @@ foreach ($app in @('h5','admin')) {
  Check $directory $pnpm @('build')
 }
 Check (Join-Path $repo 'apps\h5') $pnpm @('test','--run')
-if ($E2E) { Check $server $uv @('run','python','../e2e/local_acceptance.py') }
+if ($E2E) {
+ Check $server $uv @('run','python','../e2e/local_acceptance.py')
+ Check (Join-Path $repo 'e2e\browser') $pnpm @('test')
+}
 Write-Output '本次指定的检查全部通过。'

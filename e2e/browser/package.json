@@ -1,0 +1,21 @@
+{
+  "name": "aicardhub-browser-acceptance",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "test": "playwright test --grep-invert @runner",
+    "test:runner": "playwright test --project=runner",
+    "test:h5": "playwright test --project=h5-*",
+    "test:admin": "playwright test --config=admin-only.config.mjs --project=admin",
+    "test:admin-integrated": "playwright test --project=admin",
+    "test:layout": "playwright test --project=layout-*",
+    "test:list": "playwright test --list",
+    "preflight": "node scripts/preflight.mjs",
+    "check": "node scripts/check-syntax.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1"
+  }
+}
