@@ -1,5 +1,7 @@
 // Stable UI aliases; methods, parameters and payloads are verified against OpenAPI.
 export const endpoints = {
+ campaigns: ['get', '/api/v1/me/campaigns', 'staff'],
+ campaign: ['get', '/api/v1/public/campaigns/{id}', 'public'],
  login: ['post', '/api/v1/auth/login', 'public'], changePassword: ['post', '/api/v1/auth/change-password', 'staff'],
  profile: ['get', '/api/v1/me/profile', 'staff'], publicCard: ['get', '/api/v1/public/cards/{code}', 'public'],
  initVisitor: ['post', '/api/v1/public/visitor/init', 'visitor'], createVisit: ['post', '/api/v1/public/visits', 'visitor'], updateVisit: ['patch', '/api/v1/public/visits/{id}', 'visitor'],

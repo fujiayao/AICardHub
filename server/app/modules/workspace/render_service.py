@@ -63,6 +63,11 @@ async def enqueue_card(db: AsyncSession, card: Card) -> None:
 
     from app.modules.workspace.models import Setting
 
+    if card.status != "active":
+        stale = await repo.optional(db, Setting, Setting.key == f"render_pending-{card.code}")
+        if stale is not None:
+            await db.delete(stale)
+        return
     key = f"render_pending-{card.code}"
     row = await repo.optional(db, Setting, Setting.key == key)
     value = {"card_id": card.id, "version": uuid4().hex}
@@ -85,6 +90,19 @@ async def render_all(db: AsyncSession, template_id: int | None = None) -> None:
         )
     for card in (await db.scalars(stmt)).all():
         await enqueue_card(db, card)
+    # Remove pending work for cards that have since been disabled.
+    from app.modules.workspace.models import Setting
+
+    for keyrow in (
+        await db.scalars(select(Setting).where(Setting.key.startswith("render_pending-")))
+    ).all():
+        pending_card = (
+            await db.get(Card, keyrow.value.get("card_id"))
+            if isinstance(keyrow.value, dict)
+            else None
+        )
+        if pending_card is None or pending_card.status != "active":
+            await db.delete(keyrow)
 
 
 async def template_previews(db: AsyncSession, employee_id: int) -> list[Any]:

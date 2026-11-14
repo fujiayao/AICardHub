@@ -384,7 +384,7 @@ async def cleanup(db: AsyncSession, now: datetime | None = None) -> dict[str, in
     }
 
 
-async def render_pending(db: AsyncSession) -> int:
+async def render_pending(db: AsyncSession, batch_size: int = 100) -> int:
     from app.modules.workspace.render_service import render_card
 
     # Version-conditioned removal keeps a concurrent source edit pending.
@@ -395,7 +395,7 @@ async def render_pending(db: AsyncSession) -> int:
                 select(Setting)
                 .where(Setting.key.startswith("render_pending-"))
                 .order_by(Setting.id)
-                .limit(10)
+                .limit(max(1, min(batch_size, 500)))
             )
         ).all()
     ]

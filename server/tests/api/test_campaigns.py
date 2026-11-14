@@ -83,6 +83,16 @@ async def test_campaign_live_attribution_dedup_and_join_free_report(db, employee
         first = await me.create_lead(db, visitor, lead_input)
         duplicate = await me.create_lead(db, visitor, lead_input)
         assert first.id == duplicate.id
+        business = await me.create_lead(
+            db,
+            visitor,
+            s.LeadInput(
+                card_code=card.code, name="商务合成访客", phone="13800009998", consent=True
+            ),
+        )
+        assert business.id != first.id
+        await db.execute(delete(Lead).where(Lead.id == business.id))
+        await db.commit()
         row = await db.get(ChatSession, session.session_id)
         row.rounds = 1
         db.add(Message(session_id=row.id, role="user", content="合成问题"))

@@ -1,7 +1,11 @@
-// Generated from OpenAPI; DO NOT EDIT. SHA256 f409ed1fbf23f3a57b819c0de8198880bb9d75129943d8429abc1650a3084722
+// Generated from OpenAPI; DO NOT EDIT. SHA256 b1226f19e1dc1e8ab7acc27be0d6c8f74fae19f66aa4313a7cb91ff0502a15ee
 import { request } from '../client'
 import type * as Schemas from './schemas'
 export type * from './schemas'
+/** me_campaign_list */
+export function campaigns(_input: {  } = {}): Promise<Array<Schemas.PublicCampaign>> { return request<Array<Schemas.PublicCampaign>>('get', `/api/v1/me/campaigns`, undefined, 'staff', undefined) }
+/** campaign_get_public */
+export function campaign(input: { path: { "id": number } }): Promise<Schemas.PublicCampaign> { return request<Schemas.PublicCampaign>('get', `/api/v1/public/campaigns/${encodeURIComponent(String(input.path["id"]))}`, undefined, 'public', undefined) }
 /** auth_login */
 export function login(input: { body: Schemas.LoginInput }): Promise<Schemas.LoginResult> { return request<Schemas.LoginResult>('post', `/api/v1/auth/login`, input.body, 'public', undefined) }
 /** auth_change_password */
@@ -9,7 +13,7 @@ export function changePassword(input: { body: Schemas.PasswordInput }): Promise<
 /** me_profile */
 export function profile(_input: {  } = {}): Promise<Schemas.Staff> { return request<Schemas.Staff>('get', `/api/v1/me/profile`, undefined, 'staff', undefined) }
 /** card_get_public */
-export function publicCard(input: { path: { "code": string } }): Promise<Schemas.PublicCard> { return request<Schemas.PublicCard>('get', `/api/v1/public/cards/${encodeURIComponent(String(input.path["code"]))}`, undefined, 'public', undefined) }
+export function publicCard(input: { path: { "code": string }; query?: { "e"?: (number | null) } }): Promise<Schemas.PublicCard> { return request<Schemas.PublicCard>('get', `/api/v1/public/cards/${encodeURIComponent(String(input.path["code"]))}`, undefined, 'public', input.query) }
 /** visitor_init */
 export function initVisitor(input: { body: Schemas.Empty }): Promise<Schemas.VisitorInit> { return request<Schemas.VisitorInit>('post', `/api/v1/public/visitor/init`, input.body, 'visitor', undefined) }
 /** visit_create */
@@ -27,7 +31,7 @@ export function card(_input: {  } = {}): Promise<Schemas.CardData> { return requ
 /** me_card_update */
 export function saveCard(input: { body: Schemas.CardInput }): Promise<Schemas.CardData> { return request<Schemas.CardData>('put', `/api/v1/me/card`, input.body, 'staff', undefined) }
 /** me_card_share */
-export function cardShare(_input: {  } = {}): Promise<Schemas.ShareData> { return request<Schemas.ShareData>('get', `/api/v1/me/card/share`, undefined, 'staff', undefined) }
+export function cardShare(input: { query?: { "s"?: "nfc" | "qr" | "poster" | "link" | "sig"; "e"?: (number | null) } } = {}): Promise<Schemas.ShareData> { return request<Schemas.ShareData>('get', `/api/v1/me/card/share`, undefined, 'staff', input.query) }
 /** me_card_photo */
 export function uploadPhoto(input: { body: FormData }): Promise<Schemas.PhotoData> { return request<Schemas.PhotoData>('post', `/api/v1/me/card/photo`, input.body, 'staff', undefined) }
 /** me_card_wechat_qr */

@@ -54,6 +54,7 @@ async def create_lead(db: AsyncSession, visitor: Visitor, payload: s.LeadInput) 
         Lead,
         Lead.card_id == card.id,
         Lead.visitor_id == visitor.id,
+        Lead.campaign_id == campaign_id,
         Lead.created_at >= utcnow() - timedelta(hours=24),
     )
     owner_id = await shared.lead_owner(db, card)
