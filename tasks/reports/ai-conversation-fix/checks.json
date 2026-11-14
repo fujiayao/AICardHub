@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-15",
+  "unit": {
+    "passed": 266,
+    "seconds": 45.6
+  },
+  "targeted_mysql": {
+    "attribution": 80,
+    "public_context": 2
+  },
+  "contract": {
+    "operations": 102,
+    "unchanged": true,
+    "sha256": "3ebe39cd03645b7c69558307f9e60097c4c2f9ccc98a327105cb630cdc64d4e2"
+  },
+  "ruff": true,
+  "format": true,
+  "mypy": true,
+  "migrations": "a7c3e91d5b20 single head",
+  "frontend": {
+    "h5": {
+      "lint": true,
+      "typecheck": true,
+      "build": true,
+      "tests": 17
+    },
+    "admin": {
+      "lint": true,
+      "typecheck": true,
+      "build": true
+    }
+  },
+  "full_api": {
+    "status": "passed",
+    "passed": 124,
+    "seconds": 299.25,
+    "initial_attempt": "timed out with one failure; isolated render test hit shared test queue backlog",
+    "isolated_rerun": "passed after queued render jobs were consumed; no assertion changes"
+  },
+  "model_execution": {
+    "development": "Claude Code via Magpie gptpro/gpt-6.1-sol",
+    "product": "gpt-6.1-terra",
+    "real_questions_passed": 4
+  },
+  "deployment": false,
+  "pushed": false,
+  "backend_total_passed": 390
+}

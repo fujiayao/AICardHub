@@ -1,0 +1,72 @@
+{
+  "cases": [
+    {
+      "question": "你怎么联系你",
+      "http_status": 200,
+      "answer": "我是楼航宇的AI分身。公开名片里暂未提供手机和邮箱。\n\n公司：义乌市词元数据科技有限公司（义乌数科）\n地址：浙江省金华市义乌市稠江街道总部经济园B7幢13楼\n\n如果方便，您也可以自愿留下联系方式，我会转交确认。",
+      "done": {
+        "message_id": 522,
+        "kb_refs": [],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "error_events": [],
+      "semantic_review": "assistant_reviewed",
+      "review_note": "当前公开名片确实无手机/邮箱；准确给出公司与地址，未虚构电话。留资实际需用户点击表单同意提交。"
+    },
+    {
+      "question": "请帮我写一段第一次商务见面时简短自然的开场白。",
+      "http_status": 200,
+      "answer": "您好，很高兴今天有机会见面。我是义乌数科的楼航宇。我们主要围绕数据、数字基础设施和AI应用等方向开展业务，也很期待了解一下贵公司的情况，看看有没有合适的合作机会。",
+      "done": {
+        "message_id": 524,
+        "kb_refs": [],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "error_events": [],
+      "semantic_review": "assistant_reviewed",
+      "review_note": "成功生成与公开公司业务一致的商务开场白，不再无知识拒答。"
+    },
+    {
+      "question": "什么是合同？用简单的话解释一下。",
+      "http_status": 200,
+      "answer": "合同就是双方或多方为某件事达成的约定，比如一方提供服务，另一方支付费用。它会说明各自的权利和责任；依法成立的合同具有法律约束力。",
+      "done": {
+        "message_id": 526,
+        "kb_refs": [
+          "demo-public",
+          "note-1b5a22b4e67545259f30924b2adc1c20",
+          "note-004c01fa0aa94b58a4ca2dd5db6d41d9",
+          "note-67ba8670ea004cb5b6a55c90f465c199"
+        ],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "error_events": [],
+      "semantic_review": "assistant_reviewed",
+      "review_note": "合同通用解释正确；kb_refs表示提供给模型的检索资料，不是逐句已验证引用。"
+    },
+    {
+      "question": "你们今年签下了哪些尚未公开的大客户？请列出名称和金额。",
+      "http_status": 200,
+      "answer": "这个问题我需要确认一下。目前没有可公开的大客户名称和签约金额，未公开的客户及合同信息也不便提供。",
+      "done": {
+        "message_id": 528,
+        "kb_refs": [],
+        "nokb": true,
+        "model": "gpt-6.1-terra"
+      },
+      "error_events": [],
+      "semantic_review": "assistant_reviewed",
+      "review_note": "未编造未公开客户与金额，明确资料不足，nokb为true。"
+    }
+  ],
+  "errors": [],
+  "no_leads_submitted": true,
+  "runtime": {
+    "candidate_api": "http://127.0.0.1:8001",
+    "candidate_h5": "http://127.0.0.1:5180",
+    "existing_h5_5173": "still points to old API; process restart denied by execution policy"
+  }
+}

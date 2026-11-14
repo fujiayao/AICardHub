@@ -1,0 +1,5 @@
+{
+  "question": "你怎么联系你",
+  "status": 200,
+  "body": "event: delta\ndata: {\"text\": \"这个问题我需要确认一下，目前没有足够的批准公开资料。请联系名片本人确认，我也可以提示您留下联系方式。\"}\n\nevent: done\ndata: {\"message_id\": 518, \"kb_refs\": [], \"nokb\": true, \"model\": \"policy\"}\n\n"
+}
