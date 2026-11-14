@@ -53,9 +53,12 @@ async function submit() {
     (props.staff.id === props.selfId || !ready.value)
   )
     return;
+  if (props.mode === "reset" && !props.staff.phone) return;
   const message =
     props.mode === "reset"
-      ? `重置 ${props.staff.name} 的密码？对方下次登录需改密。`
+      ? props.staff.login_enabled
+        ? `重置 ${props.staff.name} 的密码？对方下次登录需改密。`
+        : `为 ${props.staff.name} 设置登录密码并开通登录？对方首次登录需改密。`
       : `将 ${props.staff.name} 的线索及责任转交给选中员工？操作会记录审计。`;
   if (!(await confirmAction(message))) return;
   await run(async () => {
@@ -100,7 +103,13 @@ onMounted(load);
       native-type="submit"
       :loading="busy"
       :disabled="mode === 'transfer' && !ready"
-      >确认{{ mode === "reset" ? "重置" : "转交" }}</el-button
+      >确认{{
+        mode === "transfer"
+          ? "转交"
+          : staff.login_enabled
+            ? "重置"
+            : "设置并开通登录"
+      }}</el-button
     ></el-form
   >
 </template>

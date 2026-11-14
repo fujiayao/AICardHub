@@ -18,6 +18,18 @@ export const operations = {
   transfer: ["post", "/api/v1/admin/employees/{employee_id}/transfer"],
   company: ["get", "/api/v1/admin/company"],
   saveCompany: ["put", "/api/v1/admin/company"],
+  // Contract v2 (approved): company_option_list/company_create/company_item_get/company_item_update.
+  companies: ["get", "/api/v1/admin/companies"],
+  createCompany: ["post", "/api/v1/admin/companies"],
+  companyItem: ["get", "/api/v1/admin/companies/{id}"],
+  updateCompanyItem: ["put", "/api/v1/admin/companies/{id}"],
+  // Contract v2: campaign_list/create/get/update/delete/report.
+  campaigns: ["get", "/api/v1/admin/campaigns"],
+  createCampaign: ["post", "/api/v1/admin/campaigns"],
+  campaign: ["get", "/api/v1/admin/campaigns/{id}"],
+  updateCampaign: ["put", "/api/v1/admin/campaigns/{id}"],
+  deleteCampaign: ["delete", "/api/v1/admin/campaigns/{id}"],
+  campaignReport: ["get", "/api/v1/admin/campaigns/{id}/report"],
   products: ["get", "/api/v1/admin/product-cards"],
   createProduct: ["post", "/api/v1/admin/product-cards"],
   updateProduct: ["put", "/api/v1/admin/product-cards/{product_id}"],

@@ -10,12 +10,20 @@ import type {
   Note,
   IssueStatus,
   Staff,
+  CompanyInput,
+  CampaignInput,
+  CampaignStatus,
 } from "../schema";
 export interface PageQuery {
   page?: number;
   page_size?: number;
   q?: string;
   status?: string;
+}
+export interface CampaignQuery {
+  page: number;
+  page_size: number;
+  status?: CampaignStatus;
 }
 export const api = {
   importEmployees: (file: File) => {
@@ -45,6 +53,20 @@ export const api = {
     ops.transfer({ path: { id }, body: { to_employee_id } }),
   company: () => ops.company(),
   saveCompany: (body: Company) => ops.saveCompany({ body }),
+  companies: () => ops.companies(),
+  companyItem: (id: number) => ops.companyItem({ path: { id } }),
+  saveCompanyItem: (id: number | null, body: CompanyInput) =>
+    id
+      ? ops.updateCompanyItem({ path: { id }, body })
+      : ops.createCompany({ body }),
+  campaigns: (query: CampaignQuery) => ops.campaigns({ query }),
+  campaign: (id: number) => ops.campaign({ path: { id } }),
+  saveCampaign: (id: number | null, body: CampaignInput) =>
+    id
+      ? ops.updateCampaign({ path: { id }, body })
+      : ops.createCampaign({ body }),
+  deleteCampaign: (id: number) => ops.deleteCampaign({ path: { id } }),
+  campaignReport: (id: number) => ops.campaignReport({ path: { id } }),
   products: () => ops.products(),
   saveProduct: (id: number | null, body: ProductInput) =>
     id
@@ -88,6 +110,8 @@ export const api = {
   audits: (query: PageQuery) => ops.audits({ query }),
   leads: (query: PageQuery) => ops.leads({ query }),
 };
-export const maskPhone = (phone: string) =>
-  phone.replace(/^(\d{3})\d{4}(\d+)$/, "$1****$2");
+export const maskPhone = (phone: string | null | undefined) =>
+  phone ? phone.replace(/^(\d{3})\d{4}(\d+)$/, "$1****$2") : "未提供";
 export const staffEnabled = (staff: Staff) => staff.status === "active";
+/** Server-authoritative login flag; never inferred from phone presence. */
+export const loginEnabled = (staff: Staff) => staff.login_enabled === true;

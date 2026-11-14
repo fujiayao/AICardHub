@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PureTable } from "@pureadmin/table";
-import { maskPhone, staffEnabled } from "@/api/adapters";
+import { maskPhone, staffEnabled, loginEnabled } from "@/api/adapters";
 import type { Staff } from "@/api/schema";
 defineProps<{ rows: Staff[]; selfId?: number; busy: boolean }>();
 defineEmits<{
@@ -10,20 +10,18 @@ defineEmits<{
   transfer: [staff: Staff];
   card: [staff: Staff];
 }>();
-const noLoginReason = "名片档案未开通登录，无手机号，不提供重置密码";
-/** 名片档案：无手机号、不开通登录（等待 nullable phone 契约，先按空值防御） */
-function isProfile(row: Staff): boolean {
-  return !row.phone;
-}
+const noPhoneReason = "未提供手机号，无法设置登录密码；请先编辑补填手机号";
 const columns = [
   { label: "姓名", prop: "name", minWidth: 100 },
   { label: "类型", slot: "kind", width: 100 },
-  { label: "手机", slot: "phone", minWidth: 130 },
+  { label: "任职公司", slot: "company", minWidth: 140 },
+  { label: "手机", slot: "phone", minWidth: 120 },
+  { label: "登录状态", slot: "login", width: 110 },
   { label: "部门", prop: "dept" },
   { label: "职务", prop: "title" },
-  { label: "状态", slot: "status", width: 90 },
-  { label: "角色", slot: "role", width: 100 },
-  { label: "操作", slot: "actions", minWidth: 360 },
+  { label: "状态", slot: "status", width: 80 },
+  { label: "角色", slot: "role", width: 80 },
+  { label: "操作", slot: "actions", minWidth: 380 },
 ];
 </script>
 <template>
@@ -36,11 +34,18 @@ const columns = [
     empty-text="暂无员工，请新增或调整搜索条件"
   >
     <template #kind="{ row }">{{
-      isProfile(row) ? "名片档案" : "员工账号"
+      loginEnabled(row) ? "员工账号" : "名片档案"
     }}</template>
+    <template #company="{ row }">{{ row.company_name || "—" }}</template>
     <template #phone="{ row }"
-      ><el-tag v-if="isProfile(row)" type="info">未开通登录</el-tag
-      ><span v-else>{{ maskPhone(row.phone) }}</span></template
+      ><span :class="{ muted: !row.phone }">{{
+        maskPhone(row.phone)
+      }}</span></template
+    >
+    <template #login="{ row }"
+      ><el-tag :type="loginEnabled(row) ? 'success' : 'info'">{{
+        loginEnabled(row) ? "已开通登录" : "未开通登录"
+      }}</el-tag></template
     >
     <template #status="{ row }"
       ><el-tag :type="staffEnabled(row) ? 'success' : 'info'">{{
@@ -63,17 +68,14 @@ const columns = [
         :disabled="!row.card_code || busy"
         @click="$emit('card', row)"
         >名片 / 助手</el-button
-      ><el-tooltip
-        v-if="isProfile(row)"
-        :content="noLoginReason"
-        placement="top"
+      ><el-tooltip v-if="!row.phone" :content="noPhoneReason" placement="top"
         ><span
           ><el-button
             link
             type="primary"
             disabled
-            :aria-label="`重置密码：${noLoginReason}`"
-            >重置密码</el-button
+            :aria-label="`设置登录密码：${noPhoneReason}`"
+            >设置登录密码</el-button
           ></span
         ></el-tooltip
       ><el-button
@@ -82,7 +84,7 @@ const columns = [
         type="primary"
         :disabled="busy"
         @click="$emit('reset', row)"
-        >重置密码</el-button
+        >{{ loginEnabled(row) ? "重置密码" : "设置登录密码" }}</el-button
       ><el-button
         link
         type="warning"
