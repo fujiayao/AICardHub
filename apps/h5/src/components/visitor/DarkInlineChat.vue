@@ -166,7 +166,7 @@ function onLead(summary: { name: string, phone: string, company_name: string }) 
 
 <style scoped>
 .dk-ai-section {
-  display: flex; flex-direction: column; padding: 0 0 8px;
+  display: flex; flex-direction: column; flex: 1 0 auto; padding: 0 0 8px;
   border-top: 1px solid var(--dk-line);
   background: linear-gradient(180deg, var(--dk-ai-bg-0), var(--dk-ai-bg-1));
 }

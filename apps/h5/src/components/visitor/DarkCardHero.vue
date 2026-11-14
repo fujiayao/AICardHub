@@ -46,7 +46,7 @@ const expo = computed(() => {
       <div class="dk-person-text">
         <h1 class="dk-name">{{ card.name || '数科名片' }}</h1>
         <p v-if="role" class="dk-role">{{ role }}</p>
-        <p v-if="card.business_scope" class="dk-org">{{ card.business_scope }}</p>
+        <p v-if="card.company.name" class="dk-org">{{ card.company.name }}</p>
       </div>
     </div>
 

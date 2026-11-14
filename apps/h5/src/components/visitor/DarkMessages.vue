@@ -30,7 +30,7 @@ function refs(message: ChatMessage): string[] { return publicRefLabels(message.k
 </template>
 
 <style scoped>
-.dk-msgs { padding: 16px 22px 4px; display: flex; flex-direction: column; gap: 14px; }
+.dk-msgs { flex: 1 0 auto; padding: 16px 22px 4px; display: flex; flex-direction: column; gap: 14px; }
 .dk-msg { display: flex; gap: 8px; max-width: 100%; }
 .dk-who {
   width: 24px; height: 24px; border-radius: 7px; flex: none; margin-top: 2px;
