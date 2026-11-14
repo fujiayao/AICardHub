@@ -469,6 +469,7 @@ async def test_Responses官方类型输入分离system并逐片输出与关闭(
             ],
             "stream": True,
             "store": False,
+            "max_output_tokens": 1024,
         }
     ]
     assert sdk.stream_closed
@@ -492,6 +493,25 @@ async def test_Responses错误事件抛出且部分文本不重放(
     assert received == (["合成正文"] if partial else [])
     assert "synthetic-private-error" not in str(exc.value)
     assert sdk.stream_closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("terminal", ["completed", "incomplete"])
+async def test_Responses显示满200字仍校验真实终止而非假完成(
+    monkeypatch: pytest.MonkeyPatch, terminal: str
+) -> None:
+    sdk = FakeResponsesSDK([response_event("delta", "合" * 250), response_event(terminal)])
+    client = responses_client(monkeypatch, sdk)
+    backup = FakeLLMClient()
+    result = await collect(ChatEngine(client, backup))
+    assert len(text_of(result)) == 200
+    assert sdk.requests[0]["max_output_tokens"] == 1024
+    assert sdk.stream_closed and not backup.calls
+    if terminal == "completed":
+        assert result[-1]["event"] == "done"
+    else:
+        assert result[-1]["data"]["code"] == "LLM_STREAM_INTERRUPTED"
+        assert not any(event["event"] == "done" for event in result)
 
 
 @pytest.mark.asyncio

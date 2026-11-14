@@ -171,6 +171,7 @@ class ResponsesLLMClient(OpenAILLMClient):
             input=inputs,
             stream=True,
             store=False,
+            max_output_tokens=1024,
         )
         has_text = False
         async with response:

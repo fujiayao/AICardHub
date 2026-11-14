@@ -92,6 +92,11 @@ engine 从不创建线索；仅在用户明确同意并提交后由后端创建�
 只转发 `response.output_text.delta`，不重放 output_text.done 或 completed 中的全文。
 `response.failed`、`response.incomplete`、`error` 均抛安全异常；必须有非空 delta 和
 status=completed 的 `response.completed` 才正常完成；空完成、缺终止均报错。
+Responses 每次请求固定 `max_output_tokens=1024`，作为输出资源上限（包括模型推理
+与可见输出所用 Token）；不新增 Settings 字段、不修改 prompt。200字是展示限制，
+达到后仍消费上游至真实终止，最多受该1024 Token及超时约束；暂不提前关闭并伪造完成。
+若上限导致 `response.incomplete`，继续按失败处理：已有文本时发中断错误且不切备用，
+首内容前失败才可按链路尝试下一模型。三级每级各有该上限，非整条链路共用预算。
 首非空文本期限最多15秒（涵盖 create/非文本事件），总期限为构造参数 timeout，
 沿用既有适配器的 managed_stream / aclose 清理。没有完成事件的部分输出保留并报错，
 不能触发备用。官方依据为 [SDK README](https://github.com/openai/openai-python#streaming-responses)
