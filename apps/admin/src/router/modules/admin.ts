@@ -72,13 +72,23 @@ export const adminRoutes: RouteRecordRaw[] = [
     path: "/activities",
     name: "activities",
     component: () => import("@/views/Activities.vue"),
-    meta: { title: "活动管理", icon: "calendar", group: "获客运营" },
+    meta: {
+      title: "活动管理",
+      icon: "calendar",
+      group: "获客运营",
+      pending: true,
+    },
   },
   {
     path: "/reports",
     name: "reports",
     component: () => import("@/views/Reports.vue"),
-    meta: { title: "活动报表", icon: "chart", group: "获客运营" },
+    meta: {
+      title: "活动报表",
+      icon: "chart",
+      group: "获客运营",
+      pending: true,
+    },
   },
   {
     path: "/issues",

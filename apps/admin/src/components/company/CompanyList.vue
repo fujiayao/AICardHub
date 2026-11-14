@@ -7,51 +7,61 @@ import FieldForm from "@/components/FieldForm.vue";
 import LoadState from "@/components/LoadState.vue";
 import { useTask } from "@/composables/useTask";
 import { companyFields, emptyCompany } from "./companyFields";
-const emit = defineEmits<{ changed: [] }>();
+const emit = defineEmits<{ primaryChanged: [] }>();
 const list = useTask(),
   edit = useTask();
 const rows = shallowRef<CompanyOption[]>([]);
 const open = shallowRef(false),
   editingId = shallowRef<number | null>(null),
-  editingPrimary = shallowRef(false);
+  editingPrimary = shallowRef(false),
+  /** Form is only editable after the item loaded from the server (or for a new company). */
+  loaded = shallowRef(false);
 const model = ref<CompanyInput>(emptyCompany());
 async function load() {
   await list.run(async () => {
     rows.value = await api.companies();
   });
 }
+async function loadItem() {
+  const id = editingId.value;
+  if (!id) return;
+  loaded.value = false;
+  const item = await edit.run(() => api.companyItem(id));
+  if (!item || editingId.value !== id) return;
+  model.value = {
+    name: item.name,
+    short_name: item.short_name,
+    intro: item.intro,
+    phone: item.phone,
+    address: item.address,
+    website: item.website,
+    logo_url: item.logo_url,
+    brand_color: item.brand_color,
+  };
+  loaded.value = true;
+}
 async function openEditor(row?: CompanyOption) {
   editingId.value = row?.id ?? null;
   editingPrimary.value = row?.is_primary ?? false;
   model.value = emptyCompany();
+  loaded.value = !row;
   open.value = true;
-  if (!row) return;
-  await edit.run(async () => {
-    const item = await api.companyItem(row.id);
-    model.value = {
-      name: item.name,
-      short_name: item.short_name,
-      intro: item.intro,
-      phone: item.phone,
-      address: item.address,
-      website: item.website,
-      logo_url: item.logo_url,
-      brand_color: item.brand_color,
-    };
-  });
+  if (row) await loadItem();
 }
 function update(key: string, value: unknown) {
   model.value = { ...model.value, [key]: value };
 }
 async function save() {
-  await edit.run(async () => {
-    await api.saveCompanyItem(editingId.value, model.value);
-    open.value = false;
-    ElMessage.success(editingId.value ? "公司信息已保存" : "公司已创建");
-    await load();
-    emit("changed");
-  });
+  if (!loaded.value) return;
+  const id = editingId.value;
+  const saved = await edit.run(() => api.saveCompanyItem(id, model.value));
+  if (!saved) return;
+  open.value = false;
+  ElMessage.success(id ? "公司信息已保存" : "公司已创建");
+  await load();
+  if (saved.is_primary) emit("primaryChanged");
 }
+defineExpose({ load });
 onMounted(load);
 </script>
 <template>
@@ -113,9 +123,20 @@ onMounted(load);
         :closable="false"
         title="这是主公司，与上方“主公司信息”为同一数据。"
       />
-      <LoadState :busy="edit.busy.value" :error="edit.error.value" />
+      <LoadState
+        v-if="!loaded"
+        :busy="edit.busy.value"
+        :error="edit.error.value"
+        @retry="loadItem"
+      />
+      <el-alert
+        v-else-if="edit.error.value"
+        type="error"
+        :closable="false"
+        :title="`保存失败：${edit.error.value}`"
+      />
       <FieldForm
-        v-if="open"
+        v-if="open && loaded"
         :key="editingId ?? 'new'"
         :model="{ ...model }"
         :fields="companyFields"

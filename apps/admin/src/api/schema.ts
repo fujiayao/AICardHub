@@ -30,14 +30,10 @@ export type TemplateInput = Schemas["TemplateInput"];
 export type AssistantInput = Schemas["AssistantInput"];
 export type IssueStatus = Schemas["IssuePatch"]["status"];
 
-// Contract v2 aliases: resolve once the backend export contains these schemas.
+// Contract v2 organization aliases (backend 66ae4a1 export).
 export type CompanyOption = Schemas["CompanyOption"];
 export type CompanyItem = Schemas["CompanyItem"];
 export type CompanyInput = Company;
-export type Campaign = Schemas["CampaignData"];
-export type CampaignInput = Schemas["CampaignInput"];
-export type CampaignStatus = CampaignInput["status"];
-export type CampaignReport = Schemas["CampaignReport"];
 
 export type EmployeeImportResult = Schemas["EmployeeImportResult"];
 export type KnowledgeUploadRow = Schemas["KnowledgeUploadRow"];

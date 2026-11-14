@@ -1,0 +1,1094 @@
+diff --git a/apps/admin/src/components/campaigns/CampaignDetail.vue b/apps/admin/src/components/campaigns/CampaignDetail.vue
+new file mode 100644
+index 0000000..5c68176
+--- /dev/null
++++ b/apps/admin/src/components/campaigns/CampaignDetail.vue
+@@ -0,0 +1,83 @@
++<script setup lang="ts">
++import type { Campaign } from "@/api/schema";
++import { formatTime, statusLabels, statusTagType } from "./campaignMeta";
++
++defineProps<{ campaign: Campaign }>();
++defineEmits<{ edit: []; report: [] }>();
++</script>
++<template>
++  <div class="detail" aria-label="活动详情">
++    <div class="tags">
++      <el-tag :type="statusTagType[campaign.status]">{{
++        statusLabels[campaign.status]
++      }}</el-tag>
++      <el-tag v-if="campaign.is_live" type="success" effect="dark"
++        >当前生效</el-tag
++      >
++      <el-tag v-else type="info" effect="plain">未在有效期</el-tag>
++    </div>
++    <el-descriptions :column="1" border>
++      <el-descriptions-item label="活动名称">{{
++        campaign.name
++      }}</el-descriptions-item>
++      <el-descriptions-item label="开始时间">{{
++        formatTime(campaign.start_at)
++      }}</el-descriptions-item>
++      <el-descriptions-item label="结束时间">{{
++        formatTime(campaign.end_at)
++      }}</el-descriptions-item>
++      <el-descriptions-item label="展位">{{
++        campaign.booth || "—"
++      }}</el-descriptions-item>
++      <el-descriptions-item label="地点">{{
++        campaign.location || "—"
++      }}</el-descriptions-item>
++      <el-descriptions-item label="活动开场白">
++        <span class="pre">{{
++          campaign.opening_override || "未设置（沿用名片 AI 模板）"
++        }}</span>
++      </el-descriptions-item>
++      <el-descriptions-item label="活动引导问题">
++        <ol v-if="campaign.guide_override.length" class="guides">
++          <li v-for="(q, i) in campaign.guide_override" :key="i">{{ q }}</li>
++        </ol>
++        <span v-else>未设置（沿用名片 AI 模板）</span>
++      </el-descriptions-item>
++      <el-descriptions-item label="创建时间">{{
++        formatTime(campaign.created_at)
++      }}</el-descriptions-item>
++      <el-descriptions-item label="更新时间">{{
++        formatTime(campaign.updated_at)
++      }}</el-descriptions-item>
++    </el-descriptions>
++    <div class="actions">
++      <el-button @click="$emit('report')">查看报表</el-button>
++      <el-button type="primary" @click="$emit('edit')">编辑</el-button>
++    </div>
++  </div>
++</template>
++<style scoped>
++.detail {
++  display: flex;
++  flex-direction: column;
++  gap: var(--ac-space-3);
++}
++.tags {
++  display: flex;
++  gap: var(--ac-space-1);
++  flex-wrap: wrap;
++}
++.pre {
++  white-space: pre-wrap;
++  word-break: break-word;
++}
++.guides {
++  margin: 0;
++  padding-left: 1.2em;
++}
++.actions {
++  display: flex;
++  justify-content: flex-end;
++  gap: var(--ac-space-2);
++}
++</style>
+diff --git a/apps/admin/src/components/campaigns/CampaignForm.vue b/apps/admin/src/components/campaigns/CampaignForm.vue
+new file mode 100644
+index 0000000..b151710
+--- /dev/null
++++ b/apps/admin/src/components/campaigns/CampaignForm.vue
+@@ -0,0 +1,230 @@
++<script setup lang="ts">
++import { reactive, useTemplateRef } from "vue";
++import type { FormInstance, FormRules } from "element-plus";
++import type { CampaignInput, CampaignStatus } from "@/api/schema";
++import { statusLabels } from "./campaignMeta";
++
++const props = defineProps<{
++  initial: CampaignInput;
++  busy: boolean;
++  /** Status persisted on the server; ended campaigns cannot be reactivated. */
++  savedStatus: CampaignStatus | null;
++}>();
++const emit = defineEmits<{ save: [value: CampaignInput]; cancel: [] }>();
++
++const MAX_GUIDES = 6;
++function toDate(value: string): Date | null {
++  if (!value) return null;
++  const d = new Date(value);
++  return Number.isNaN(d.getTime()) ? null : d;
++}
++const model = reactive({
++  name: props.initial.name,
++  status: props.initial.status,
++  start: toDate(props.initial.start_at),
++  end: toDate(props.initial.end_at),
++  booth: props.initial.booth,
++  location: props.initial.location,
++  opening_override: props.initial.opening_override,
++  guides: [...props.initial.guide_override],
++});
++const locked = props.savedStatus === "ended";
++const statusOptions = (Object.keys(statusLabels) as CampaignStatus[]).map(
++  (value) => ({ value, label: statusLabels[value] }),
++);
++const form = useTemplateRef<FormInstance>("form");
++type Cb = (e?: Error) => void;
++const rules: FormRules = {
++  name: [
++    { required: true, whitespace: true, message: "请输入活动名称" },
++    { max: 120, message: "活动名称最多 120 字" },
++  ],
++  status: [{ required: true, message: "请选择状态" }],
++  start: [{ required: true, message: "请选择开始时间" }],
++  end: [
++    { required: true, message: "请选择结束时间" },
++    {
++      validator: (_r: unknown, v: Date | null, cb: Cb) =>
++        cb(
++          v && model.start && v.getTime() <= model.start.getTime()
++            ? new Error("结束时间必须晚于开始时间")
++            : undefined,
++        ),
++    },
++  ],
++  booth: [{ max: 80, message: "展位最多 80 字" }],
++  location: [{ max: 255, message: "地点最多 255 字" }],
++  opening_override: [{ max: 2000, message: "开场白最多 2000 字" }],
++  guides: [
++    {
++      validator: (_r: unknown, v: string[], cb: Cb) => {
++        const items = v.map((s) => s.trim()).filter(Boolean);
++        if (items.length > MAX_GUIDES)
++          return cb(new Error("最多 6 条引导问题"));
++        if (items.some((s) => s.length > 255))
++          return cb(new Error("每条引导问题最多 255 字"));
++        cb();
++      },
++    },
++  ],
++};
++function addGuide() {
++  if (model.guides.length < MAX_GUIDES) model.guides.push("");
++}
++function removeGuide(index: number) {
++  model.guides.splice(index, 1);
++}
++async function save() {
++  if (!(await form.value?.validate().catch(() => false))) return;
++  if (!model.start || !model.end) return;
++  emit("save", {
++    name: model.name.trim(),
++    status: locked ? "ended" : model.status,
++    start_at: model.start.toISOString(),
++    end_at: model.end.toISOString(),
++    booth: model.booth.trim(),
++    location: model.location.trim(),
++    opening_override: model.opening_override.trim(),
++    guide_override: model.guides.map((s) => s.trim()).filter(Boolean),
++  });
++}
++</script>
++<template>
++  <el-form
++    ref="form"
++    :model="model"
++    :rules="rules"
++    label-position="top"
++    aria-label="活动表单"
++    @submit.prevent="save"
++  >
++    <el-form-item label="活动名称" prop="name">
++      <el-input v-model="model.name" maxlength="120" show-word-limit />
++    </el-form-item>
++    <el-form-item label="状态" prop="status">
++      <el-radio-group
++        v-model="model.status"
++        :disabled="locked"
++        aria-label="活动状态"
++      >
++        <el-radio-button
++          v-for="opt in statusOptions"
++          :key="opt.value"
++          :value="opt.value"
++          :disabled="locked && opt.value !== 'ended'"
++          >{{ opt.label }}</el-radio-button
++        >
++      </el-radio-group>
++      <p v-if="locked" class="hint">
++        已结束的活动不可重新启用，以保留历史归因。
++      </p>
++      <p v-else class="hint">已启用且处于有效期内的活动才会对访客生效。</p>
++    </el-form-item>
++    <div class="time-grid">
++      <el-form-item label="开始时间" prop="start">
++        <el-date-picker
++          v-model="model.start"
++          type="datetime"
++          placeholder="选择开始时间"
++          aria-label="开始时间"
++          style="width: 100%"
++        />
++      </el-form-item>
++      <el-form-item label="结束时间" prop="end">
++        <el-date-picker
++          v-model="model.end"
++          type="datetime"
++          placeholder="选择结束时间"
++          aria-label="结束时间"
++          style="width: 100%"
++        />
++      </el-form-item>
++    </div>
++    <div class="time-grid">
++      <el-form-item label="展位" prop="booth">
++        <el-input
++          v-model="model.booth"
++          maxlength="80"
++          placeholder="如 A1-203"
++        />
++      </el-form-item>
++      <el-form-item label="地点" prop="location">
++        <el-input v-model="model.location" maxlength="255" />
++      </el-form-item>
++    </div>
++    <el-form-item
++      label="活动开场白（可选，覆盖模板开场白）"
++      prop="opening_override"
++    >
++      <el-input
++        v-model="model.opening_override"
++        type="textarea"
++        :rows="3"
++        maxlength="2000"
++        show-word-limit
++      />
++    </el-form-item>
++    <el-form-item
++      :label="`活动引导问题（可选，最多 ${MAX_GUIDES} 条）`"
++      prop="guides"
++    >
++      <div class="guides">
++        <div v-for="(_, i) in model.guides" :key="i" class="guide-row">
++          <el-input
++            v-model="model.guides[i]"
++            maxlength="255"
++            :aria-label="`引导问题 ${i + 1}`"
++            :placeholder="`引导问题 ${i + 1}`"
++          />
++          <el-button
++            link
++            type="danger"
++            :aria-label="`删除引导问题 ${i + 1}`"
++            @click="removeGuide(i)"
++            >删除</el-button
++          >
++        </div>
++        <el-button
++          :disabled="model.guides.length >= MAX_GUIDES"
++          @click="addGuide"
++          >添加引导问题</el-button
++        >
++      </div>
++    </el-form-item>
++    <div class="actions">
++      <el-button :disabled="busy" @click="emit('cancel')">取消</el-button>
++      <el-button native-type="submit" type="primary" :loading="busy"
++        >保存活动</el-button
++      >
++    </div>
++  </el-form>
++</template>
++<style scoped>
++.time-grid {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
++  gap: 0 var(--ac-space-4);
++}
++.hint {
++  margin: var(--ac-space-1) 0 0;
++  font-size: 12px;
++  color: var(--ac-text-subtle);
++  width: 100%;
++}
++.guides {
++  display: flex;
++  flex-direction: column;
++  gap: var(--ac-space-2);
++  width: 100%;
++}
++.guide-row {
++  display: flex;
++  gap: var(--ac-space-2);
++  align-items: center;
++}
++.actions {
++  display: flex;
++  justify-content: flex-end;
++  gap: var(--ac-space-2);
++}
++</style>
+diff --git a/apps/admin/src/components/campaigns/CampaignPanel.vue b/apps/admin/src/components/campaigns/CampaignPanel.vue
+new file mode 100644
+index 0000000..5b35acb
+--- /dev/null
++++ b/apps/admin/src/components/campaigns/CampaignPanel.vue
+@@ -0,0 +1,231 @@
++<script setup lang="ts">
++import { computed, onMounted, ref, shallowRef } from "vue";
++import { useRouter } from "vue-router";
++import { ElMessage, ElMessageBox } from "element-plus";
++import { api } from "@/api/adapters";
++import { ApiError } from "@/api/client";
++import type { Campaign, CampaignInput, CampaignStatus } from "@/api/schema";
++import { confirmAction } from "@/composables/useTask";
++import { usePage } from "@/composables/usePage";
++import LoadState from "@/components/LoadState.vue";
++import PageHeader from "@/components/shared/PageHeader.vue";
++import CampaignTable from "./CampaignTable.vue";
++import CampaignForm from "./CampaignForm.vue";
++import CampaignDetail from "./CampaignDetail.vue";
++import { statusFilters } from "./campaignMeta";
++
++const PAGE_SIZE = 20;
++const router = useRouter();
++const status = ref<CampaignStatus | "">("");
++const { busy, error, data, page, load } = usePage<Campaign>((p) =>
++  api.campaigns({
++    page: p,
++    page_size: PAGE_SIZE,
++    ...(status.value ? { status: status.value } : {}),
++  }),
++);
++
++type Mode = "create" | "edit" | "view";
++const mode = ref<Mode | null>(null);
++const current = ref<Campaign | null>(null);
++const draft = ref<CampaignInput | null>(null);
++const saving = shallowRef(false);
++const formKey = shallowRef(0);
++const dialogTitle = computed(() =>
++  mode.value === "create"
++    ? "新建活动"
++    : mode.value === "edit"
++      ? "编辑活动"
++      : "活动详情",
++);
++
++function blank(): CampaignInput {
++  return {
++    name: "",
++    status: "draft",
++    start_at: "",
++    end_at: "",
++    booth: "",
++    location: "",
++    opening_override: "",
++    guide_override: [],
++  };
++}
++function toInput(row: Campaign): CampaignInput {
++  return {
++    name: row.name,
++    status: row.status,
++    start_at: row.start_at,
++    end_at: row.end_at,
++    booth: row.booth,
++    location: row.location,
++    opening_override: row.opening_override,
++    guide_override: [...row.guide_override],
++  };
++}
++function openCreate() {
++  current.value = null;
++  draft.value = blank();
++  mode.value = "create";
++  formKey.value++;
++}
++function openEdit(row: Campaign) {
++  current.value = row;
++  draft.value = toInput(row);
++  mode.value = "edit";
++  formKey.value++;
++}
++function openView(row: Campaign) {
++  current.value = row;
++  draft.value = null;
++  mode.value = "view";
++}
++function closeDialog() {
++  if (saving.value) return;
++  mode.value = null;
++  draft.value = null;
++  current.value = null;
++}
++function onFilter() {
++  void load(1);
++}
++function openReport(row: Campaign) {
++  void router.push({ name: "reports", query: { campaign_id: String(row.id) } });
++}
++
++async function save(body: CampaignInput) {
++  if (saving.value) return;
++  saving.value = true;
++  try {
++    const id = mode.value === "edit" && current.value ? current.value.id : null;
++    await api.saveCampaign(id, body);
++    ElMessage.success(id ? "活动已更新" : "活动已创建");
++    saving.value = false;
++    closeDialog();
++    await load(id ? page.value : 1);
++  } catch {
++    // request() already surfaced the server message via ElMessage
++  } finally {
++    saving.value = false;
++  }
++}
++
++async function remove(row: Campaign) {
++  if (!(await confirmAction(`删除活动“${row.name}”？删除后不可恢复。`))) return;
++  saving.value = true;
++  try {
++    await api.deleteCampaign(row.id);
++    ElMessage.success("活动已删除");
++    saving.value = false;
++    const lastOnPage = data.value.items.length === 1 && page.value > 1;
++    await load(lastOnPage ? page.value - 1 : page.value);
++  } catch (e) {
++    if (e instanceof ApiError && e.status === 409) {
++      await ElMessageBox.alert(
++        e.message || "仅未被使用的草稿活动可删除",
++        "无法删除活动",
++        { type: "warning", confirmButtonText: "知道了" },
++      ).catch(() => undefined);
++    }
++  } finally {
++    saving.value = false;
++  }
++}
++
++onMounted(() => void load(1));
++</script>
++<template>
++  <section class="page">
++    <PageHeader
++      title="活动管理"
++      desc="展会、沙龙等线下活动的获客配置。已启用且处于有效期内的活动才会对访客生效。"
++    >
++      <el-button type="primary" @click="openCreate">新建活动</el-button>
++    </PageHeader>
++    <div class="panel">
++      <div class="toolbar">
++        <el-radio-group
++          v-model="status"
++          aria-label="按状态筛选活动"
++          :disabled="busy"
++          @change="onFilter"
++        >
++          <el-radio-button
++            v-for="f in statusFilters"
++            :key="f.value"
++            :value="f.value"
++            >{{ f.label }}</el-radio-button
++          >
++        </el-radio-group>
++        <el-button :loading="busy" aria-label="刷新活动列表" @click="load()"
++          >刷新</el-button
++        >
++      </div>
++      <LoadState
++        :busy="busy && !data.items.length"
++        :error="error"
++        @retry="load()"
++      />
++      <CampaignTable
++        v-if="!error || data.items.length"
++        v-loading="busy && data.items.length > 0"
++        :rows="data.items"
++        :busy="busy || saving"
++        @view="openView"
++        @edit="openEdit"
++        @remove="remove"
++        @report="openReport"
++      />
++      <div v-if="data.total > PAGE_SIZE" class="pager">
++        <el-pagination
++          layout="total, prev, pager, next"
++          :total="data.total"
++          :page-size="PAGE_SIZE"
++          :current-page="page"
++          :disabled="busy"
++          size="small"
++          background
++          @current-change="(p: number) => load(p)"
++        />
++      </div>
++    </div>
++    <el-dialog
++      :model-value="mode !== null"
++      :title="dialogTitle"
++      width="min(720px, 100vw)"
++      :close-on-click-modal="false"
++      @update:model-value="(v: boolean) => !v && closeDialog()"
++    >
++      <CampaignForm
++        v-if="mode !== 'view' && draft"
++        :key="formKey"
++        :initial="draft"
++        :busy="saving"
++        :saved-status="mode === 'edit' && current ? current.status : null"
++        @save="save"
++        @cancel="closeDialog"
++      />
++      <CampaignDetail
++        v-else-if="mode === 'view' && current"
++        :campaign="current"
++        @edit="current && openEdit(current)"
++        @report="current && openReport(current)"
++      />
++    </el-dialog>
++  </section>
++</template>
++<style scoped>
++.toolbar {
++  display: flex;
++  flex-wrap: wrap;
++  justify-content: space-between;
++  gap: var(--ac-space-2);
++  margin-bottom: var(--ac-space-3);
++}
++.pager {
++  display: flex;
++  justify-content: flex-end;
++  margin-top: var(--ac-space-3);
++  overflow-x: auto;
++}
++</style>
+diff --git a/apps/admin/src/components/campaigns/CampaignReportPanel.vue b/apps/admin/src/components/campaigns/CampaignReportPanel.vue
+new file mode 100644
+index 0000000..5596c36
+--- /dev/null
++++ b/apps/admin/src/components/campaigns/CampaignReportPanel.vue
+@@ -0,0 +1,287 @@
++<script setup lang="ts">
++import { computed, onMounted, ref, shallowRef, watch } from "vue";
++import { useRoute, useRouter } from "vue-router";
++import { api } from "@/api/adapters";
++import type { Campaign, CampaignReport } from "@/api/schema";
++import { useTask } from "@/composables/useTask";
++import LoadState from "@/components/LoadState.vue";
++import PageHeader from "@/components/shared/PageHeader.vue";
++import { formatTime, sourceLabels, statusLabels } from "./campaignMeta";
++
++const route = useRoute();
++const router = useRouter();
++const list = useTask();
++const campaigns = ref<Campaign[]>([]);
++const selected = shallowRef<number | null>(null);
++const report = ref<CampaignReport | null>(null);
++let requestSeq = 0;
++
++const current = computed(
++  () => campaigns.value.find((c) => c.id === selected.value) ?? null,
++);
++const kpis = computed(() => {
++  const r = report.value;
++  if (!r) return [];
++  // Totals come straight from the server; visitors are de-duplicated across
++  // sources, so they must never be recomputed from source_breakdown.
++  return [
++    { key: "visits", label: "访问次数", value: r.visits },
++    { key: "visitors", label: "访客数", value: r.visitors },
++    { key: "chats", label: "有效对话", value: r.chats },
++    { key: "leads", label: "线索", value: r.leads },
++  ];
++});
++
++function queryId(): number | null {
++  const raw = route.query.campaign_id;
++  const value = Array.isArray(raw) ? raw[0] : raw;
++  const id = Number(value);
++  return value && Number.isInteger(id) && id > 0 ? id : null;
++}
++
++async function loadCampaigns() {
++  await list.run(async () => {
++    const page = await api.campaigns({ page: 1, page_size: 100 });
++    campaigns.value = page.items;
++  });
++  const wanted = queryId();
++  if (wanted !== null) selected.value = wanted;
++  else if (!selected.value && campaigns.value.length)
++    selected.value = campaigns.value[0].id;
++}
++
++// Own loader (not useTask) so switching campaigns mid-request is never dropped;
++// stale responses are discarded by sequence number.
++const rep = { busy: shallowRef(false), error: shallowRef("") };
++async function loadReport() {
++  const id = selected.value;
++  const seq = ++requestSeq;
++  report.value = null;
++  rep.error.value = "";
++  if (id === null) {
++    rep.busy.value = false;
++    return;
++  }
++  rep.busy.value = true;
++  try {
++    const data = await api.campaignReport(id);
++    if (seq === requestSeq) report.value = data;
++  } catch (e) {
++    if (seq === requestSeq)
++      rep.error.value = e instanceof Error ? e.message : "报表加载失败，请重试";
++  } finally {
++    if (seq === requestSeq) rep.busy.value = false;
++  }
++}
++type SourceRow = CampaignReport["source_breakdown"][number];
++const sourceName = (row: SourceRow) => sourceLabels[row.source] ?? row.source;
++
++watch(selected, (id) => {
++  if (id !== queryId())
++    void router.replace({
++      query: {
++        ...route.query,
++        campaign_id: id === null ? undefined : String(id),
++      },
++    });
++  void loadReport();
++});
++watch(
++  () => route.query.campaign_id,
++  () => {
++    const id = queryId();
++    if (id !== null && id !== selected.value) selected.value = id;
++  },
++);
++
++onMounted(loadCampaigns);
++</script>
++<template>
++  <section class="page">
++    <PageHeader
++      title="活动报表"
++      desc="按活动汇总访问、访客、有效对话与线索。总数由服务端去重统计，不等于各来源简单相加。"
++    />
++    <div class="panel">
++      <div class="toolbar">
++        <label class="picker-label" for="campaign-picker">选择活动</label>
++        <el-select
++          id="campaign-picker"
++          v-model="selected"
++          placeholder="请选择活动"
++          filterable
++          aria-label="选择活动"
++          :loading="list.busy.value"
++          class="picker"
++        >
++          <el-option
++            v-for="c in campaigns"
++            :key="c.id"
++            :value="c.id"
++            :label="`${c.name}（${statusLabels[c.status]}）`"
++          />
++        </el-select>
++        <el-button
++          :loading="rep.busy.value"
++          :disabled="selected === null"
++          aria-label="刷新报表"
++          @click="loadReport"
++          >刷新</el-button
++        >
++      </div>
++      <LoadState
++        :busy="list.busy.value"
++        :error="list.error.value"
++        @retry="loadCampaigns"
++      />
++      <el-empty
++        v-if="!list.busy.value && !list.error.value && !campaigns.length"
++        description="还没有活动，请先在「活动管理」中创建"
++      >
++        <el-button type="primary" @click="router.push({ name: 'activities' })"
++          >前往活动管理</el-button
++        >
++      </el-empty>
++      <template v-else-if="selected !== null">
++        <p v-if="current" class="meta">
++          {{ formatTime(current.start_at) }} 至 {{ formatTime(current.end_at) }}
++          <el-tag v-if="current.is_live" size="small" type="success"
++            >当前生效</el-tag
++          >
++          <el-tag v-else size="small" type="info">未在有效期</el-tag>
++        </p>
++        <LoadState
++          :busy="rep.busy.value"
++          :error="rep.error.value"
++          @retry="loadReport"
++        />
++        <template v-if="report && !rep.error.value">
++          <ul class="kpis" aria-label="活动核心指标">
++            <li v-for="k in kpis" :key="k.key" class="kpi">
++              <span class="kpi-label">{{ k.label }}</span>
++              <strong class="kpi-value">{{
++                k.value.toLocaleString("zh-CN")
++              }}</strong>
++            </li>
++          </ul>
++          <h2 class="section-title">来源拆分</h2>
++          <el-empty
++            v-if="!report.source_breakdown.length"
++            description="该活动暂无来源数据"
++            :image-size="80"
++          />
++          <div
++            v-else
++            class="table-wrap"
++            role="region"
++            aria-label="来源拆分表"
++            tabindex="0"
++          >
++            <el-table :data="report.source_breakdown" row-key="source">
++              <el-table-column label="来源" min-width="130">
++                <template #default="{ row }">{{ sourceName(row) }}</template>
++              </el-table-column>
++              <el-table-column
++                prop="visits"
++                label="访问次数"
++                min-width="100"
++                align="right"
++              />
++              <el-table-column
++                prop="visitors"
++                label="访客数"
++                min-width="90"
++                align="right"
++              />
++              <el-table-column
++                prop="chats"
++                label="有效对话"
++                min-width="100"
++                align="right"
++              />
++              <el-table-column
++                prop="leads"
++                label="线索"
++                min-width="80"
++                align="right"
++              />
++            </el-table>
++          </div>
++          <p class="note">
++            同一访客可能经多个来源进入，各来源访客数之和可能大于总访客数。
++          </p>
++        </template>
++      </template>
++    </div>
++  </section>
++</template>
++<style scoped>
++.toolbar {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  gap: var(--ac-space-2);
++  margin-bottom: var(--ac-space-3);
++}
++.picker-label {
++  font-size: 13px;
++  color: var(--ac-text-muted);
++}
++.picker {
++  width: min(360px, 100%);
++}
++.meta {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  gap: var(--ac-space-2);
++  color: var(--ac-text-muted);
++  font-size: 13px;
++  margin: 0 0 var(--ac-space-3);
++}
++.kpis {
++  list-style: none;
++  padding: 0;
++  margin: 0 0 var(--ac-space-4);
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
++  gap: var(--ac-space-3);
++}
++.kpi {
++  background: var(--ac-surface-muted);
++  border: 1px solid var(--ac-border);
++  border-left: 3px solid var(--ac-teal);
++  border-radius: var(--ac-radius);
++  padding: var(--ac-space-3) var(--ac-space-4);
++  display: flex;
++  flex-direction: column;
++  gap: var(--ac-space-1);
++}
++.kpi-label {
++  color: var(--ac-text-muted);
++  font-size: 13px;
++}
++.kpi-value {
++  color: var(--ac-navy);
++  font-size: 26px;
++  font-variant-numeric: tabular-nums;
++}
++.section-title {
++  font-size: 15px;
++  margin: 0 0 var(--ac-space-2);
++  color: var(--ac-text);
++}
++.table-wrap {
++  overflow-x: auto;
++  max-width: 100%;
++}
++.table-wrap:focus-visible {
++  outline: 2px solid var(--ac-focus);
++  outline-offset: 2px;
++}
++.note {
++  margin: var(--ac-space-2) 0 0;
++  font-size: 12px;
++  color: var(--ac-text-subtle);
++}
++</style>
+diff --git a/apps/admin/src/components/campaigns/CampaignTable.vue b/apps/admin/src/components/campaigns/CampaignTable.vue
+new file mode 100644
+index 0000000..4e3f50f
+--- /dev/null
++++ b/apps/admin/src/components/campaigns/CampaignTable.vue
+@@ -0,0 +1,115 @@
++<script setup lang="ts">
++import type { Campaign } from "@/api/schema";
++import { formatTime, statusLabels, statusTagType } from "./campaignMeta";
++
++defineProps<{ rows: Campaign[]; busy: boolean }>();
++defineEmits<{
++  view: [row: Campaign];
++  edit: [row: Campaign];
++  remove: [row: Campaign];
++  report: [row: Campaign];
++}>();
++const labelOf = (row: Campaign) => statusLabels[row.status];
++const tagOf = (row: Campaign) => statusTagType[row.status];
++</script>
++<template>
++  <div class="table-wrap" role="region" aria-label="活动列表" tabindex="0">
++    <el-table :data="rows" empty-text="暂无活动" row-key="id">
++      <el-table-column
++        prop="name"
++        label="活动名称"
++        min-width="180"
++        show-overflow-tooltip
++      />
++      <el-table-column label="状态" width="190">
++        <template #default="{ row }">
++          <div class="tags">
++            <el-tag :type="tagOf(row)">{{ labelOf(row) }}</el-tag>
++            <el-tag v-if="row.is_live" type="success" effect="dark"
++              >当前生效</el-tag
++            >
++            <el-tag v-else type="info" effect="plain">未在有效期</el-tag>
++          </div>
++        </template>
++      </el-table-column>
++      <el-table-column label="活动时间" min-width="210">
++        <template #default="{ row }">
++          <div class="time">
++            <span>{{ formatTime(row.start_at) }}</span>
++            <span class="muted">至 {{ formatTime(row.end_at) }}</span>
++          </div>
++        </template>
++      </el-table-column>
++      <el-table-column
++        label="展位 / 地点"
++        min-width="180"
++        show-overflow-tooltip
++      >
++        <template #default="{ row }">
++          {{ [row.booth, row.location].filter(Boolean).join(" · ") || "—" }}
++        </template>
++      </el-table-column>
++      <el-table-column label="操作" min-width="250" fixed="right">
++        <template #default="{ row }">
++          <el-button
++            link
++            type="primary"
++            :aria-label="`查看活动 ${row.name}`"
++            @click="$emit('view', row)"
++            >查看</el-button
++          >
++          <el-button
++            link
++            type="primary"
++            :disabled="busy"
++            :aria-label="`编辑活动 ${row.name}`"
++            @click="$emit('edit', row)"
++            >编辑</el-button
++          >
++          <el-button
++            link
++            type="primary"
++            :aria-label="`查看活动 ${row.name} 的报表`"
++            @click="$emit('report', row)"
++            >查看报表</el-button
++          >
++          <el-button
++            link
++            type="danger"
++            :disabled="busy || row.status !== 'draft'"
++            :title="
++              row.status !== 'draft' ? '仅未被使用的草稿活动可删除' : undefined
++            "
++            :aria-label="`删除活动 ${row.name}`"
++            @click="$emit('remove', row)"
++            >删除</el-button
++          >
++        </template>
++      </el-table-column>
++    </el-table>
++  </div>
++</template>
++<style scoped>
++.table-wrap {
++  overflow-x: auto;
++  max-width: 100%;
++}
++.table-wrap:focus-visible {
++  outline: 2px solid var(--ac-focus);
++  outline-offset: 2px;
++}
++.tags {
++  display: flex;
++  flex-wrap: wrap;
++  gap: var(--ac-space-1);
++}
++.time {
++  display: flex;
++  flex-direction: column;
++  line-height: 1.4;
++}
++.muted {
++  color: var(--ac-text-subtle);
++  font-size: 12px;
++}
++</style>
+diff --git a/apps/admin/src/components/campaigns/campaignMeta.ts b/apps/admin/src/components/campaigns/campaignMeta.ts
+new file mode 100644
+index 0000000..5d913da
+--- /dev/null
++++ b/apps/admin/src/components/campaigns/campaignMeta.ts
+@@ -0,0 +1,50 @@
++import type { CampaignReport, CampaignStatus } from "@/api/schema";
++
++export type CampaignSource =
++  CampaignReport["source_breakdown"][number]["source"];
++
++export const statusLabels: Record<CampaignStatus, string> = {
++  draft: "草稿",
++  active: "已启用",
++  ended: "已结束",
++};
++
++export const statusTagType: Record<
++  CampaignStatus,
++  "info" | "success" | "warning"
++> = {
++  draft: "info",
++  active: "success",
++  ended: "warning",
++};
++
++export const statusFilters: { value: CampaignStatus | ""; label: string }[] = [
++  { value: "", label: "全部" },
++  { value: "draft", label: "草稿" },
++  { value: "active", label: "进行中" },
++  { value: "ended", label: "已结束" },
++];
++
++export const sourceLabels: Record<CampaignSource, string> = {
++  nfc: "NFC 碰一碰",
++  qr: "二维码",
++  poster: "海报",
++  link: "分享链接",
++  sig: "邮件签名",
++};
++
++const timeFormat = new Intl.DateTimeFormat("zh-CN", {
++  year: "numeric",
++  month: "2-digit",
++  day: "2-digit",
++  hour: "2-digit",
++  minute: "2-digit",
++  hour12: false,
++});
++
++/** Server sends timezone-aware ISO strings; render in the viewer's local zone. */
++export function formatTime(value: string | null | undefined): string {
++  if (!value) return "—";
++  const date = new Date(value);
++  return Number.isNaN(date.getTime()) ? value : timeFormat.format(date);
++}
+diff --git a/apps/admin/src/views/Activities.vue b/apps/admin/src/views/Activities.vue
+index 7d26c4c..3269381 100644
+--- a/apps/admin/src/views/Activities.vue
++++ b/apps/admin/src/views/Activities.vue
+@@ -1,24 +1,5 @@
++<!-- 活动管理：CampaignInput/CampaignData v2 -->
+ <script setup lang="ts">
+-import PageHeader from "@/components/shared/PageHeader.vue";
+-import PendingContract from "@/components/shared/PendingContract.vue";
+-const steps = [
+-  "创建活动：名称、时间、地点、关联名片与负责员工",
+-  "生成活动专属二维码 / 链接，访问与留资按活动归属",
+-  "活动期间查看签到、访问、对话与线索",
+-  "活动结束后归档，进入活动报表",
+-];
++import CampaignPanel from "@/components/campaigns/CampaignPanel.vue";
+ </script>
+-<template>
+-  <section class="page">
+-    <PageHeader title="活动管理" desc="展会、沙龙等线下活动的获客配置与跟踪。">
+-      <el-button type="primary" disabled title="等待后端活动契约"
+-        >新建活动</el-button
+-      >
+-    </PageHeader>
+-    <PendingContract
+-      title="活动管理接口尚未发布"
+-      reason="后端正在新增活动管理 schema 与 operation_id。契约发布并生成客户端前，本页不调用接口、不保存数据，也不展示示例活动。"
+-      :steps="steps"
+-    />
+-  </section>
+-</template>
++<template><CampaignPanel /></template>
+diff --git a/apps/admin/src/views/Reports.vue b/apps/admin/src/views/Reports.vue
+index 281ee59..52e65f4 100644
+--- a/apps/admin/src/views/Reports.vue
++++ b/apps/admin/src/views/Reports.vue
+@@ -1,22 +1,5 @@
++<!-- 活动报表：CampaignReport v2 -->
+ <script setup lang="ts">
+-import PageHeader from "@/components/shared/PageHeader.vue";
+-import PendingContract from "@/components/shared/PendingContract.vue";
+-const steps = [
+-  "按活动查看访问、独立访客、AI 对话与线索汇总",
+-  "按员工 / 名片拆分活动获客贡献",
+-  "线索跟进状态分布与超时未跟进提醒",
+-  "导出活动线索明细（需后端导出接口）",
+-];
++import CampaignReportPanel from "@/components/campaigns/CampaignReportPanel.vue";
+ </script>
+-<template>
+-  <section class="page">
+-    <PageHeader title="活动报表" desc="按活动汇总的获客与跟进结果。">
+-      <el-button disabled title="等待后端报表契约">导出报表</el-button>
+-    </PageHeader>
+-    <PendingContract
+-      title="活动报表接口尚未发布"
+-      reason="报表依赖后端活动统计契约。发布前本页不计算、不推测任何指标；工作台的近 7 天全局统计仍可正常使用。"
+-      :steps="steps"
+-    />
+-  </section>
+-</template>
++<template><CampaignReportPanel /></template>

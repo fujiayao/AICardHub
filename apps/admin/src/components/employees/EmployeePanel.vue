@@ -27,17 +27,21 @@ const { data, page, busy, error, load } = usePage((p) =>
 const mutate = useTask();
 const importing = shallowRef(false);
 const companies = shallowRef<CompanyOption[]>([]),
-  companyError = shallowRef("");
+  companyError = shallowRef(""),
+  companiesState = shallowRef<"loading" | "ready" | "error">("loading");
 const open = shallowRef(false),
   selected = shallowRef<Staff | null>(null),
   action = shallowRef<"reset" | "transfer" | null>(null),
   card = shallowRef<Staff | null>(null);
 async function loadCompanies() {
+  companiesState.value = "loading";
   try {
     companies.value = await api.companies();
     companyError.value = "";
+    companiesState.value = "ready";
   } catch (e) {
     companyError.value = e instanceof Error ? e.message : "公司列表加载失败";
+    companiesState.value = "error";
   }
 }
 function edit(staff?: Staff) {
@@ -56,11 +60,12 @@ async function persist(task: () => Promise<unknown>) {
     await load();
   });
 }
-const create = (body: EmployeeInput) =>
-  persist(() => api.createEmployee(body));
+const create = (body: EmployeeInput) => persist(() => api.createEmployee(body));
 const update = (body: EmployeeUpdate) => {
   const target = selected.value;
-  return target ? persist(() => api.updateEmployee(target.id, body)) : undefined;
+  return target
+    ? persist(() => api.updateEmployee(target.id, body))
+    : undefined;
 };
 async function disable(staff: Staff) {
   if (staff.id === auth.session?.staff.id) return;
@@ -103,7 +108,7 @@ onMounted(() => {
         v-if="companyError"
         type="warning"
         :closable="false"
-        :title="`公司列表加载失败：${companyError}（新增时将默认主公司）`"
+        :title="`公司列表加载失败：${companyError}（恢复前不能新增或编辑员工）`"
         ><el-button link type="primary" @click="loadCompanies"
           >重试</el-button
         ></el-alert
@@ -159,7 +164,9 @@ onMounted(() => {
         :initial="selected"
         :busy="mutate.busy.value"
         :companies="companies"
+        :companies-state="companiesState"
         :self-id="auth.session?.staff.id"
+        @reload-companies="loadCompanies"
         @create="create"
         @update="update" /></el-dialog
     ><el-dialog

@@ -1,0 +1,29 @@
+# Organization wiring checkpoint — actual generated client
+
+2026-11-14. Scope remains original Companies/no-phone/Campaign work; this checkpoint completes organization source wiring and parks campaign pending real backend routes. It does not complete overall task.
+
+## Source and model
+
+Base a869ca6; previous source implementation a849bab (actual Opus parent and native campaign child). Request claude-2/claude-opus-5-5 single synthetic probe returned429; authorized onceai/claude-opus-5-5 single synthetic probe200 textOK, returned model exact same route. No GPT/global change. CLI parent and forwarded child assistant receipts identify onceai/claude-opus-5-5. First bounded wiring process exit0 after559.61s, actual tools Glob3 Read32 Grep11 Agent1 Edit23 Write14 Bash2. Child wrote campaign files disjoint from parent company/employee/API paths. Substantive continuation same onceai session600s timed out exit1 after625.13s including reclamation; no further model calls launched.
+
+Backend actual organization66ae4a1 exported contracts/openapi.json, user says main integrating2581eb4. Host generated47 functions by `node scripts/generate-api.mjs D:/AIWork/智能名片/worktrees/ui-scenarios/contracts/openapi.json`. Source SHA256 f409ed1fbf23f3a57b819c0de8198880bb9d75129943d8429abc1650a3084722; verified generated/source.json equals actual export bytes. CompanyOption/CompanyItem, company_option_list/company_create/company_item_get/company_item_update; NOT CompanyRecord. Staff has nullable phone/company_id/company_name/login_enabled. Generated outputs are script-produced, never hand-written. Admin worktree root contracts remains old by allowed scope; main must integrate backend export as prerequisite for repository-wide contract check.
+
+## Organization behavior
+
+Company list plain-array API, create/get/update form, no deletion. Separate fixed-primary company form and original product catalog retained. CompanyList item-load failure keeps editor unavailable and supports retry, no accidental blank overwrite/save-success; successful primary save refreshes top form only when clean, otherwise explicit stale warning protects unsaved input. Top primary save refreshes company list.
+
+Employee create/edit real company selector. API-loaded company values only, no facts embedded. Company load states and retry; save blocked until ready. Existing company_id stays exact unless user changes assignment; null only explicit primary default. Phone optional for employee profiles; omit phone/password when absent, role employee. With phone create requires valid password. Existing admin/current operator phone cannot be cleared; host additionally rejects admin role without phone on create. Clearing other phone sendsnull, no password invention. Adding phone does not enable login until password set. Table shows company_name, 名片档案/员工账号 from authoritative login_enabled, 未开通登录/已开通登录, phone empty未提供 without mask crash. No-phone reset disabled; phone-present loginfalse offers设置登录密码. Existing disable/transfer/card/assistant/import and auth/mandatory password handlers preserved.
+
+Host authored ONLY narrow post-Opus correction: EmployeeForm create body includes required existing email/business_scope empty strings on BOTH create branches (does not overwrite these on edit), and admin role no-phone validation. Host formatted changed source and invoked generator/checks. Company/employee redesign and safeguards are actual Opus authored. No new dependencies, backend/H5/root edits, facts, env/credentials, real API/data changes, services/browser or5194 lifecycle changes.
+
+## Campaign preservation
+
+Actual CRUD/report implementation authored in a849bab. Backend organization export has NONE of six campaign operation IDs/schemas yet, so no manual generated stand-in or broken compiled imports retained. Activities/Reports currently PendingContract again, nav pending badges. All campaign files retained in Git a849bab and apps/admin/evidence/opus-admin-campaign.patch (34543bytes), shared source reference patch5513bytes. Patch contains source only, no private data. Do not blindly apply shared reference patch: it includes source sections shared with company updates; reintroduce campaign-specific aliases/methods/operations after actual campaign export. New backend schema must govern optional fields/defaults and source enum. Campaign files had formatting changes captured in main source patch.
+
+Remaining campaign review findings before acceptance: load selected detail via GET for edits/views, account for selector>100 rows and URL-selected older ID, default optional guide_override/strings safely against actual generated types, retain total visitors from server union rather than source sum, delete409 feedback, ended cannot reactivate and UTC-aware times. No campaign backend completion/API acceptance claimed.
+
+## Checks
+
+Host SFC parser0errors, ESLint PASS, tests16/16 PASS before final organization safeguard edits (session/key tests unchanged). Host after actual generation typecheck initially failed pending campaign files + required create defaults; campaign compile scope parked, defaults corrected. Final typecheck/lint/build results are recorded by dispatch in chat/final check status, not assumed from interrupted Opus. All modified ordinary source <=300lines, scope check PASS, diff--check PASS; generated schema exempt existing generated-file size. No screenshots/browser acceptance. Main owns all real company/no-login imports and live testing.
+
+Final host check on corrected organization source: pnpm typecheck PASS; pnpm lint PASS; pnpm build PASS (14.40s, existing vendor/editor chunk warnings). pnpm test16/16 passed earlier this wiring round; no test source changed. No browser/live API acceptance performed. This checkpoint is buildable with backend organization export source SHA above.
