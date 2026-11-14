@@ -1,0 +1,76 @@
+{
+  "at": "2026-11-14T13:15:50.205640+00:00",
+  "model_argument": "onceai/claude-opus-5-5",
+  "observed_models": {
+    "onceai/claude-opus-5-5": 192
+  },
+  "actual_tools": {
+    "Read": 31,
+    "Glob": 3,
+    "Grep": 7,
+    "Write": 4,
+    "Edit": 47,
+    "PowerShell": 5
+  },
+  "results": [
+    {
+      "file": "onceai-read-probe.jsonl",
+      "subtype": "success",
+      "is_error": false,
+      "canonical_models": {
+        "onceai/claude-opus-5-5": "claude-opus-5-5"
+      }
+    },
+    {
+      "file": "opus-onceai-forms.jsonl",
+      "subtype": "success",
+      "is_error": false,
+      "canonical_models": {
+        "onceai/claude-opus-5-5": "claude-opus-5-5"
+      }
+    },
+    {
+      "file": "opus-onceai-sheets.jsonl",
+      "subtype": "success",
+      "is_error": false,
+      "canonical_models": {
+        "onceai/claude-opus-5-5": "claude-opus-5-5"
+      }
+    }
+  ],
+  "global_config_changed": false,
+  "gpt_fallback": false,
+  "concurrency": "one implementation process per bounded round; no new subagents",
+  "commits": [
+    "fd150a8",
+    "ab9e972",
+    "6a94a66",
+    "b172edc",
+    "31d6291"
+  ],
+  "checks": {
+    "lint": "pass final sheets snapshot",
+    "typecheck": "pass final sheets snapshot",
+    "tests": "15/15 pass at21:11:31",
+    "build": "pass7.47sec",
+    "staff_color_and_line_count_scan": "no literal colors in scoped styles/no files>300lines",
+    "visual_business_acceptance": "pending"
+  },
+  "contract": {
+    "backend_org_commit": "66ae4a1",
+    "generated_sha256": "f409ed1fbf23f3a57b819c0de8198880bb9d75129943d8429abc1650a3084722",
+    "operations": 42,
+    "script": "node scripts/generate-api.mjs D:/AIWork/智能名片/worktrees/ui-scenarios/contracts/openapi.json",
+    "campaign_paths": [],
+    "last_backend_commit_checked": "9bf4c05"
+  },
+  "admin_brief_delivery": {
+    "target": "D:/AIWork/智能名片/AICardHub/.local/agents/opus-admin/H5-GLOBAL-VISUAL-BRIEF.md",
+    "sha256": "7D49DF33B18E565F51695C8B213B3C9799ABF153122A7ECED926DAE9B1DA1B06"
+  },
+  "unfinished": [
+    "campaign API integration pending actual generated OpenAPI",
+    "390x844 page comparisons and real exec acceptance",
+    "CardData company name not exposed; no fabricated field used"
+  ]
+}

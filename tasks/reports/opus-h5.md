@@ -13,3 +13,15 @@
 - 无后端/数据库/接口schema改动；无迁移；主库未写入。
 
 全局视觉brief：opus-h5/global-visual-brief.md，可由主线程转发adminworker。
+
+
+## onceai 同模型续作（2026-11-14）
+
+- 路由验证：只读 metadata 后，一次110秒有界Read probe成功；消息model=onceai/claude-opus-5-5，结果canonicalModel=claude-opus-5-5。每轮一个实施进程，未新增Agent，未改global，未用GPT。
+- 员工候选提交：ab9e972（10文件基础员工页）、6a94a66（编辑/详情/场景预留）、b172edc（知识流程/tokens/真实组织契约生成）、31d6291（五个表单弹层/试聊及报告）。代码由onceai Opus实际Read/Edit/Write；前几轮有PowerShell回执，最后两轮仅原生读写，协调者执行检查与Git。
+- B1-B13现已有页面或主要承载组件实际改版覆盖；此为代码候选覆盖，不是完整视觉验收。B10薄路由复用已改版CustomerList；B4场景仍pending，禁用预留不等于接通。五个表单组件实际改版为AssistantEditor/NoteEditor/CorrectionSheet/PasswordSheet/LeadStatusSheet；报告若写全部7个组件应以此精确列表为准。
+- 最新检查：全局lint、vue-tsc通过；15测试全部通过（21:11:31，33.10s）；生产build通过（7.47s）；员工样式颜色字面量/300行扫描无问题。未宣称浏览器、主库、权限或活动联调通过。
+- 组织契约：真实脚本读取后端66ae4a1 OpenAPI生成42operations，SHA f409ed1fbf23f3a57b819c0de8198880bb9d75129943d8429abc1650a3084722。Staff已新增归属/登录状态/可空电话；CardData仍无company_name，未强加字段。
+- 后端最后检查至9bf4c05，campaign_paths仍为空；活动正式接线是本轮必做但当前仍未完成，等待schemaowner生成活动契约。不能用旧API或临时stub冒充。
+- 视觉brief已实际投递adminworker本地调度目录H5-GLOBAL-VISUAL-BRIEF.md及H5-HANDOFF.txt，文件hash一致。
+- 精简回执：opus-h5/onceai-execution-evidence.json。
