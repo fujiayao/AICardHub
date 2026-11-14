@@ -46,3 +46,11 @@ OpenAPI：`uv run python -m app.export_openapi ../contracts/openapi.json`。
 - 当前卡/全局限额是消息计数，尚非Token预算；设置动态生效范围需加强。
 - 各业务接口完整测试矩阵、jobs与真实模型/真机/灰度/正式部署均未宣称通过。
 - scripts/check.sh在此基线不存在，未运行整个仓库检查；两个前端由独立执行者检查。
+
+## 候选后测试补充
+
+- `uv run pytest -q`：98 passed，37.01s；其中新增24项（19项schema/标记规则、5项真实MySQL测试）。
+- MySQL测试仅允许DATABASE名aicardhub_test，不清空整库；覆盖线索/通知所有权、重复同意留资与不凭手机号归并、跨访客与调试会话隔离、调试不计统计、管理员自身保护/重置token版本、原子限流。
+- 最终 `uv run mypy app`：31源文件通过；`ruff check app alembic`通过；`ruff format --check`自有应用文件和迁移通过。
+- 生成契约64路径、85操作；`.env`与local-credentials.json均由git check-ignore确认忽略。
+- 业务候选提交 `8713f4e`；本补充只增加自有测试和本记录，不改验收测试或AI代理文件。
