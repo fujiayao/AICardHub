@@ -1,0 +1,25 @@
+$ node --test tests/*.test.mjs
+✔ snapshot drops secret values and masks, retaining only configured booleans (1.1378ms)
+✔ primary and enabled fallback must be complete before openai activation (0.2583ms)
+✔ unsupported token budget keys cannot be edited; numeric bounds use backend limits (0.4268ms)
+✔ provider URLs reject embedded credentials, queries, fragments and non-http schemes (0.3637ms)
+✔ secret placeholder and blank cannot become replacement values (0.3021ms)
+✔ sensitive word input is trimmed, deduplicated and bounded (0.5094ms)
+✔ third provider protocol and complete connection gate activation, disabled provider does not block (0.3987ms)
+✔ third provider secret is discarded and only actual runtime keys become editable (0.2435ms)
+✔ disabled third provider can clear its secret without clearing active providers (0.2772ms)
+✔ admin session rejects staff/visitor storage and uses only its own key (109.677ms)
+✔ expired, malformed and missing-expiry tokens require login (17.6711ms)
+✔ login never sends an existing bearer; direct response remains unwrapped (13.7111ms)
+✔ 401 expires only admin session and never retries or refreshes (11.5362ms)
+✔ path values are escaped and /api/v1 prefix remains intact (13.8958ms)
+✔ password-required response forces password route without retry (12.1429ms)
+✔ multipart upload keeps native body and lets browser set boundary (9.9422ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 640.4092

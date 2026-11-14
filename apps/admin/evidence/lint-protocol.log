@@ -1,0 +1,3 @@
+$ eslint src scripts vite.config.ts && prettier --check src scripts *.json *.ts *.html README.md TEMPLATE_SOURCE.md
+Checking formatting...
+All matched files use Prettier code style!

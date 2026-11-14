@@ -1,0 +1,31 @@
+{
+  "verification": "synthetic browser interception only; no real API or model calls, no credential file read",
+  "results": [
+    "主模型接口协议 synthetic save passed",
+    "备用模型接口协议 synthetic save passed",
+    "兜底模型接口协议 synthetic save passed",
+    "third secret shows configured state only, no mask and no credential request",
+    "enabled but incomplete third model can always be turned off; cannot turn on incomplete connection",
+    "protocol field and third group render at desktop and 390px"
+  ],
+  "writes": [
+    {
+      "key": "llm_api_mode",
+      "value": "responses"
+    },
+    {
+      "key": "llm_fallback_api_mode",
+      "value": "responses"
+    },
+    {
+      "key": "llm_tertiary_api_mode",
+      "value": "responses"
+    },
+    {
+      "key": "llm_tertiary_enabled",
+      "value": false
+    }
+  ],
+  "errors": [],
+  "unexpected": []
+}

@@ -39,3 +39,5 @@ C8 物理 NFC 管理延期。知识文件夹递归导入、评测、来源分布
 应用 `.prettierrc.json` 使用 `endOfLine: auto` 兼容 Windows 的 CRLF checkout。`gen:api` 使用同一配置格式化真实生成文件；不忽略格式检查文件。
 
 员工导入支持后端规定的xlsx表头与逐行结果；Markdown批量上传只生成预览，每篇确认才保存成未公开、未批准草稿。合成浏览器导入检查前可运行 `python scripts/create-import-fixture.py`，文件在应用忽略目录`.local`内，初始密码随机生成且不输出。随后运行 `browser-import-fix.mjs`。运行时检查 `browser-runtime-fix.mjs` 只在Fake且主密钥未配置的本地环境执行，finally恢复敏感词/限额并清除合成密钥；不调用真实模型。
+
+协议与三级模型：固定字段支持主模型/备用/兜底各自的 `*_api_mode`（`responses` / `chat_completions`）及后两级启用开关。界面仅读取后端返回的非敏感地址/型号/协议及密钥配置状态，不硬编码产品供应商、模型名或地址。备用仅在首段内容前失败切换，已输出后不重放。实际运行接口未返回的字段不显示，防止旧服务出现无效按钮。`browser-protocol-synthetic.mjs` 是拦截全部API的纯合成UI检查，不读本地凭据、不改后端配置、不调用真实模型；此证据不代表真实Responses生成已通过。

@@ -3,34 +3,65 @@ export interface RuntimeField {
   key: string;
   label: string;
   group: string;
-  kind: "text" | "url" | "number" | "boolean" | "secret" | "mode" | "words";
+  kind:
+    | "text"
+    | "url"
+    | "number"
+    | "boolean"
+    | "secret"
+    | "mode"
+    | "words"
+    | "protocol";
   min?: number;
   max?: number;
   integer?: boolean;
   hint?: string;
 }
+export type ProviderPrefix = "llm" | "llm_fallback" | "llm_tertiary";
+const protocols = ["responses", "chat_completions"] as const;
+function providerFields(prefix: ProviderPrefix, label: string): RuntimeField[] {
+  return [
+    {
+      key: prefix + "_base_url",
+      label: label + "接口地址",
+      group: label,
+      kind: "url",
+      max: 500,
+    },
+    {
+      key: prefix + "_model",
+      label: label + "名称",
+      group: label,
+      kind: "text",
+      max: 160,
+    },
+    {
+      key: prefix + "_api_mode",
+      label: label + "接口协议",
+      group: label,
+      kind: "protocol",
+    },
+    {
+      key: prefix + "_api_key",
+      label: label + "密钥",
+      group: label,
+      kind: "secret",
+      max: 4096,
+    },
+    ...(prefix === "llm"
+      ? []
+      : [
+          {
+            key: prefix + "_enabled",
+            label: "启用" + label,
+            group: label,
+            kind: "boolean" as const,
+          },
+        ]),
+  ];
+}
 export const runtimeFields: RuntimeField[] = [
-  {
-    key: "llm_base_url",
-    label: "主模型接口地址",
-    group: "主模型",
-    kind: "url",
-    max: 500,
-  },
-  {
-    key: "llm_model",
-    label: "主模型名称",
-    group: "主模型",
-    kind: "text",
-    max: 160,
-  },
-  {
-    key: "llm_api_key",
-    label: "主模型密钥",
-    group: "主模型",
-    kind: "secret",
-    max: 4096,
-  },
+  ...providerFields("llm", "主模型"),
   {
     key: "llm_timeout",
     label: "模型超时（秒）",
@@ -40,33 +71,8 @@ export const runtimeFields: RuntimeField[] = [
     max: 120,
   },
   { key: "llm_mode", label: "模型运行方式", group: "主模型", kind: "mode" },
-  {
-    key: "llm_fallback_base_url",
-    label: "备用模型接口地址",
-    group: "备用模型",
-    kind: "url",
-    max: 500,
-  },
-  {
-    key: "llm_fallback_model",
-    label: "备用模型名称",
-    group: "备用模型",
-    kind: "text",
-    max: 160,
-  },
-  {
-    key: "llm_fallback_api_key",
-    label: "备用模型密钥",
-    group: "备用模型",
-    kind: "secret",
-    max: 4096,
-  },
-  {
-    key: "llm_fallback_enabled",
-    label: "启用备用模型",
-    group: "备用模型",
-    kind: "boolean",
-  },
+  ...providerFields("llm_fallback", "备用模型"),
+  ...providerFields("llm_tertiary", "兜底模型"),
   {
     key: "visitor_daily_limit",
     label: "单访客每日对话次数",
@@ -132,6 +138,7 @@ export const runtimeFields: RuntimeField[] = [
 export interface RuntimeSnapshot {
   values: Record<string, unknown>;
   configured: Record<string, boolean>;
+  supported: string[];
 }
 export function sanitizeRuntime(
   settings: Record<string, unknown>,
@@ -139,30 +146,43 @@ export function sanitizeRuntime(
   const values: Record<string, unknown> = {},
     configured: Record<string, boolean> = {};
   for (const field of runtimeFields) {
+    if (!Object.hasOwn(settings, field.key)) continue;
     const value = settings[field.key];
     if (field.kind === "secret") {
       configured[field.key] = typeof value === "string" && value.length > 0;
     } else values[field.key] = value;
   }
-  return { values, configured };
+  return {
+    values,
+    configured,
+    supported: runtimeFields
+      .filter((field) => Object.hasOwn(settings, field.key))
+      .map((field) => field.key),
+  };
 }
 export function providerReady(
   snapshot: RuntimeSnapshot,
-  fallback = false,
+  prefix: ProviderPrefix = "llm",
 ): boolean {
-  const prefix = fallback ? "llm_fallback" : "llm";
   return (
     ["_base_url", "_model"].every(
       (suffix) =>
         typeof snapshot.values[prefix + suffix] === "string" &&
         String(snapshot.values[prefix + suffix]).trim().length > 0,
-    ) && snapshot.configured[prefix + "_api_key"] === true
+    ) &&
+    protocols.includes(
+      snapshot.values[prefix + "_api_mode"] as (typeof protocols)[number],
+    ) &&
+    snapshot.configured[prefix + "_api_key"] === true
   );
 }
 export function canActivate(snapshot: RuntimeSnapshot): boolean {
   return (
     providerReady(snapshot) &&
-    (!snapshot.values.llm_fallback_enabled || providerReady(snapshot, true))
+    (!snapshot.values.llm_fallback_enabled ||
+      providerReady(snapshot, "llm_fallback")) &&
+    (!snapshot.values.llm_tertiary_enabled ||
+      providerReady(snapshot, "llm_tertiary"))
   );
 }
 export function validateRuntimeValue(
@@ -189,6 +209,11 @@ export function validateRuntimeValue(
   if (field.kind === "mode") {
     if (value !== "fake" && value !== "openai")
       throw new Error("请选择允许的模型方式");
+    return value;
+  }
+  if (field.kind === "protocol") {
+    if (value !== "responses" && value !== "chat_completions")
+      throw new Error("请选择支持的接口协议");
     return value;
   }
   if (field.kind === "words") {
@@ -227,4 +252,20 @@ export function validateRuntimeValue(
       throw new Error("接口地址不得包含凭据、查询参数或片段");
   }
   return value;
+}
+
+export function providerForKey(key: string): ProviderPrefix {
+  return key.startsWith("llm_tertiary_")
+    ? "llm_tertiary"
+    : key.startsWith("llm_fallback_")
+      ? "llm_fallback"
+      : "llm";
+}
+export function canClearSecret(
+  snapshot: RuntimeSnapshot,
+  key: string,
+): boolean {
+  if (snapshot.values.llm_mode === "fake") return true;
+  const prefix = providerForKey(key);
+  return prefix !== "llm" && snapshot.values[prefix + "_enabled"] !== true;
 }

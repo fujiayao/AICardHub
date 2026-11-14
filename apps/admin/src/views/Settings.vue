@@ -11,7 +11,7 @@ const statusVersion = shallowRef(0);
     <div>
       <h1>设置与审计</h1>
       <p class="muted">
-        管理后续请求使用的主备模型、每日次数限额、数据保留与敏感词。密钥由后端加密保存。
+        管理后续请求使用的主模型、备用与兜底模型、每日次数限额、数据保留与敏感词。密钥由后端加密保存。
       </p>
     </div>
     <RuntimeStatus :key="statusVersion" /><SettingsPanel

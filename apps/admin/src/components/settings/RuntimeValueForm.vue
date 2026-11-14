@@ -61,6 +61,14 @@ function submit() {
           value="openai"
           :disabled="!canEnable"
       /></el-select>
+      <el-select
+        v-else-if="field.kind === 'protocol'"
+        v-model="value as string"
+        :aria-label="field.label"
+      >
+        <el-option label="Responses（原生）" value="responses" />
+        <el-option label="Chat Completions（兼容）" value="chat_completions" />
+      </el-select>
       <el-switch
         v-else-if="field.kind === 'boolean'"
         v-model="value as boolean"
@@ -86,7 +94,7 @@ function submit() {
       v-if="!canEnable && (field.kind === 'mode' || field.kind === 'boolean')"
       class="muted"
     >
-      先分别保存接口地址、模型名称及密钥，配置完整后再启用。
+      先分别保存接口地址、模型名称、接口协议及密钥，配置完整后再启用。
     </p>
     <div class="toolbar">
       <el-button
@@ -104,7 +112,7 @@ function submit() {
       >
     </div>
     <p v-if="field.kind === 'secret' && !canClear" class="muted">
-      请先切换到本地演示模式，或停用备用模型，再清空当前使用中的密钥。
+      请先切换到本地演示模式，或停用对应备用/兜底模型，再清空当前使用中的密钥。
     </p></el-form
   >
 </template>

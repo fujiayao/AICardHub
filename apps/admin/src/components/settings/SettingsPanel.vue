@@ -10,6 +10,8 @@ import {
   sanitizeRuntime,
   providerReady,
   canActivate,
+  canClearSecret,
+  providerForKey,
   type RuntimeSnapshot,
 } from "./runtimeFields";
 const emit = defineEmits<{ applied: [] }>();
@@ -17,7 +19,14 @@ const selectedKey = shallowRef("visitor_daily_limit"),
   snapshot = shallowRef<RuntimeSnapshot>(),
   version = shallowRef(0);
 const { busy, error, run } = useTask();
-const groups = [...new Set(runtimeFields.map((f) => f.group))];
+const availableFields = computed(() =>
+  snapshot.value
+    ? runtimeFields.filter((f) => snapshot.value!.supported.includes(f.key))
+    : [],
+);
+const groups = computed(() => [
+  ...new Set(availableFields.value.map((f) => f.group)),
+]);
 const field = computed(
   () =>
     runtimeFields.find((f) => f.key === selectedKey.value) ?? runtimeFields[0],
@@ -30,20 +39,18 @@ const canEnable = computed(() =>
     ? false
     : field.value.kind === "mode"
       ? canActivate(snapshot.value)
-      : providerReady(snapshot.value, true),
+      : providerReady(snapshot.value, providerForKey(field.value.key)),
 );
 const canClear = computed(
-  () =>
-    !!snapshot.value &&
-    (snapshot.value.values.llm_mode === "fake" ||
-      (field.value.key === "llm_fallback_api_key" &&
-        snapshot.value.values.llm_fallback_enabled !== true)),
+  () => !!snapshot.value && canClearSecret(snapshot.value, field.value.key),
 );
 async function refresh() {
   const result = await api.runtimeSettings();
   if (result.limits_unit !== "messages_per_day")
     throw new Error("限额单位与当前界面不匹配");
   snapshot.value = sanitizeRuntime(result.settings);
+  if (!snapshot.value.supported.includes(selectedKey.value))
+    selectedKey.value = snapshot.value.supported[0] ?? "";
   version.value++;
 }
 async function load() {
@@ -92,13 +99,13 @@ onMounted(load);
       每项独立保存并校验，成功后从后续请求开始使用。每日限额单位为对话次数；保留天数由清理任务应用。
     </p>
     <el-alert
-      title="模型连接按“接口地址 → 模型名称 → 密钥 → 启用模式”逐项配置；备用模型同样先配置完整再启用。当前不提供多项原子保存。"
+      title="模型连接按“接口地址 → 模型名称 → 接口协议 → 密钥 → 启用模式”逐项配置；备用和兜底模型同样先配置完整再启用。当前不提供多项原子保存。"
       type="info"
       :closable="false"
     />
     <p class="muted">
-      模型密钥只显示是否已配置，不回填原值或掩码。知识直接输入 Token
-      上限当前不支持。
+      备用仅在首段内容输出前失败时切换；开始输出后失败不重放。模型密钥只显示是否已配置，不回填原值或掩码。知识直接输入
+      Token 上限当前不支持。
     </p>
     <LoadState :busy="busy" :error="error" @retry="load" /><el-select
       filterable
@@ -108,12 +115,12 @@ onMounted(load);
       :disabled="busy"
       ><el-option-group v-for="group in groups" :key="group" :label="group"
         ><el-option
-          v-for="item in runtimeFields.filter((f) => f.group === group)"
+          v-for="item in availableFields.filter((f) => f.group === group)"
           :key="item.key"
           :label="item.label"
           :value="item.key" /></el-option-group></el-select
     ><RuntimeValueForm
-      v-if="snapshot"
+      v-if="snapshot && selectedKey"
       :key="selectedKey + '-' + version"
       :field="field"
       :initial="snapshot.values[selectedKey]"
