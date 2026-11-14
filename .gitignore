@@ -16,3 +16,7 @@ kb-test/**
 *.sqlite
 *.sqlite3
 *.db
+local-credentials.json
+*.credentials.local.json
+/.local/
+*.tsbuildinfo
