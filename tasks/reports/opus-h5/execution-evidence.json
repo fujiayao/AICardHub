@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-11-14T12:36:36.505294+00:00",
+  "requested_model": "claude-2/claude-opus-5-5",
+  "observed_message_models": {
+    "claude-2/claude-opus-5-5": 247,
+    "<synthetic>": 6
+  },
+  "tool_calls": {
+    "Read": 44,
+    "Agent": 2,
+    "ToolSearch": 1,
+    "SendMessage": 1,
+    "Glob": 9,
+    "Write": 15,
+    "Edit": 24,
+    "Bash": 16,
+    "Grep": 15,
+    "PowerShell": 2
+  },
+  "agent_launch_receipts": [
+    {
+      "description": "Visitor A1-A5 redesign",
+      "status": "async_launched",
+      "resolvedModel": "claude-2/claude-opus-5-5"
+    },
+    {
+      "description": "Staff B1-B13 redesign",
+      "status": "async_launched",
+      "resolvedModel": "claude-2/claude-opus-5-5"
+    }
+  ],
+  "api_retry_receipts": [
+    {
+      "attempt": 1,
+      "error_status": 429,
+      "error": "rate_limit"
+    },
+    {
+      "attempt": 2,
+      "error_status": 429,
+      "error": "rate_limit"
+    },
+    {
+      "attempt": 3,
+      "error_status": 429,
+      "error": "rate_limit"
+    },
+    {
+      "attempt": 1,
+      "error_status": 429,
+      "error": "rate_limit"
+    },
+    {
+      "attempt": 2,
+      "error_status": 429,
+      "error": "rate_limit"
+    }
+  ],
+  "candidate_commit": "2e3744e0677d14d7d3a711a001358af447d21c60",
+  "candidate_implementation": "Opus",
+  "candidate_commit_executor": "Codex coordinator local git",
+  "checks": {
+    "lint": "passed after Opus fixes",
+    "typecheck": "passed",
+    "vitest": "15/15 passed with --testTimeout=30000; first default5s run had2 subprocess timeout failures",
+    "production_build": "passed Vite8.3.8",
+    "browser_screenshots": "failed: browser startup/navigation timeouts; synthetic screenshot not obtained",
+    "real_business_acceptance": "not run"
+  },
+  "unfinished": [
+    "B1-B13 structural redesign",
+    "campaign contract integration after schema generation",
+    "390x844 visual comparison",
+    "exec-01 real acceptance"
+  ],
+  "global_configuration_changed": false,
+  "fallback_used": false
+}
