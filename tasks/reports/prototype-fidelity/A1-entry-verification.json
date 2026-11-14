@@ -1,0 +1,42 @@
+[
+  {
+    "source": "qr",
+    "finalUrl": "http://127.0.0.1:5173/card/5dbb1d43?s=qr",
+    "visitStatus": 200,
+    "trackedSource": "qr",
+    "ctaVisible": true,
+    "overflow": false
+  },
+  {
+    "source": "nfc",
+    "finalUrl": "http://127.0.0.1:5173/card/5dbb1d43?s=nfc",
+    "visitStatus": 200,
+    "trackedSource": "nfc",
+    "ctaVisible": true,
+    "overflow": false
+  },
+  {
+    "source": "link",
+    "finalUrl": "http://127.0.0.1:5173/card/5dbb1d43?s=link",
+    "visitStatus": 200,
+    "trackedSource": "link",
+    "ctaVisible": true,
+    "overflow": false
+  },
+  {
+    "source": "poster",
+    "finalUrl": "http://127.0.0.1:5173/card/5dbb1d43?s=poster",
+    "visitStatus": 200,
+    "trackedSource": "poster",
+    "ctaVisible": true,
+    "overflow": false
+  },
+  {
+    "source": "sig",
+    "finalUrl": "http://127.0.0.1:5173/card/5dbb1d43?s=sig",
+    "visitStatus": 200,
+    "trackedSource": "sig",
+    "ctaVisible": true,
+    "overflow": false
+  }
+]

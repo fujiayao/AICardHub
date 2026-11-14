@@ -1,0 +1,7 @@
+{
+  "requested": "/activities?status=active",
+  "login": "http://127.0.0.1:5174/login?redirect=/activities?status=active",
+  "after": "http://127.0.0.1:5174/activities?status=active",
+  "menu": true,
+  "createEnabled": true
+}

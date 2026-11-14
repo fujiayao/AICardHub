@@ -1,0 +1,12 @@
+[
+  {
+    "path": "/activities",
+    "after": "http://127.0.0.1:5174/activities",
+    "menuVisible": true
+  },
+  {
+    "path": "/reports",
+    "after": "http://127.0.0.1:5174/reports",
+    "menuVisible": true
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "checked_on": "2026-11-14",
+  "requested_url": "http://127.0.0.1:5174/activities",
+  "anonymous_redirect": "/login",
+  "post_login": "/dashboard",
+  "activity_menu_visible": true,
+  "report_menu_visible": true,
+  "new_activity_button_enabled": true,
+  "finding": "Login discarded the intended internal route; menus were present in current served build."
+}

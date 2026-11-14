@@ -1,0 +1,49 @@
+{
+  "entries": [
+    {
+      "source": "qr",
+      "status": 200,
+      "route": "/card/5dbb1d43"
+    },
+    {
+      "source": "nfc",
+      "status": 200,
+      "route": "/card/5dbb1d43"
+    },
+    {
+      "source": "link",
+      "status": 200,
+      "route": "/card/5dbb1d43"
+    },
+    {
+      "source": "poster",
+      "status": 200,
+      "route": "/card/5dbb1d43"
+    },
+    {
+      "source": "sig",
+      "status": 200,
+      "route": "/card/5dbb1d43"
+    }
+  ],
+  "viewports": [
+    {
+      "width": 360,
+      "overflow": false,
+      "composer_bottom": 836.625
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "composer_bottom": 836.015625
+    },
+    {
+      "width": 430,
+      "overflow": false,
+      "composer_bottom": 844
+    }
+  ],
+  "runtime_errors": 0,
+  "automatic_sessions_created": 0,
+  "real_chat": "Recorded separately in dark-functional-verification.json"
+}

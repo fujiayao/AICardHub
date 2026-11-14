@@ -1,0 +1,40 @@
+{
+  "checked_at": "2026-11-14T17:11:10.126Z",
+  "real_chat": {
+    "http_status": 200,
+    "done": true,
+    "error": false,
+    "model": "gpt-6.1-terra",
+    "same_page": true,
+    "history_restored": true,
+    "references_rendered": true
+  },
+  "consent": {
+    "initial_checked": false,
+    "submit_disabled": true,
+    "submitted": false
+  },
+  "source_sessions_isolated": true,
+  "vcard": {
+    "download": true,
+    "format": true,
+    "correct_name": true
+  },
+  "share": {
+    "method": "Browser native-share boundary intercepted for argument verification; OS dialog not exercised",
+    "title": "楼航宇｜执行董事、总经理",
+    "url": "http://127.0.0.1:5173/c/5dbb1d43?s=nfc"
+  },
+  "employee_login": {
+    "route": "/staff/login",
+    "dark_wrapper": false,
+    "body_background": "rgb(243, 245, 248)"
+  },
+  "runtime_errors": [],
+  "not_tested": [
+    "Physical NFC device",
+    "WeChat/iOS native contact import",
+    "OS native share completion",
+    "Public deployment"
+  ]
+}

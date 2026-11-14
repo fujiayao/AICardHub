@@ -1,0 +1,14 @@
+[
+  {
+    "viewport": 360,
+    "scroll": 360,
+    "hero": 406.140625,
+    "ctaVisible": true
+  },
+  {
+    "viewport": 430,
+    "scroll": 430,
+    "hero": 485.125,
+    "ctaVisible": true
+  }
+]

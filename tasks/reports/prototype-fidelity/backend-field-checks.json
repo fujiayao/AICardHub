@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-15",
+  "fields": {
+    "card_company": true,
+    "stats_today_yesterday_shanghai": true,
+    "visitor_source_intent_scoped": true,
+    "assistant_metrics_scoped": true,
+    "note_description_versioned": true,
+    "note_updated_tokens": true
+  },
+  "checks": {
+    "full_pytest": 281,
+    "seconds": 103.07,
+    "mypy_source_files": 39,
+    "lint": true,
+    "targeted_fields_and_kb_tests": 40
+  }
+}
