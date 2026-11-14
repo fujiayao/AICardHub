@@ -36,3 +36,6 @@
 - B3/B4/B6/B7/B8/B9/B10/B11/B12/B13 not ported; B6 description80/updated/tokens now generated, no body workaround needed.
 - staff-parity.md contains stale 'fields unavailable' notes; overridden by this report and SCHEMA-OWNER-UPDATE.md. They are implementation gaps, not real authorization/data limitations.
 - No credentials/private knowledge read; no admin/backend/environment writes. Uncommitted partial work preserved for actual Opus continuation.
+
+## Confirmed final main contract
+Main efcf29c verified by git; generator rerun against absolute MAIN contracts/openapi.json, not local worktree contract. Hash3ebe39cd03645b7c69558307f9e60097c4c2f9ccc98a327105cb630cdc64d4e2 unchanged from b78b252 generated snapshot. Main contract102 operations; H5 configured alias subset44 operations. Confirmed generated CardData company fields, StatsData today/yesterday, VisitorData source/intent_level, AssistantMetrics all6 fields, NoteInput description and NoteData description/updated/tokens. assistantMetrics function alias still pending actual Opus source edit; generated type exists. No mock numbers introduced. Main plans API restart, actual restart not verified by this role.
