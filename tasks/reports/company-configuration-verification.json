@@ -1,0 +1,62 @@
+{
+  "checked_on": "2026-11-14",
+  "company": "义乌市词元数据科技有限公司",
+  "public_products": 6,
+  "colleague_opening_updated": true,
+  "uniform_phone_blank": true,
+  "real_model_conversations": [
+    {
+      "question": "义乌数科主要开展哪些业务？",
+      "answer": "义乌数科主要围绕数字基础设施与数据应用开展业务，包括：\n\n- **公共数据资源运营**：数据合规归集、加工、应用与流通等。\n- **国资云与数字基础设施**：对接云建设运维、系统迁移和云网安全需求。\n- **政务与国企数字化**：信息化建设、流程协同、系统集成和数据治理。\n- **AI应用与实操培训**：探索企业和商贸场景中的AI应用，提供培训咨询。\n- **数据产业与生态合作**：对接人才、技术",
+      "done": {
+        "message_id": 494,
+        "kb_refs": [
+          "note-67ba8670ea004cb5b6a55c90f465c199",
+          "note-004c01fa0aa94b58a4ca2dd5db6d41d9",
+          "note-1b5a22b4e67545259f30924b2adc1c20",
+          "demo-public"
+        ],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": []
+    },
+    {
+      "question": "公司统一咨询电话和官网吗？",
+      "answer": "义乌数科的公司统一咨询电话和独立官网暂未配置。这个问题我需要确认一下，请联系名片本人已有的联系入口咨询，也可以自愿留资，由名片本人跟进。",
+      "done": {
+        "message_id": 493,
+        "kb_refs": [],
+        "nokb": true,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": []
+    }
+  ],
+  "concise_answer_recheck": {
+    "answer": "义乌数科主要围绕三个方向开展业务：\n\n1. 公共数据资源运营，推动数据合规应用和价值释放。\n2. 国资云、数字基础设施及政务和国企数字化。\n3. AI应用与实操培训，以及数据和AI产业生态合作。\n\n您想了解哪个方向？",
+    "length": 108,
+    "display_limit": 200,
+    "within_limit": true
+  },
+  "magpie_review_http_status": 200,
+  "product_stage_wording_fixed": true,
+  "responsive_after_six_cards": {
+    "widths": [
+      360,
+      390,
+      430
+    ],
+    "root_horizontal_overflow": false,
+    "all_six_cards_preserved": true,
+    "last_card_scroll_reachable": true,
+    "fix": "min-width:0 on card detail grid children; contained horizontal product scroll; no body overflow masking"
+  },
+  "h5_checks": {
+    "lint": true,
+    "typecheck": true,
+    "unit_tests": 15,
+    "build": true,
+    "warnings": "既有PostCSS from-option和构建插件耗时提示"
+  }
+}

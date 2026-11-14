@@ -1,0 +1,9 @@
+{
+  "route": "http://127.0.0.1:3425/v1/chat/completions",
+  "requested_model": "gptpro/gpt-6.1-sol",
+  "scope": "仅精选公司和产品公开文案；无凭据、私有知识和员工资料",
+  "http_status": 200,
+  "model_reported": "gptpro/gpt-6.1-sol",
+  "result": "{\n  \"summary\": \"公司简称及集团成员关系表述清晰，未混淆公司与母公司。原名片说明需补充本地开发验收阶段及NFC实物、手机兼容性待验信息。\",\n  \"revised_ai_card_summary\": \"AI智能名片目前处于本地开发验收阶段，拟整合企业介绍、公开业务问答及经访客同意的需求收集，辅助客户跟进。规划通过二维码、链接及NFC访问；NFC实物与手机兼容性尚待验证。\"\n}",
+  "seconds": 7.52
+}

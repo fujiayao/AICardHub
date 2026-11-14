@@ -1,0 +1,135 @@
+{
+  "configured_on": "2026-11-14",
+  "scope": "本地配置；用户指定公司资料的精简子集+项目已验证能力",
+  "source_sha256": "4950a7d028d896ecd269413fc828ef32d451c1a6fa27834bbe721c210ba19e1e",
+  "backup_local": "D:\\AIWork\\智能名片\\AICardHub\\.local\\company-configuration\\20261114T113119Z\\before.json",
+  "changes": [
+    {
+      "kind": "company",
+      "name": "义乌市词元数据科技有限公司"
+    },
+    {
+      "kind": "product",
+      "id": 1,
+      "title": "AI智能名片"
+    },
+    {
+      "kind": "product",
+      "id": 3,
+      "title": "公共数据资源运营"
+    },
+    {
+      "kind": "product",
+      "id": 4,
+      "title": "国资云与数字基础设施"
+    },
+    {
+      "kind": "product",
+      "id": 5,
+      "title": "政务与国企数字化"
+    },
+    {
+      "kind": "product",
+      "id": 6,
+      "title": "AI应用与实操培训"
+    },
+    {
+      "kind": "product",
+      "id": 7,
+      "title": "数据产业与生态合作"
+    },
+    {
+      "kind": "template",
+      "id": 1,
+      "name": "义乌数科 · 业务咨询助手"
+    },
+    {
+      "kind": "template",
+      "id": 5,
+      "name": "AI智能名片 · 产品咨询助手"
+    },
+    {
+      "kind": "assistant",
+      "card_code": "924ff8b9",
+      "person_remains_unchanged": true
+    },
+    {
+      "kind": "assistant",
+      "card_code": "7ba0c436",
+      "person_remains_unchanged": true
+    },
+    {
+      "kind": "assistant",
+      "card_code": "7955632e",
+      "person_remains_unchanged": true
+    },
+    {
+      "kind": "assistant",
+      "card_code": "colleague",
+      "person_remains_unchanged": true
+    },
+    {
+      "kind": "assistant",
+      "card_code": "demo",
+      "person_remains_unchanged": true
+    },
+    {
+      "kind": "assistant",
+      "card_code": "admin",
+      "person_remains_unchanged": true
+    },
+    {
+      "kind": "rules"
+    },
+    {
+      "kind": "knowledge",
+      "file_id": "note-004c01fa0aa94b58a4ca2dd5db6d41d9",
+      "title": "义乌数科｜公司简介与名称使用",
+      "revision": 1,
+      "public": true,
+      "approved": true
+    },
+    {
+      "kind": "knowledge",
+      "file_id": "note-67ba8670ea004cb5b6a55c90f465c199",
+      "title": "义乌数科｜主营业务与合作方向",
+      "revision": 1,
+      "public": true,
+      "approved": true
+    },
+    {
+      "kind": "knowledge",
+      "file_id": "demo-public",
+      "title": "AI智能名片｜当前项目功能与边界",
+      "revision": 2,
+      "public": true,
+      "approved": true
+    },
+    {
+      "kind": "knowledge",
+      "file_id": "note-1b5a22b4e67545259f30924b2adc1c20",
+      "title": "义乌数科｜咨询与需求对接常见问题",
+      "revision": 1,
+      "public": true,
+      "approved": true
+    }
+  ],
+  "not_filled": [
+    "公司统一电话",
+    "公司邮箱",
+    "公司独立官网",
+    "Logo与产品配图",
+    "真实员工姓名、职务及联系资料",
+    "课程排期、报价、案例、服务等级",
+    "工商与股权财务等时效信息"
+  ],
+  "employee_personal_information_preserved": true,
+  "raw_source_not_imported": true,
+  "external_source_reverification": false,
+  "magpie_content_review": {
+    "http_status": 200,
+    "model": "gptpro/gpt-6.1-sol",
+    "report": "tasks/reports/company-magpie-review.json",
+    "suggested_stage_boundary_applied": true
+  }
+}
