@@ -63,7 +63,7 @@ async def seed() -> None:
         ]:
             account = credentials.get(key) or {
                 "phone": phone,
-                "password": secrets.token_urlsafe(18),
+                "password": "Aa9" + secrets.token_hex(7),
                 "card_code": code,
             }
             employee = await repo.optional(db, Employee, Employee.phone == account["phone"])

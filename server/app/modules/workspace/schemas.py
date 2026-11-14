@@ -26,6 +26,14 @@ class Schema(BaseModel):
                 if key in ("password", "old_password", "new_password") and len(value.encode()) > 72:
                     raise ValueError("password exceeds bcrypt byte limit")
                 if (
+                    key == "new_password"
+                    or (
+                        key == "password"
+                        and type(self).__name__ in ("EmployeeInput", "ResetPassword")
+                    )
+                ) and (not re.search(r"[A-Za-z]", value) or not re.search(r"[0-9]", value)):
+                    raise ValueError("password must contain letters and digits")
+                if (
                     key == "email"
                     and value
                     and not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", value)
@@ -58,7 +66,7 @@ class LoginInput(Schema):
 
 class PasswordInput(Schema):
     old_password: str = Field(min_length=1, max_length=72)
-    new_password: str = Field(min_length=8, max_length=72)
+    new_password: str = Field(min_length=8, max_length=20)
 
     @field_validator("new_password")
     @classmethod
@@ -310,7 +318,7 @@ class EmployeeInput(Schema):
     phone: str = Field(pattern=r"^1[3-9]\d{9}$")
     dept: str = Field(default="", max_length=120)
     title: str = Field(default="", max_length=120)
-    password: str = Field(min_length=8, max_length=72)
+    password: str = Field(min_length=8, max_length=20)
     role: Literal["employee", "admin"] = "employee"
     email: str = Field(default="", max_length=120)
     business_scope: str = Field(default="", max_length=4000)
@@ -328,7 +336,7 @@ class EmployeeUpdate(Schema):
 
 
 class ResetPassword(Schema):
-    password: str = Field(min_length=8, max_length=72)
+    password: str = Field(min_length=8, max_length=20)
 
 
 class TransferInput(Schema):

@@ -72,3 +72,7 @@ OpenAPI：`uv run python -m app.export_openapi ../contracts/openapi.json`。
 AI修复原样cherry-pick：5367d55/5960a90/f60d54f对应本分支0c912c8/98f0e94/b92faf4。主干已有无需重复取。未改AI内核与验收测试。
 
 剩余限制：INTEGER/BIGINT、分享缓存/海报source/头像vCard、Token预算、文档LLM拆篇仍保持上文说明。数据库事务与版本化文件写入跨资源不原子：写入失败使业务事务失败；后续DB回滚时文件可能残留私有版本，但新生成内容均不公开且撤审批，须重新渲染/管理员复核补偿，不会自动批准。无正式模型评测/生产部署/真机/灰度通过声明。密码8–20规则补丁紧接单独提交。
+
+## 密码规范补丁
+
+依据docs/UI设计规范.md:353：修改、新建与重置密码8–20位，至少含英文字母和数字，允许符号。Login与old_password保留既有bcrypt72字节兼容。新seed随机口令为Aa9+token_hex(7)，17位；已存在seed账号与ignored凭据不改、不强制重置。密码专项8项通过（36.58s）；ruff与mypy通过。前端改密成功必须退登重新登录（旧token失效）。
