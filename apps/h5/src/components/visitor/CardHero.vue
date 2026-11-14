@@ -1,120 +1,143 @@
 <script setup lang="ts">
 import type { PublicCard } from '@/api/generated'
 import { computed } from 'vue'
-import IdentityMark from '@/components/common/IdentityMark.vue'
+import AnonymousPortrait from '@/components/common/AnonymousPortrait.vue'
 import { share } from '@/platform'
 const props = defineProps<{ card: PublicCard }>()
 const origin = window.location.origin
-const role = computed(() => [props.card.title, props.card.dept].filter(Boolean).join(' ｜ '))
-const companyChip = computed(() => props.card.company.short_name || props.card.company.name)
+const role = computed(() => [props.card.title, props.card.dept].filter(Boolean).join('｜'))
+const brandName = computed(() => props.card.company.short_name || props.card.company.name)
 function onShare() {
   share(`${props.card.name}｜${props.card.title}`, `${origin}/c/${props.card.code}?s=link`)
 }
 </script>
 
 <template>
-  <header class="hero" :class="{ photo: card.photo_url }">
+  <header class="vc-hero">
     <img v-if="card.photo_url" class="portrait" :src="card.photo_url" :alt="`${card.name}的职业照`">
-    <div v-if="card.photo_url" class="shade" />
-    <div class="hero-top row between">
-      <div class="brand row">
-        <img v-if="card.company.logo_url" :src="card.company.logo_url" alt="公司标识" width="24">
-        <span class="brand-name">{{ companyChip }}</span>
+    <AnonymousPortrait v-else class="portrait placeholder" />
+    <div class="vc-top">
+      <div class="logo-chip">
+        <span class="logo-mark"><img v-if="card.company.logo_url" :src="card.company.logo_url" alt="" width="18"><span v-else class="icon i-lucide-hexagon" /></span>
+        <span class="brand-name">{{ brandName }}</span>
       </div>
-      <button class="share icon-button" aria-label="分享名片" @click="onShare">
-        <span class="icon i-lucide-share-2" />
-      </button>
+      <button class="glass" aria-label="分享名片" @click="onShare"><span class="icon i-lucide-share-2" /></button>
     </div>
-    <div class="identity" :class="{ compact: !card.photo_url }">
-      <div v-if="!card.photo_url" class="mark"><IdentityMark :name="card.name" :size="64" /></div>
-      <h1>{{ card.name }}</h1>
-      <p v-if="role" class="role">{{ role }}</p>
-      <p class="company">{{ card.company.name }}</p>
+    <div class="vc-id">
+      <h1 class="vc-name">{{ card.name }}</h1>
+      <p v-if="role" class="vc-title">{{ role }}</p>
+      <p class="vc-co">{{ card.company.name }}</p>
     </div>
   </header>
 </template>
 
 <style scoped>
-.hero {
+.vc-hero {
   position: relative;
-  background: linear-gradient(160deg, var(--c-ink) 0%, var(--c-ink-2) 100%);
-  color: var(--c-surface);
+  height: var(--hero-photo-h, 440px);
+  flex: none;
+  background: linear-gradient(165deg, var(--c-hero-top) 0%, var(--c-ink) 70%);
   overflow: hidden;
 }
-.hero.photo {
-  height: var(--hero-photo-h, 420px);
-  background: var(--c-ink);
-}
-.portrait,
-.shade {
+.portrait {
   position: absolute;
-  inset: 0;
-  width: 100%;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
   height: 100%;
+  width: auto;
   object-fit: cover;
   object-position: center top;
 }
-.shade {
-  background: linear-gradient(180deg, transparent 32%, var(--c-ink) 100%);
+.portrait.placeholder {
+  width: auto;
 }
-.hero-top {
-  position: relative;
-  padding: var(--sp-4, 16px);
+.vc-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 58%;
+  background: linear-gradient(180deg, rgba(19, 41, 75, 0) 0%, rgba(19, 41, 75, .82) 62%, var(--c-ink) 100%);
+}
+.vc-top {
+  position: absolute;
+  top: 52px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+}
+.logo-chip {
+  display: flex;
+  align-items: center;
   gap: var(--sp-2, 8px);
-}
-.brand {
+  color: var(--c-surface);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  letter-spacing: .06em;
   min-width: 0;
-  gap: var(--sp-2, 8px);
+}
+.logo-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-ink);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.logo-mark .icon {
+  width: 18px;
+  height: 18px;
 }
 .brand-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--fs-sm);
 }
-.share {
-  flex-shrink: 0;
-  background: var(--c-ink-2);
+.glass {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, .16);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  color: var(--c-surface);
+  flex: none;
+}
+.glass .icon {
+  width: 18px;
+  height: 18px;
+}
+.vc-id {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 44px;
+  z-index: 2;
   color: var(--c-surface);
 }
-.identity {
-  position: relative;
-}
-.hero.photo .identity {
-  position: absolute;
-  bottom: 54px;
-  left: var(--sp-6, 24px);
-  right: var(--sp-6, 24px);
-}
-.identity.compact {
-  padding: var(--sp-4, 16px) var(--sp-6, 24px) 56px;
-  min-width: 0;
-}
-.identity.compact :deep(.avatar),
-.identity.compact .mark {
-  margin-bottom: var(--sp-5, 20px);
-}
-.identity h1 {
+.vc-name {
   font-size: var(--fs-xxl);
+  font-weight: 700;
+  letter-spacing: .06em;
   line-height: 1.2;
   color: var(--c-surface);
 }
-.identity .role {
-  margin-top: 4px;
-  font-size: var(--fs-md);
-  color: var(--c-surface);
-  opacity: .9;
-}
-.identity .company {
+.vc-title {
   margin-top: 6px;
+  font-size: var(--fs-base);
+  color: var(--c-hero-id-title);
+}
+.vc-co {
+  margin-top: 2px;
   font-size: var(--fs-sm);
-  color: var(--c-surface);
-  opacity: .72;
+  color: var(--c-hero-id-co);
   overflow-wrap: anywhere;
   word-break: break-word;
-  max-width: 100%;
-}
-.identity.compact .role {
-  margin-top: 0;
 }
 </style>

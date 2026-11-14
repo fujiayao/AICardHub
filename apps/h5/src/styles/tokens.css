@@ -35,9 +35,17 @@
   --c-overlay:rgba(10,22,42,.72);
   --c-on-ink-2:rgba(255,255,255,.72); /* 深色面上的次级文字 */
   --c-on-ink-line:rgba(255,255,255,.16);
+  /* 访客头图（A1/A2）专用 */
+  --c-hero-top:#2C4E80;      /* 头图渐变上端 */
+  --c-hero-id-title:#D3DDEC; /* 头图上职位文字 */
+  --c-hero-id-co:#9FB2CF;    /* 头图上公司文字 */
+  --c-ai-ink:#0B4F4C;        /* 青绿浅底上的开场白文字 */
+  --c-ai-glow:rgba(14,158,152,.18); /* AI 卡片径向光晕、在线点光圈 */
+  --c-chat-bg-top:#EAF2F6;   /* 对话页顶部浅青 */
+  --sh-welcome:0 0 0 4px #fff,0 10px 24px rgba(19,41,75,.16);
   /* 间距：4px 阶梯 */
   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-7:32px; --sp-8:40px;
-  --hero-photo-h:420px;
+  --hero-photo-h:440px;
   /* 字体 */
   --font:"PingFang SC","HarmonyOS Sans SC","MiSans","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
   --font-num:"DIN Alternate","Roboto","PingFang SC",system-ui,sans-serif;
