@@ -27,19 +27,47 @@ from app.modules.workspace.models import (
 
 
 async def session_create(
-    db: AsyncSession, card: Card, visitor_id: int | None, employee_id: int | None = None
+    db: AsyncSession,
+    card: Card,
+    visitor_id: int | None,
+    employee_id: int | None = None,
+    visit_id: int | None = None,
+    campaign_id: int | None = None,
+    source: s.Source = "link",
 ) -> s.SessionResult:
     assistant = await shared.assistant_get(db, card)
+    if visitor_id is not None:
+        from app.modules.workspace.campaign_service import attribution
+
+        visit_id, campaign_id, source_value = await attribution(
+            db, card, visitor_id, visit_id=visit_id, campaign_id=campaign_id, source=source
+        )
+        source = cast(s.Source, source_value)
     row = ChatSession(
         card_id=card.id,
         visitor_id=visitor_id,
         employee_id=employee_id,
         is_test=employee_id is not None,
+        visit_id=visit_id,
+        campaign_id=campaign_id,
+        source=source,
     )
     db.add(row)
     await db.commit()
+    opening, questions = assistant.opening, assistant.guide_questions
+    if campaign_id is not None:
+        from app.modules.workspace.campaign_service import get
+
+        campaign = await get(db, campaign_id)
+        opening = campaign.opening_override or opening
+        questions = campaign.guide_override[:3] or questions
     return s.SessionResult(
-        session_id=row.id, opening=assistant.opening, guide_questions=assistant.guide_questions
+        session_id=row.id,
+        opening=opening,
+        guide_questions=questions,
+        visit_id=visit_id,
+        campaign_id=campaign_id,
+        source=source,
     )
 
 

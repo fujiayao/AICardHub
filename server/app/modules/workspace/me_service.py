@@ -36,6 +36,17 @@ async def create_lead(db: AsyncSession, visitor: Visitor, payload: s.LeadInput) 
             ChatSession.card_id == card.id,
             ChatSession.is_test.is_(False),
         )
+    from app.modules.workspace.campaign_service import attribution
+
+    visit_id, campaign_id, source = await attribution(
+        db,
+        card,
+        visitor.id,
+        visit_id=payload.visit_id,
+        campaign_id=payload.campaign_id,
+        source=payload.source,
+        session_id=payload.session_id,
+    )
     # Serialize submissions for the same anonymous identity, including first lead creation.
     await repo.one(db, Visitor, Visitor.id == visitor.id, lock=True)
     lead = await repo.optional(
@@ -46,11 +57,21 @@ async def create_lead(db: AsyncSession, visitor: Visitor, payload: s.LeadInput) 
         Lead.created_at >= utcnow() - timedelta(hours=24),
     )
     owner_id = await shared.lead_owner(db, card)
-    values = payload.model_dump(exclude={"card_code", "consent"})
+    values = payload.model_dump(
+        exclude={"card_code", "consent", "campaign_id", "visit_id", "source"}
+    )
     if lead:
-        repo.assign(lead, values)
+        repo.assign(lead, {key: value for key, value in values.items() if key != "session_id"})
     else:
-        lead = Lead(**values, card_id=card.id, visitor_id=visitor.id, owner_employee_id=owner_id)
+        lead = Lead(
+            **values,
+            card_id=card.id,
+            visitor_id=visitor.id,
+            owner_employee_id=owner_id,
+            visit_id=visit_id,
+            campaign_id=campaign_id,
+            source=source,
+        )
         db.add(lead)
         await db.flush()
         db.add(

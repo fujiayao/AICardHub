@@ -63,8 +63,8 @@ async def profile(db: DB, staff: StaffDep) -> s.Staff:
     response_model=s.PublicCard,
     response_model_exclude_none=True,
 )
-async def public_card(code: str, db: DB) -> s.PublicCard:
-    return await shared.public_card(db, code)
+async def public_card(code: str, db: DB, e: int | None = Query(default=None, ge=1)) -> s.PublicCard:
+    return await shared.public_card(db, code, e)
 
 
 @router.post("/public/visitor/init", operation_id="visitor_init", response_model=s.VisitorInit)
@@ -83,9 +83,16 @@ async def visit_update(id: int, payload: s.StayInput, db: DB, visitor: VisitorDe
 
 
 @public_redirect.get("/c/{code}", operation_id="card_short_link", response_model=None)
-async def short_link(code: str, db: DB, s: s.Source = "link") -> RedirectResponse:
+async def short_link(
+    code: str, db: DB, s: s.Source = "link", e: int | None = Query(default=None, ge=1)
+) -> RedirectResponse:
     await shared.by_code(db, code)
-    return RedirectResponse(f"/card/{code}?s={s}", status_code=302)
+    if e is not None:
+        from app.modules.workspace.campaign_service import get
+
+        await get(db, e, public=True)
+    suffix = f"&e={e}" if e is not None else ""
+    return RedirectResponse(f"/card/{code}?s={s}{suffix}", status_code=302)
 
 
 @router.get(
@@ -112,7 +119,12 @@ async def lead_create(payload: s.LeadInput, db: DB, visitor: VisitorDep) -> s.Le
 )
 async def session_create(payload: s.SessionInput, db: DB, visitor: VisitorDep) -> s.SessionResult:
     return await chat.session_create(
-        db, await shared.by_code(db, payload.card_code, active=True), visitor.id
+        db,
+        await shared.by_code(db, payload.card_code, active=True),
+        visitor.id,
+        visit_id=payload.visit_id,
+        campaign_id=payload.campaign_id,
+        source=payload.source,
     )
 
 
@@ -165,8 +177,14 @@ async def card_update(payload: s.CardInput, db: DB, staff: StaffDep) -> s.CardDa
 
 
 @router.get("/me/card/share", operation_id="me_card_share", response_model=s.ShareData)
-async def card_share(db: DB, staff: StaffDep) -> s.ShareData:
-    return await media.share(db, await shared.own_card(db, staff.id))
+async def card_share(
+    db: DB, staff: StaffDep, s: s.Source = "link", e: int | None = Query(default=None, ge=1)
+) -> s.ShareData:
+    if e is not None:
+        from app.modules.workspace.campaign_service import get
+
+        await get(db, e, public=True)
+    return await media.share(db, await shared.own_card(db, staff.id), s, e)
 
 
 @router.post("/me/card/photo", operation_id="me_card_photo", response_model=s.PhotoData)
@@ -368,3 +386,19 @@ async def test_message_stream(
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@router.get(
+    "/public/campaigns/{id}", operation_id="campaign_get_public", response_model=s.PublicCampaign
+)
+async def public_campaign(id: int, db: DB) -> s.PublicCampaign:
+    from app.modules.workspace.campaign_service import get
+
+    return s.PublicCampaign.model_validate(await get(db, id, public=True))
+
+
+@router.get("/me/campaigns", operation_id="me_campaign_list", response_model=list[s.PublicCampaign])
+async def my_campaigns(db: DB, staff: StaffDep) -> list[s.PublicCampaign]:
+    from app.modules.workspace.campaign_service import list_public
+
+    return await list_public(db)

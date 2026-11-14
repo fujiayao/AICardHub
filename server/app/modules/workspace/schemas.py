@@ -140,6 +140,60 @@ class PublicAssistant(Schema):
     guide_questions: list[str]
 
 
+class CampaignInput(Schema):
+    name: str = Field(min_length=1, max_length=120)
+    status: Literal["draft", "active", "ended"] = "draft"
+    start_at: datetime
+    end_at: datetime
+    booth: str = Field(default="", max_length=80)
+    location: str = Field(default="", max_length=255)
+    opening_override: str = Field(default="", max_length=2000)
+    guide_override: list[str] = Field(default_factory=list, max_length=6)
+
+    @model_validator(mode="after")
+    def valid_period(self) -> "CampaignInput":
+        if self.start_at.tzinfo is None or self.end_at.tzinfo is None:
+            raise ValueError("timezone required")
+        if self.end_at <= self.start_at:
+            raise ValueError("end must follow start")
+        if any(not text.strip() or len(text) > 255 for text in self.guide_override):
+            raise ValueError("invalid guide question")
+        return self
+
+
+class CampaignData(CampaignInput):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    is_live: bool = False
+
+
+class PublicCampaign(Schema):
+    id: int
+    name: str
+    start_at: datetime
+    end_at: datetime
+    booth: str = ""
+    location: str = ""
+
+
+class SourceBreakdownRow(Schema):
+    source: str
+    visits: int = 0
+    visitors: int = 0
+    chats: int = 0
+    leads: int = 0
+
+
+class CampaignReport(Schema):
+    campaign_id: int
+    visits: int
+    visitors: int
+    chats: int
+    leads: int
+    source_breakdown: list[SourceBreakdownRow]
+
+
 class PublicCard(Schema):
     code: str
     status: Literal["active", "disabled"]
@@ -154,6 +208,7 @@ class PublicCard(Schema):
     business_scope: str | None = None
     wechat_qr_url: str | None = None
     company: CompanyData
+    campaign: PublicCampaign | None = None
     products: list[ProductData] = Field(default_factory=list)
     assistant: PublicAssistant | None = None
 
@@ -204,10 +259,12 @@ class VisitorInit(Schema):
 class VisitInput(Schema):
     card_code: str = Field(min_length=1, max_length=32)
     source: Source
+    campaign_id: int | None = Field(default=None, ge=1)
 
 
 class VisitResult(Schema):
     visit_id: int
+    campaign_id: int | None = None
 
 
 class StayInput(Schema):
@@ -216,10 +273,16 @@ class StayInput(Schema):
 
 class SessionInput(Schema):
     card_code: str = Field(min_length=1, max_length=32)
+    visit_id: int | None = Field(default=None, ge=1)
+    campaign_id: int | None = Field(default=None, ge=1)
+    source: Source = "link"
 
 
 class SessionResult(PublicAssistant):
     session_id: int
+    visit_id: int | None = None
+    campaign_id: int | None = None
+    source: Source = "link"
 
 
 class MessageInput(Schema):
@@ -262,6 +325,9 @@ class ErrorEvent(Schema):
 
 
 class LeadInput(Schema):
+    campaign_id: int | None = Field(default=None, ge=1)
+    visit_id: int | None = Field(default=None, ge=1)
+    source: Source = "link"
     card_code: str = Field(min_length=1, max_length=32)
     session_id: int | None = None
     name: str = Field(min_length=1, max_length=80)
@@ -277,6 +343,8 @@ class LeadResult(Schema):
 
 
 class LeadData(Schema):
+    campaign_id: int | None = None
+    source: str = "link"
     visitor_id: int
     id: int
     name: str

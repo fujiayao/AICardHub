@@ -53,6 +53,23 @@
               "default": "link",
               "title": "S"
             }
+          },
+          {
+            "name": "e",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "E"
+            }
           }
         ],
         "responses": {
@@ -249,6 +266,23 @@
             "schema": {
               "type": "string",
               "title": "Code"
+            }
+          },
+          {
+            "name": "e",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "E"
             }
           }
         ],
@@ -786,6 +820,47 @@
       "get": {
         "summary": "Card Share",
         "operationId": "me_card_share",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "s",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "nfc",
+                "qr",
+                "poster",
+                "link",
+                "sig"
+              ],
+              "type": "string",
+              "default": "link",
+              "title": "S"
+            }
+          },
+          {
+            "name": "e",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "E"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -796,13 +871,18 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/me/card/photo": {
@@ -2069,6 +2149,72 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/public/campaigns/{id}": {
+      "get": {
+        "summary": "Public Campaign",
+        "operationId": "campaign_get_public",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicCampaign"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/campaigns": {
+      "get": {
+        "summary": "My Campaigns",
+        "operationId": "me_campaign_list",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PublicCampaign"
+                  },
+                  "type": "array",
+                  "title": "Response Me Campaign List"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
       }
     },
     "/api/v1/admin/company": {
@@ -4131,6 +4277,297 @@
           }
         ]
       }
+    },
+    "/api/v1/admin/campaigns": {
+      "get": {
+        "summary": "Campaigns",
+        "operationId": "campaign_list",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Page Size"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Page_CampaignData_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Campaign Create",
+        "operationId": "campaign_create",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignData"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/campaigns/{id}": {
+      "get": {
+        "summary": "Campaign Get",
+        "operationId": "campaign_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignData"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Campaign Update",
+        "operationId": "campaign_update",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignData"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Campaign Delete",
+        "operationId": "campaign_delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OK"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/campaigns/{id}/report": {
+      "get": {
+        "summary": "Campaign Report",
+        "operationId": "campaign_report",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4418,6 +4855,198 @@
           "content"
         ],
         "title": "BroadcastInput"
+      },
+      "CampaignData": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "ended"
+            ],
+            "title": "Status",
+            "default": "draft"
+          },
+          "start_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start At"
+          },
+          "end_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End At"
+          },
+          "booth": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Booth",
+            "default": ""
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Location",
+            "default": ""
+          },
+          "opening_override": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Opening Override",
+            "default": ""
+          },
+          "guide_override": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Guide Override"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "is_live": {
+            "type": "boolean",
+            "title": "Is Live",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "start_at",
+          "end_at",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CampaignData"
+      },
+      "CampaignInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "ended"
+            ],
+            "title": "Status",
+            "default": "draft"
+          },
+          "start_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start At"
+          },
+          "end_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End At"
+          },
+          "booth": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Booth",
+            "default": ""
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Location",
+            "default": ""
+          },
+          "opening_override": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Opening Override",
+            "default": ""
+          },
+          "guide_override": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "title": "Guide Override"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "start_at",
+          "end_at"
+        ],
+        "title": "CampaignInput"
+      },
+      "CampaignReport": {
+        "properties": {
+          "campaign_id": {
+            "type": "integer",
+            "title": "Campaign Id"
+          },
+          "visits": {
+            "type": "integer",
+            "title": "Visits"
+          },
+          "visitors": {
+            "type": "integer",
+            "title": "Visitors"
+          },
+          "chats": {
+            "type": "integer",
+            "title": "Chats"
+          },
+          "leads": {
+            "type": "integer",
+            "title": "Leads"
+          },
+          "source_breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/SourceBreakdownRow"
+            },
+            "type": "array",
+            "title": "Source Breakdown"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "campaign_id",
+          "visits",
+          "visitors",
+          "chats",
+          "leads",
+          "source_breakdown"
+        ],
+        "title": "CampaignReport"
       },
       "CardData": {
         "properties": {
@@ -5439,6 +6068,22 @@
       },
       "LeadData": {
         "properties": {
+          "campaign_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campaign Id"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source",
+            "default": "link"
+          },
           "visitor_id": {
             "type": "integer",
             "title": "Visitor Id"
@@ -5517,6 +6162,42 @@
       },
       "LeadInput": {
         "properties": {
+          "campaign_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campaign Id"
+          },
+          "visit_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Id"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "nfc",
+              "qr",
+              "poster",
+              "link",
+              "sig"
+            ],
+            "title": "Source",
+            "default": "link"
+          },
           "card_code": {
             "type": "string",
             "maxLength": 32,
@@ -5918,6 +6599,38 @@
           "page_size"
         ],
         "title": "Page[AuditData]"
+      },
+      "Page_CampaignData_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignData"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "title": "Page[CampaignData]"
       },
       "Page_CorrectionData_": {
         "properties": {
@@ -6360,6 +7073,47 @@
         ],
         "title": "PublicAssistant"
       },
+      "PublicCampaign": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "start_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start At"
+          },
+          "end_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End At"
+          },
+          "booth": {
+            "type": "string",
+            "title": "Booth",
+            "default": ""
+          },
+          "location": {
+            "type": "string",
+            "title": "Location",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "start_at",
+          "end_at"
+        ],
+        "title": "PublicCampaign"
+      },
       "PublicCard": {
         "properties": {
           "code": {
@@ -6487,6 +7241,16 @@
           "company": {
             "$ref": "#/components/schemas/CompanyData"
           },
+          "campaign": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicCampaign"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "products": {
             "items": {
               "$ref": "#/components/schemas/ProductData"
@@ -6588,6 +7352,42 @@
             "maxLength": 32,
             "minLength": 1,
             "title": "Card Code"
+          },
+          "visit_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Id"
+          },
+          "campaign_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campaign Id"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "nfc",
+              "qr",
+              "poster",
+              "link",
+              "sig"
+            ],
+            "title": "Source",
+            "default": "link"
           }
         },
         "additionalProperties": false,
@@ -6613,6 +7413,40 @@
           "session_id": {
             "type": "integer",
             "title": "Session Id"
+          },
+          "visit_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Id"
+          },
+          "campaign_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campaign Id"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "nfc",
+              "qr",
+              "poster",
+              "link",
+              "sig"
+            ],
+            "title": "Source",
+            "default": "link"
           }
         },
         "additionalProperties": false,
@@ -6680,6 +7514,40 @@
           "poster_url"
         ],
         "title": "ShareData"
+      },
+      "SourceBreakdownRow": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "visits": {
+            "type": "integer",
+            "title": "Visits",
+            "default": 0
+          },
+          "visitors": {
+            "type": "integer",
+            "title": "Visitors",
+            "default": 0
+          },
+          "chats": {
+            "type": "integer",
+            "title": "Chats",
+            "default": 0
+          },
+          "leads": {
+            "type": "integer",
+            "title": "Leads",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "SourceBreakdownRow"
       },
       "Staff": {
         "properties": {
@@ -7011,6 +7879,18 @@
               "sig"
             ],
             "title": "Source"
+          },
+          "campaign_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campaign Id"
           }
         },
         "additionalProperties": false,
@@ -7026,6 +7906,17 @@
           "visit_id": {
             "type": "integer",
             "title": "Visit Id"
+          },
+          "campaign_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campaign Id"
           }
         },
         "additionalProperties": false,

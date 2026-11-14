@@ -122,7 +122,7 @@ async def company_get(db: AsyncSession) -> s.CompanyData:
     return s.CompanyData.model_validate(await primary_company(db))
 
 
-async def public_card(db: AsyncSession, code: str) -> s.PublicCard:
+async def public_card(db: AsyncSession, code: str, campaign_id: int | None = None) -> s.PublicCard:
     card = await by_code(db, code)
     employee = await repo.one(db, Employee, Employee.id == card.employee_id)
     company_row = await employee_company(db, employee)
@@ -131,6 +131,17 @@ async def public_card(db: AsyncSession, code: str) -> s.PublicCard:
         return s.PublicCard(code=card.code, status="disabled", company=company)
     assistant = await repo.one(db, Assistant, Assistant.card_id == card.id)
     primary = await primary_company(db)
+    campaign = None
+    if campaign_id is not None:
+        from app.modules.workspace import campaign_service
+
+        campaign = await campaign_service.get(db, campaign_id, public=True)
+    public_assistant = s.PublicAssistant.model_validate(assistant)
+    if campaign is not None:
+        public_assistant.opening = campaign.opening_override or public_assistant.opening
+        public_assistant.guide_questions = (
+            campaign.guide_override[:3] or public_assistant.guide_questions
+        )
     products = (
         await repo.many(db, Product, Product.enabled.is_(True))
         if company_row.id == primary.id
@@ -151,7 +162,8 @@ async def public_card(db: AsyncSession, code: str) -> s.PublicCard:
         wechat_qr_url=card.wechat_qr_url,
         company=company,
         products=[s.ProductData.model_validate(p) for p in sorted(products, key=lambda p: p.sort)],
-        assistant=s.PublicAssistant.model_validate(assistant),
+        assistant=public_assistant,
+        campaign=s.PublicCampaign.model_validate(campaign) if campaign else None,
     )
 
 
@@ -278,11 +290,20 @@ async def init_visitor(db: AsyncSession, token: str | None) -> s.VisitorInit:
 
 async def create_visit(db: AsyncSession, visitor: Visitor, payload: s.VisitInput) -> s.VisitResult:
     card = await by_code(db, payload.card_code, active=True)
-    visit = Visit(card_id=card.id, visitor_id=visitor.id, source=payload.source)
+    if payload.campaign_id is not None:
+        from app.modules.workspace.campaign_service import get
+
+        await get(db, payload.campaign_id, public=True)
+    visit = Visit(
+        card_id=card.id,
+        visitor_id=visitor.id,
+        source=payload.source,
+        campaign_id=payload.campaign_id,
+    )
     visitor.last_seen_at = utcnow()
     db.add(visit)
     await db.commit()
-    return s.VisitResult(visit_id=visit.id)
+    return s.VisitResult(visit_id=visit.id, campaign_id=visit.campaign_id)
 
 
 async def update_visit(

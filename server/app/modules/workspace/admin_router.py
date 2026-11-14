@@ -301,3 +301,51 @@ async def audit_logs(
 @router.post("/notifications/broadcast", operation_id="notification_broadcast", response_model=s.OK)
 async def broadcast(payload: s.BroadcastInput, db: DB, actor: AdminDep) -> s.OK:
     return await admin.broadcast(db, actor, payload)
+
+
+@router.get("/campaigns", operation_id="campaign_list", response_model=s.Page[s.CampaignData])
+async def campaigns(
+    db: DB, actor: AdminDep, page: PageNumber = 1, page_size: PageSize = 20, status: str = ""
+) -> s.Page[s.CampaignData]:
+    from app.modules.workspace import campaign_service as campaigns
+
+    return await campaigns.list_admin(db, page, page_size, status)
+
+
+@router.post("/campaigns", operation_id="campaign_create", response_model=s.CampaignData)
+async def campaign_create(payload: s.CampaignInput, db: DB, actor: AdminDep) -> s.CampaignData:
+    from app.modules.workspace import campaign_service as campaigns
+
+    return await campaigns.save(db, actor, payload)
+
+
+@router.get("/campaigns/{id}", operation_id="campaign_get", response_model=s.CampaignData)
+async def campaign_get(id: int, db: DB, actor: AdminDep) -> s.CampaignData:
+    from app.modules.workspace import campaign_service as campaigns
+
+    return campaigns.data(await campaigns.get(db, id))
+
+
+@router.put("/campaigns/{id}", operation_id="campaign_update", response_model=s.CampaignData)
+async def campaign_update(
+    id: int, payload: s.CampaignInput, db: DB, actor: AdminDep
+) -> s.CampaignData:
+    from app.modules.workspace import campaign_service as campaigns
+
+    return await campaigns.save(db, actor, payload, id)
+
+
+@router.delete("/campaigns/{id}", operation_id="campaign_delete", response_model=s.OK)
+async def campaign_delete(id: int, db: DB, actor: AdminDep) -> s.OK:
+    from app.modules.workspace import campaign_service as campaigns
+
+    return await campaigns.remove(db, actor, id)
+
+
+@router.get(
+    "/campaigns/{id}/report", operation_id="campaign_report", response_model=s.CampaignReport
+)
+async def campaign_report(id: int, db: DB, actor: AdminDep) -> s.CampaignReport:
+    from app.modules.workspace import campaign_service as campaigns
+
+    return await campaigns.report(db, id)

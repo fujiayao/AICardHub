@@ -50,13 +50,16 @@ async def photo(db: AsyncSession, card: Card, content: bytes) -> s.PhotoData:
     return s.PhotoData(photo_url=card.photo_url, photo_bg_url=card.photo_bg_url)
 
 
-def create_share(card: s.CardData) -> s.ShareData:
+def create_share(
+    card: s.CardData, source: str = "link", campaign_id: int | None = None
+) -> s.ShareData:
     base = get_settings().public_base_url.rstrip("/")
-    short = f"{base}/c/{card.code}"
+    suffix = f"&e={campaign_id}" if campaign_id is not None else ""
+    short = f"{base}/c/{card.code}?s={source}{suffix}"
     token = f"{card.code}-{uuid4().hex[:10]}"
     qr_name, poster_name = f"{token}-qr.png", f"{token}-poster.jpg"
     qr = (
-        qrcode.make(f"{base}/card/{card.code}?s=qr", image_factory=PilImage)
+        qrcode.make(f"{base}/c/{card.code}?s=qr{suffix}", image_factory=PilImage)
         .get_image()
         .convert("RGB")
     )
@@ -77,7 +80,12 @@ def create_share(card: s.CardData) -> s.ShareData:
             with Image.open(photo_path) as image:
                 image.thumbnail((630, 400))
                 poster.paste(image, (60, 230))
-    poster.paste(qr.resize((300, 300)), (225, 700))
+    poster_qr = (
+        qrcode.make(f"{base}/c/{card.code}?s=poster{suffix}", image_factory=PilImage)
+        .get_image()
+        .convert("RGB")
+    )
+    poster.paste(poster_qr.resize((300, 300)), (225, 700))
     draw.text((60, 1020), "扫描二维码，了解更多", fill="#14263d", font=font)
     poster.save(root() / poster_name, quality=88)
     return s.ShareData(
@@ -85,8 +93,12 @@ def create_share(card: s.CardData) -> s.ShareData:
     )
 
 
-async def share(db: AsyncSession, card: Card) -> s.ShareData:
-    return await run_in_threadpool(create_share, await shared.card_data(db, card))
+async def share(
+    db: AsyncSession, card: Card, source: str = "link", campaign_id: int | None = None
+) -> s.ShareData:
+    return await run_in_threadpool(
+        create_share, await shared.card_data(db, card), source, campaign_id
+    )
 
 
 def escape_vcard(value: str) -> str:
