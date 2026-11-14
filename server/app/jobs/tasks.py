@@ -358,3 +358,38 @@ async def cleanup(db: AsyncSession, now: datetime | None = None) -> dict[str, in
         "notifications": len(old_notifications),
         "anonymous_visitors": len(anonymous),
     }
+
+
+async def render_pending(db: AsyncSession) -> int:
+    from app.modules.workspace.render_service import render_card
+
+    # Version-conditioned removal keeps a concurrent source edit pending.
+    pending = [
+        (row.key, dict(row.value))
+        for row in (
+            await db.scalars(
+                select(Setting)
+                .where(Setting.key.startswith("render_pending-"))
+                .order_by(Setting.id)
+                .limit(10)
+            )
+        ).all()
+    ]
+    await db.commit()
+    count = 0
+    for key, value in pending:
+        card = await db.get(Card, value["card_id"])
+        employee = await db.get(Employee, card.employee_id) if card else None
+        if card and employee and card.status == "active" and employee.status == "active":
+            await render_card(db, card)
+        current = await db.scalar(
+            select(Setting)
+            .where(Setting.key == key)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        if current and current.value == value:
+            await db.delete(current)
+        await db.commit()
+        count += 1
+    return count

@@ -58,13 +58,28 @@ async def render_card(db: AsyncSession, card: Card) -> None:
 
 
 async def render_all(db: AsyncSession, template_id: int | None = None) -> None:
-    stmt = select(Card)
+    """Enqueue derived files in the same transaction as their source change."""
+    from uuid import uuid4
+
+    from app.modules.workspace.models import Setting
+
+    stmt = (
+        select(Card)
+        .join(Employee, Employee.id == Card.employee_id)
+        .where(Card.status == "active", Employee.status == "active")
+    )
     if template_id is not None:
         stmt = stmt.join(Assistant, Assistant.card_id == Card.id).where(
             Assistant.template_id == template_id
         )
     for card in (await db.scalars(stmt)).all():
-        await render_card(db, card)
+        key = f"render_pending-{card.code}"
+        row = await repo.optional(db, Setting, Setting.key == key)
+        value = {"card_id": card.id, "version": uuid4().hex}
+        if row is None:
+            db.add(Setting(key=key, value=value))
+        else:
+            row.value = value
 
 
 async def template_previews(db: AsyncSession, employee_id: int) -> list[Any]:
@@ -89,7 +104,11 @@ async def chat_context(
 
     store = await get_store()
     if not is_test:
-        return list(await run_in_threadpool(store.search, question, card_code=card.code, limit=4))
+        return [
+            row
+            for row in await run_in_threadpool(store.search, question, card_code=card.code, limit=8)
+            if not str(row["file_id"]).startswith(("profile-", "persona-"))
+        ][:4]
     # This identity has already passed own-card session_access. Copies are authorized only
     # for this staff preview; the stored public/approved flags remain unchanged.
     rows = await run_in_threadpool(store.list_files, scope="card", card_code=card.code)

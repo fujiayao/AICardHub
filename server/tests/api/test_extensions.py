@@ -390,6 +390,7 @@ async def test_资料重渲染撤销批准且私有纠错只对本人试聊可�
     await admin.template_save(
         db, actor, s.TemplateInput(name=template.name, persona="{姓名}新模板合成资料"), template.id
     )
+    await tasks.render_pending(db)
     changed = await run_in_threadpool(store.get, first["file_id"])
     assert changed["revision"] > first["revision"] and not changed["approved"]
     correction = await kb.correction_create(
@@ -494,7 +495,13 @@ def test_独立调度器时间与任务注册不启动API():
     from app.scheduler import create_scheduler
 
     scheduler = create_scheduler()
-    assert {job.id for job in scheduler.get_jobs()} == {"sessions", "overdue", "digest", "cleanup"}
+    assert {job.id for job in scheduler.get_jobs()} == {
+        "sessions",
+        "overdue",
+        "digest",
+        "cleanup",
+        "render",
+    }
     assert str(scheduler.timezone) == "Asia/Shanghai"
     assert "hour='9'" in str(scheduler.get_job("digest").trigger)
 
@@ -854,3 +861,57 @@ def test_密码允许符号且登录兼容旧长口令():
     assert s.LoginInput(phone="13800009999", password="legacy-" + ("a" * 25)).password.startswith(
         "legacy-"
     )
+
+
+async def test_公司保存只写持久待处理标记并过滤停用员工(db, employees, monkeypatch):
+    from time import monotonic
+
+    from app.modules.workspace.models import Company
+
+    actor, employee, colleague = employees
+    colleague.status = "disabled"
+    card = await shared.own_card(db, colleague.id)
+    card.status = "disabled"
+    await db.commit()
+    company = await db.scalar(select(Company))
+    original = s.CompanyData.model_validate(company)
+    payload = original.model_copy(update={"intro": original.intro + " 合成保存回归"})
+    before = monotonic()
+    await admin.company_update(db, actor, payload)
+    assert monotonic() - before < 3
+    active_card = await shared.own_card(db, employee.id)
+    assert await db.scalar(
+        select(Setting.id).where(Setting.key == f"render_pending-{active_card.code}")
+    )
+    assert (
+        await db.scalar(select(Setting.id).where(Setting.key == f"render_pending-{card.code}"))
+        is None
+    )
+    store = await kb.get_store()
+    await run_in_threadpool(
+        store.upsert,
+        f"profile-{active_card.code}",
+        "旧派生资料",
+        "过期合成正文",
+        scope="card",
+        card_code=active_card.code,
+        public=True,
+        approved=True,
+    )
+    assert not any(
+        row["file_id"] == f"profile-{active_card.code}"
+        for row in await chat_context(db, active_card, "过期合成正文", is_test=False)
+    )
+    with pytest.raises(AppError):
+        await kb.note_save(
+            db,
+            actor,
+            s.NoteInput(title="派生资料", content="拒绝公开", public=True, approved=True),
+            file_id=f"profile-{active_card.code}",
+        )
+    await tasks.render_pending(db)
+    current = await run_in_threadpool(store.get, f"profile-{active_card.code}")
+    assert not current["approved"] and not current["public"]
+    repo = __import__("app.modules.workspace.repo", fromlist=["assign"])
+    repo.assign(company, original.model_dump())
+    await db.commit()

@@ -76,3 +76,9 @@ AI修复原样cherry-pick：5367d55/5960a90/f60d54f对应本分支0c912c8/98f0e9
 ## 密码规范补丁
 
 依据docs/UI设计规范.md:353：修改、新建与重置密码8–20位，至少含英文字母和数字，允许符号。Login与old_password保留既有bcrypt72字节兼容。新seed随机口令为Aa9+token_hex(7)，17位；已存在seed账号与ignored凭据不改、不强制重置。密码专项8项通过（36.58s）；ruff与mypy通过。前端改密成功必须退登重新登录（旧token失效）。
+
+## QA公司保存超时修复
+
+真实开发库14员工，同值PUT公司信息耗时20.31秒，根因为同步render_all逐卡读取并Git写入。改为源数据事务中写Setting render_pending-{code}（不改已执行迁移），仅active员工与card。独立scheduler每30秒分批10条处理，按version条件清标记保留并发变更；API不启动scheduler。派生profile/persona在访客chat_context明确排除，后台禁止将这两类文件批准公开，即使旧文件曾公开也不进入访客上下文。知识正文原有显式批准规则保持。
+
+回归：公司保存专项1通过（29.11s含真实Git后台渲染，保存本身断言<3秒）；资料重渲染/调度器/密码专项8通过（32.92s）。最终ruff app/tests、format app/tests及mypy38文件通过。上一轮全量165测试是在密码补丁生效前启动，其3个新增规则测试因旧进程加载旧schema失败（162通过），补丁后8项密码专项及本轮8项均通过；不将该旧进程全量运行声称最终全绿。主线程将在main统一全量回归。

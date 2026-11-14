@@ -75,6 +75,10 @@ async def note_save(
     else:
         file_id = "note-" + uuid4().hex
         scope, card_code = ("card", card.code) if card else ("company", None)
+    if file_id.startswith(("profile-", "persona-")) and (payload.public or payload.approved):
+        raise AppError(
+            ErrorCode.VALIDATION_ERROR, 422, "派生人设和资料仅供本人试聊，不允许公开审批"
+        )
     # Any employee edit revokes approval until explicitly reviewed again.
     approved = payload.approved if employee_id is None else False
     result = await run_in_threadpool(
