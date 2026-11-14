@@ -1,0 +1,63 @@
+/* 访客暗色名片主题变量——仅作用于 .vc-dark 包裹层，严禁改动全局 tokens。
+   取值严格对应 名片原型-demo.html 的 :root 与内联配色。员工端白色主题不受影响。 */
+.vc-dark {
+  --dk-bg: #06090c;
+  --dk-surface: #0f161d;
+  --dk-surface-2: #151f28;
+  --dk-surface-soft: rgba(255, 255, 255, .05);
+  --dk-line: rgba(255, 255, 255, .075);
+  --dk-line-strong: rgba(255, 255, 255, .1);
+  --dk-txt: #e7eef5;
+  --dk-mint: #2fd6b4;
+  --dk-mint-deep: #1a9c9c;
+  --dk-mint-dim: rgba(47, 214, 180, .12);
+  --dk-mint-line: rgba(47, 214, 180, .25);
+  --dk-blue: #5fa8e0;
+  --dk-on-mint: #04201c;
+
+  --dk-hero-glow-a: rgba(47, 214, 180, .13);
+  --dk-hero-glow-b: rgba(95, 168, 224, .10);
+  --dk-brand: #b9c8d4;
+  --dk-avatar-0: #1d3a44;
+  --dk-avatar-1: #152229;
+  --dk-avatar-ring: rgba(47, 214, 180, .45);
+  --dk-avatar-halo: rgba(47, 214, 180, .06);
+  --dk-shadow: rgba(0, 0, 0, .5);
+  --dk-initial: #cfeee7;
+  --dk-role: #93a7b6;
+  --dk-tag: #a9bac8;
+  --dk-act-label: #9fb1bf;
+  --dk-expo: #7d90a0;
+
+  --dk-ai-bg-0: rgba(10, 16, 21, .6);
+  --dk-ai-bg-1: rgba(6, 9, 12, .95);
+  --dk-head-bg: rgba(8, 13, 17, .94);
+  --dk-mark-0: rgba(47, 214, 180, .22);
+  --dk-mark-1: rgba(47, 214, 180, .05);
+  --dk-bubble-ai: #dbe6ef;
+  --dk-bubble-me: #d9f5ee;
+  --dk-cite-line: rgba(255, 255, 255, .1);
+  --dk-cite: #6f8496;
+  --dk-cite-strong: #8fa6b8;
+
+  --dk-lead-0: rgba(47, 214, 180, .1);
+  --dk-lead-1: rgba(47, 214, 180, .03);
+  --dk-lead-title: #dff8f2;
+
+  --dk-composer-0: rgba(6, 9, 12, 0);
+  --dk-composer-1: rgba(6, 9, 12, .96);
+  --dk-placeholder: #5c7182;
+  --dk-disclaimer: #526676;
+}
+
+/* 暗色包裹层整体底色与安全区；strip 掉手机外壳/状态栏/aside，仅保留单页内容。 */
+.vc-dark {
+  min-height: 100vh;
+  background: var(--dk-bg);
+  background-image: radial-gradient(ellipse 130% 34% at 15% 0%, rgba(47, 214, 180, .10), transparent 62%);
+  background-repeat: no-repeat;
+  background-position: top center;
+  color: var(--dk-txt);
+  display: flex;
+  flex-direction: column;
+}
