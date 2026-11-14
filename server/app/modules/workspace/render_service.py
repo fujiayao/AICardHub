@@ -8,12 +8,12 @@ from starlette.concurrency import run_in_threadpool
 
 from app.modules.workspace import repo
 from app.modules.workspace import service as shared
-from app.modules.workspace.models import Assistant, Card, Company, Employee, Template
+from app.modules.workspace.models import Assistant, Card, Employee, Template
 
 
 async def documents(db: AsyncSession, card: Card) -> dict[str, str]:
     employee = await repo.one(db, Employee, Employee.id == card.employee_id)
-    company = await repo.one(db, Company)
+    company = await shared.employee_company(db, employee)
     assistant = await shared.assistant_get(db, card)
     template = (
         await repo.optional(db, Template, Template.id == assistant.template_id)
@@ -86,7 +86,7 @@ async def template_previews(db: AsyncSession, employee_id: int) -> list[Any]:
     from app.modules.workspace import schemas as s
 
     employee = await repo.one(db, Employee, Employee.id == employee_id)
-    company = await repo.one(db, Company)
+    company = await shared.employee_company(db, employee)
     results = []
     for row in await repo.many(db, Template, Template.enabled.is_(True)):
         result = s.TemplateData.model_validate(row)

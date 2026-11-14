@@ -44,13 +44,9 @@ def upgrade() -> None:
         raise RuntimeError("employee rows exist without any company row; create company first")
     op.alter_column("employee", "company_id", existing_type=sa.Integer(), nullable=False)
     op.create_index(op.f("ix_employee_company_id"), "employee", ["company_id"], unique=False)
-    op.create_foreign_key(
-        "fk_employee_company_id", "employee", "company", ["company_id"], ["id"]
-    )
+    op.create_foreign_key("fk_employee_company_id", "employee", "company", ["company_id"], ["id"])
     op.alter_column("employee", "phone", existing_type=sa.String(length=20), nullable=True)
-    op.alter_column(
-        "employee", "password_hash", existing_type=sa.String(length=100), nullable=True
-    )
+    op.alter_column("employee", "password_hash", existing_type=sa.String(length=100), nullable=True)
 
     # Attribution columns.
     op.add_column("visit", sa.Column("campaign_id", sa.Integer(), nullable=True))

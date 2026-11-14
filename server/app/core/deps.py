@@ -26,6 +26,8 @@ async def get_current_staff(request: Request, db: DB, credentials: Credentials) 
     employee = await repo.optional(db, Employee, Employee.id == int(str(payload["sub"])))
     if employee is None or employee.status != "active":
         raise AppError(ErrorCode.AUTH_DISABLED, 401, "账号已停用")
+    if not (employee.phone and employee.password_hash):
+        raise AppError(ErrorCode.AUTH_INVALID, 401, "账号或密码错误")
     if payload.get("version") != employee.token_version:
         raise AppError(ErrorCode.AUTH_REQUIRED, 401, "请重新登录")
     allowed = ("/api/v1/me/profile", "/api/v1/auth/change-password")

@@ -12,12 +12,18 @@ from app.core.db import SessionLocal, engine
 from app.modules.workspace import repo
 from app.modules.workspace import schemas as s
 from app.modules.workspace import service as shared
-from app.modules.workspace.models import Company, Employee, Product, Template
+from app.modules.workspace.models import Company, Employee, Product, Setting, Template
+
+SETUP_MARKER = "initial_setup_complete"
 
 
 async def seed() -> None:
     if get_settings().app_env not in ("local", "test"):
         raise RuntimeError("Demo seed only runs in local/test environments")
+    async with SessionLocal() as db:
+        marker = await repo.optional(db, Setting, Setting.key == SETUP_MARKER)
+        if marker is not None and marker.value is True:
+            return
     credential_path = Path(__file__).parents[1] / "local-credentials.json"
     credentials = (
         json.loads(credential_path.read_text(encoding="utf-8")) if credential_path.exists() else {}
@@ -100,6 +106,11 @@ async def seed() -> None:
             public=True,
             approved=True,
         )
+    # Mark bootstrap complete only after every side effect above succeeded.
+    async with SessionLocal() as db:
+        if await repo.optional(db, Setting, Setting.key == SETUP_MARKER) is None:
+            db.add(Setting(key=SETUP_MARKER, value=True))
+            await db.commit()
 
 
 if __name__ == "__main__":

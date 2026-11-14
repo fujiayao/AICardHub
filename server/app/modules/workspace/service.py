@@ -36,6 +36,18 @@ async def employee_company(db: AsyncSession, employee: Employee) -> Company:
     return await repo.one(db, Company, Company.id == employee.company_id)
 
 
+async def is_primary_company(db: AsyncSession, company: Company) -> bool:
+    return company.id == (await primary_company(db)).id
+
+
+async def company_item(db: AsyncSession, company: Company) -> s.CompanyItem:
+    return s.CompanyItem(
+        **s.CompanyData.model_validate(company).model_dump(),
+        id=company.id,
+        is_primary=await is_primary_company(db, company),
+    )
+
+
 def login_enabled(employee: Employee) -> bool:
     return bool(employee.phone and employee.password_hash)
 
@@ -216,23 +228,7 @@ async def create_employee(
     template = await repo.optional(
         db, Template, Template.is_default.is_(True), Template.enabled.is_(True)
     )
-    company = await employee_company(db, employee) must_change_pwd=must_change
-    )
-    db.add(employee)
-    await db.flush()
-    card = Card(
-        code=code or uuid4().hex[:8],
-        employee_id=employee.id,
-        display_title=employee.title,
-        mobile=employee.phone,
-        email=employee.email,
-    )
-    db.add(card)
-    await db.flush()
-    template = await repo.optional(
-        db, Template, Template.is_default.is_(True), Template.enabled.is_(True)
-    )
-    company = await repo.one(db, Company)
+    company = await employee_company(db, employee)
     db.add(
         Assistant(
             card_id=card.id,

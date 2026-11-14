@@ -2135,6 +2135,170 @@
         ]
       }
     },
+    "/api/v1/admin/companies": {
+      "get": {
+        "summary": "Company Options",
+        "operationId": "company_option_list",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CompanyOption"
+                  },
+                  "type": "array",
+                  "title": "Response Company Option List"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Company Create",
+        "operationId": "company_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyData"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyItem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/companies/{id}": {
+      "get": {
+        "summary": "Company Item Get",
+        "operationId": "company_item_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyItem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Company Item Update",
+        "operationId": "company_item_update",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompanyData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyItem"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/product-cards": {
       "get": {
         "summary": "Products",
@@ -4459,6 +4623,103 @@
         ],
         "title": "CompanyData"
       },
+      "CompanyItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "short_name": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Short Name",
+            "default": ""
+          },
+          "intro": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Intro",
+            "default": ""
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Phone",
+            "default": ""
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Address",
+            "default": ""
+          },
+          "website": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Website",
+            "default": ""
+          },
+          "logo_url": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Logo Url",
+            "default": ""
+          },
+          "brand_color": {
+            "type": "string",
+            "maxLength": 30,
+            "title": "Brand Color",
+            "default": ""
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "is_primary": {
+            "type": "boolean",
+            "title": "Is Primary"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "is_primary"
+        ],
+        "title": "CompanyItem"
+      },
+      "CompanyOption": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "short_name": {
+            "type": "string",
+            "title": "Short Name"
+          },
+          "is_primary": {
+            "type": "boolean",
+            "title": "Is Primary"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "short_name",
+          "is_primary"
+        ],
+        "title": "CompanyOption"
+      },
       "CorrectionData": {
         "properties": {
           "question": {
@@ -4652,8 +4913,15 @@
             "title": "Name"
           },
           "phone": {
-            "type": "string",
-            "pattern": "^1[3-9]\\d{9}$",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^1[3-9]\\d{9}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Phone"
           },
           "dept": {
@@ -4669,9 +4937,16 @@
             "default": ""
           },
           "password": {
-            "type": "string",
-            "maxLength": 20,
-            "minLength": 8,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20,
+                "minLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Password"
           },
           "role": {
@@ -4694,14 +4969,24 @@
             "maxLength": 4000,
             "title": "Business Scope",
             "default": ""
+          },
+          "company_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Id"
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "name",
-          "phone",
-          "password"
+          "name"
         ],
         "title": "EmployeeInput"
       },
@@ -4809,6 +5094,18 @@
               }
             ],
             "title": "Status"
+          },
+          "company_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Id"
           }
         },
         "additionalProperties": false,
@@ -6395,7 +6692,14 @@
             "title": "Name"
           },
           "phone": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Phone"
           },
           "role": {
@@ -6440,6 +6744,21 @@
             "type": "string",
             "title": "Card Code",
             "default": ""
+          },
+          "company_id": {
+            "type": "integer",
+            "title": "Company Id",
+            "default": 0
+          },
+          "company_name": {
+            "type": "string",
+            "title": "Company Name",
+            "default": ""
+          },
+          "login_enabled": {
+            "type": "boolean",
+            "title": "Login Enabled",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -6447,7 +6766,6 @@
         "required": [
           "id",
           "name",
-          "phone",
           "role"
         ],
         "title": "Staff"

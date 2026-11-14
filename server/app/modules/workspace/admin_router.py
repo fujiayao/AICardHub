@@ -21,6 +21,28 @@ async def company_update(payload: s.CompanyData, db: DB, actor: AdminDep) -> s.C
     return await admin.company_update(db, actor, payload)
 
 
+@router.get("/companies", operation_id="company_option_list", response_model=list[s.CompanyOption])
+async def company_options(db: DB, actor: AdminDep) -> list[s.CompanyOption]:
+    return await admin.company_options(db)
+
+
+@router.post("/companies", operation_id="company_create", response_model=s.CompanyItem)
+async def company_create(payload: s.CompanyData, db: DB, actor: AdminDep) -> s.CompanyItem:
+    return await admin.company_create(db, actor, payload)
+
+
+@router.get("/companies/{id}", operation_id="company_item_get", response_model=s.CompanyItem)
+async def company_item_get(id: int, db: DB, actor: AdminDep) -> s.CompanyItem:
+    return await admin.company_item_get(db, id)
+
+
+@router.put("/companies/{id}", operation_id="company_item_update", response_model=s.CompanyItem)
+async def company_item_update(
+    id: int, payload: s.CompanyData, db: DB, actor: AdminDep
+) -> s.CompanyItem:
+    return await admin.company_item_update(db, actor, id, payload)
+
+
 @router.get("/product-cards", operation_id="product_card_list", response_model=list[s.ProductData])
 async def products(db: DB, actor: AdminDep) -> list[s.ProductData]:
     return await admin.products(db)

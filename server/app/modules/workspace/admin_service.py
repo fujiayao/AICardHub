@@ -22,7 +22,7 @@ from app.modules.workspace.models import (
 async def company_update(
     db: AsyncSession, actor: Employee, payload: s.CompanyData
 ) -> s.CompanyData:
-    row = await repo.one(db, Company)
+    row = await shared.primary_company(db)
     repo.assign(row, payload.model_dump())
     from app.modules.workspace.render_service import render_all
 
@@ -30,6 +30,53 @@ async def company_update(
     await shared.audit(db, actor.id, "company.update", str(row.id))
     await db.commit()
     return s.CompanyData.model_validate(row)
+
+
+async def company_options(db: AsyncSession) -> list[s.CompanyOption]:
+    primary = await shared.primary_company(db)
+    rows = await repo.many(db, Company)
+    return [
+        s.CompanyOption(
+            id=row.id,
+            name=row.name,
+            short_name=row.short_name,
+            is_primary=row.id == primary.id,
+        )
+        for row in rows
+    ]
+
+
+async def company_create(
+    db: AsyncSession, actor: Employee, payload: s.CompanyData
+) -> s.CompanyItem:
+    row = Company()
+    repo.assign(row, payload.model_dump())
+    db.add(row)
+    await db.flush()
+    await shared.audit(db, actor.id, "company.create", str(row.id))
+    item = await shared.company_item(db, row)
+    await db.commit()
+    return item
+
+
+async def company_item_get(db: AsyncSession, company_id: int) -> s.CompanyItem:
+    row = await repo.one(db, Company, Company.id == company_id)
+    return await shared.company_item(db, row)
+
+
+async def company_item_update(
+    db: AsyncSession, actor: Employee, company_id: int, payload: s.CompanyData
+) -> s.CompanyItem:
+    row = await repo.one(db, Company, Company.id == company_id)
+    repo.assign(row, payload.model_dump())
+    from app.modules.workspace.render_service import render_all
+
+    if await shared.is_primary_company(db, row):
+        await render_all(db)
+    await shared.audit(db, actor.id, "company.update", str(row.id))
+    item = await shared.company_item(db, row)
+    await db.commit()
+    return item
 
 
 async def products(db: AsyncSession) -> list[s.ProductData]:
@@ -78,12 +125,30 @@ async def employee_update(
     row = await repo.one(db, Employee, Employee.id == employee_id)
     if row.id == actor.id and (payload.status == "disabled" or payload.role == "employee"):
         raise AppError(ErrorCode.FORBIDDEN, 403, "不能停用或移除自己的管理员身份")
+    data = payload.model_dump(exclude_unset=True)
     previous_role = row.role
-    repo.assign(row, payload.model_dump(exclude_none=True))
+    effective_role = data.get("role", row.role)
+    if "company_id" in data:
+        row.company_id = await shared.resolve_company_id(db, data.pop("company_id"))
+    if "phone" in data:
+        new_phone = data.pop("phone")
+        if new_phone is None:
+            if effective_role == "admin":
+                raise AppError(ErrorCode.FORBIDDEN, 403, "管理员不可清空手机号")
+            if row.phone is not None:
+                row.phone = None
+                row.password_hash = None
+                row.token_version += 1
+        else:
+            row.phone = new_phone
+    for key, value in data.items():
+        if value is not None:
+            setattr(row, key, value)
     if previous_role != row.role:
         row.token_version += 1
     card = await shared.own_card(db, row.id)
     card.status = row.status
+    card.mobile = row.phone or ""
     from app.modules.workspace.render_service import render_card
 
     await render_card(db, card)
@@ -96,6 +161,8 @@ async def employee_reset(
     db: AsyncSession, actor: Employee, employee_id: int, payload: s.ResetPassword
 ) -> s.OK:
     row = await repo.one(db, Employee, Employee.id == employee_id)
+    if row.phone is None:
+        raise AppError(ErrorCode.CONFLICT, 409, "请先为该员工补充手机号后再设置密码")
     row.password_hash = await hash_password(payload.password)
     row.must_change_pwd = True
     row.token_version += 1
