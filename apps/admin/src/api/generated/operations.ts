@@ -1,4 +1,4 @@
-// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: 53e01e023e63f221fcd247e3f629de002a47c68aad18716d41de450c7b52bf6e
+// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: b1226f19e1dc1e8ab7acc27be0d6c8f74fae19f66aa4313a7cb91ff0502a15ee
 import type { paths } from "./schema";
 import { request } from "../client";
 type Json<T> = T extends { content: { "application/json": infer J } }
@@ -186,6 +186,118 @@ export function company_update(options: {
 }): Promise<Result<paths["/api/v1/admin/company"]["put"]>> {
   return request("PUT", "/api/v1/admin/company", {
     body: options.body,
+    signal: options.signal,
+  });
+}
+
+/** companies: GET /api/v1/admin/companies */
+export function company_option_list(
+  options: { signal?: AbortSignal } = {},
+): Promise<Result<paths["/api/v1/admin/companies"]["get"]>> {
+  return request("GET", "/api/v1/admin/companies", { signal: options.signal });
+}
+
+/** createCompany: POST /api/v1/admin/companies */
+export function company_create(options: {
+  body: Body<paths["/api/v1/admin/companies"]["post"]>;
+  signal?: AbortSignal;
+}): Promise<Result<paths["/api/v1/admin/companies"]["post"]>> {
+  return request("POST", "/api/v1/admin/companies", {
+    body: options.body,
+    signal: options.signal,
+  });
+}
+
+/** companyItem: GET /api/v1/admin/companies/{id} */
+export function company_item_get(options: {
+  path: Param<paths["/api/v1/admin/companies/{id}"]["get"], "path">;
+  signal?: AbortSignal;
+}): Promise<Result<paths["/api/v1/admin/companies/{id}"]["get"]>> {
+  return request("GET", "/api/v1/admin/companies/{id}", {
+    path: options.path,
+    signal: options.signal,
+  });
+}
+
+/** updateCompanyItem: PUT /api/v1/admin/companies/{id} */
+export function company_item_update(options: {
+  path: Param<paths["/api/v1/admin/companies/{id}"]["put"], "path">;
+  body: Body<paths["/api/v1/admin/companies/{id}"]["put"]>;
+  signal?: AbortSignal;
+}): Promise<Result<paths["/api/v1/admin/companies/{id}"]["put"]>> {
+  return request("PUT", "/api/v1/admin/companies/{id}", {
+    path: options.path,
+    body: options.body,
+    signal: options.signal,
+  });
+}
+
+/** campaigns: GET /api/v1/admin/campaigns */
+export function campaign_list(
+  options: {
+    query?: Param<paths["/api/v1/admin/campaigns"]["get"], "query">;
+    signal?: AbortSignal;
+  } = {},
+): Promise<Result<paths["/api/v1/admin/campaigns"]["get"]>> {
+  return request("GET", "/api/v1/admin/campaigns", {
+    query: options.query,
+    signal: options.signal,
+  });
+}
+
+/** createCampaign: POST /api/v1/admin/campaigns */
+export function campaign_create(options: {
+  body: Body<paths["/api/v1/admin/campaigns"]["post"]>;
+  signal?: AbortSignal;
+}): Promise<Result<paths["/api/v1/admin/campaigns"]["post"]>> {
+  return request("POST", "/api/v1/admin/campaigns", {
+    body: options.body,
+    signal: options.signal,
+  });
+}
+
+/** campaign: GET /api/v1/admin/campaigns/{id} */
+export function campaign_get(options: {
+  path: Param<paths["/api/v1/admin/campaigns/{id}"]["get"], "path">;
+  signal?: AbortSignal;
+}): Promise<Result<paths["/api/v1/admin/campaigns/{id}"]["get"]>> {
+  return request("GET", "/api/v1/admin/campaigns/{id}", {
+    path: options.path,
+    signal: options.signal,
+  });
+}
+
+/** updateCampaign: PUT /api/v1/admin/campaigns/{id} */
+export function campaign_update(options: {
+  path: Param<paths["/api/v1/admin/campaigns/{id}"]["put"], "path">;
+  body: Body<paths["/api/v1/admin/campaigns/{id}"]["put"]>;
+  signal?: AbortSignal;
+}): Promise<Result<paths["/api/v1/admin/campaigns/{id}"]["put"]>> {
+  return request("PUT", "/api/v1/admin/campaigns/{id}", {
+    path: options.path,
+    body: options.body,
+    signal: options.signal,
+  });
+}
+
+/** deleteCampaign: DELETE /api/v1/admin/campaigns/{id} */
+export function campaign_delete(options: {
+  path: Param<paths["/api/v1/admin/campaigns/{id}"]["delete"], "path">;
+  signal?: AbortSignal;
+}): Promise<Result<paths["/api/v1/admin/campaigns/{id}"]["delete"]>> {
+  return request("DELETE", "/api/v1/admin/campaigns/{id}", {
+    path: options.path,
+    signal: options.signal,
+  });
+}
+
+/** campaignReport: GET /api/v1/admin/campaigns/{id}/report */
+export function campaign_report(options: {
+  path: Param<paths["/api/v1/admin/campaigns/{id}/report"]["get"], "path">;
+  signal?: AbortSignal;
+}): Promise<Result<paths["/api/v1/admin/campaigns/{id}/report"]["get"]>> {
+  return request("GET", "/api/v1/admin/campaigns/{id}/report", {
+    path: options.path,
     signal: options.signal,
   });
 }
@@ -533,6 +645,16 @@ export const operations = {
   transfer: employee_transfer,
   company: company_get,
   saveCompany: company_update,
+  companies: company_option_list,
+  createCompany: company_create,
+  companyItem: company_item_get,
+  updateCompanyItem: company_item_update,
+  campaigns: campaign_list,
+  createCampaign: campaign_create,
+  campaign: campaign_get,
+  updateCampaign: campaign_update,
+  deleteCampaign: campaign_delete,
+  campaignReport: campaign_report,
   products: product_card_list,
   createProduct: product_card_create,
   updateProduct: product_card_update,

@@ -1,4 +1,4 @@
-// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: 53e01e023e63f221fcd247e3f629de002a47c68aad18716d41de450c7b52bf6e
+// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: b1226f19e1dc1e8ab7acc27be0d6c8f74fae19f66aa4313a7cb91ff0502a15ee
 export interface paths {
   "/health": {
     parameters: {
@@ -694,6 +694,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/public/campaigns/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Public Campaign */
+    get: operations["campaign_get_public"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/me/campaigns": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** My Campaigns */
+    get: operations["me_campaign_list"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/admin/company": {
     parameters: {
       query?: never;
@@ -705,6 +739,42 @@ export interface paths {
     get: operations["company_get"];
     /** Company Update */
     put: operations["company_update"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/companies": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Company Options */
+    get: operations["company_option_list"];
+    put?: never;
+    /** Company Create */
+    post: operations["company_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/companies/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Company Item Get */
+    get: operations["company_item_get"];
+    /** Company Item Update */
+    put: operations["company_item_update"];
     post?: never;
     delete?: never;
     options?: never;
@@ -1183,12 +1253,68 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/admin/campaigns": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Campaigns */
+    get: operations["campaign_list"];
+    put?: never;
+    /** Campaign Create */
+    post: operations["campaign_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/campaigns/{id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Campaign Get */
+    get: operations["campaign_get"];
+    /** Campaign Update */
+    put: operations["campaign_update"];
+    post?: never;
+    /** Campaign Delete */
+    delete: operations["campaign_delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/admin/campaigns/{id}/report": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Campaign Report */
+    get: operations["campaign_report"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     /** AdminStats */
     AdminStats: {
+      /** Source Breakdown */
+      source_breakdown?: components["schemas"]["TrafficSource"][];
       /** Visits */
       visits: number;
       /** Visitors */
@@ -1295,6 +1421,114 @@ export interface components {
       content: string;
       /** Employee Ids */
       employee_ids?: number[] | null;
+    };
+    /** CampaignData */
+    CampaignData: {
+      /** Name */
+      name: string;
+      /**
+       * Status
+       * @default draft
+       * @enum {string}
+       */
+      status: "draft" | "active" | "ended";
+      /**
+       * Start At
+       * Format: date-time
+       */
+      start_at: string;
+      /**
+       * End At
+       * Format: date-time
+       */
+      end_at: string;
+      /**
+       * Booth
+       * @default
+       */
+      booth: string;
+      /**
+       * Location
+       * @default
+       */
+      location: string;
+      /**
+       * Opening Override
+       * @default
+       */
+      opening_override: string;
+      /** Guide Override */
+      guide_override?: string[];
+      /** Id */
+      id: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /**
+       * Is Live
+       * @default false
+       */
+      is_live: boolean;
+    };
+    /** CampaignInput */
+    CampaignInput: {
+      /** Name */
+      name: string;
+      /**
+       * Status
+       * @default draft
+       * @enum {string}
+       */
+      status: "draft" | "active" | "ended";
+      /**
+       * Start At
+       * Format: date-time
+       */
+      start_at: string;
+      /**
+       * End At
+       * Format: date-time
+       */
+      end_at: string;
+      /**
+       * Booth
+       * @default
+       */
+      booth: string;
+      /**
+       * Location
+       * @default
+       */
+      location: string;
+      /**
+       * Opening Override
+       * @default
+       */
+      opening_override: string;
+      /** Guide Override */
+      guide_override?: string[];
+    };
+    /** CampaignReport */
+    CampaignReport: {
+      /** Campaign Id */
+      campaign_id: number;
+      /** Visits */
+      visits: number;
+      /** Visitors */
+      visitors: number;
+      /** Chats */
+      chats: number;
+      /** Leads */
+      leads: number;
+      /** Source Breakdown */
+      source_breakdown: components["schemas"]["SourceBreakdownRow"][];
     };
     /** CardData */
     CardData: {
@@ -1405,6 +1639,61 @@ export interface components {
        */
       brand_color: string;
     };
+    /** CompanyItem */
+    CompanyItem: {
+      /** Name */
+      name: string;
+      /**
+       * Short Name
+       * @default
+       */
+      short_name: string;
+      /**
+       * Intro
+       * @default
+       */
+      intro: string;
+      /**
+       * Phone
+       * @default
+       */
+      phone: string;
+      /**
+       * Address
+       * @default
+       */
+      address: string;
+      /**
+       * Website
+       * @default
+       */
+      website: string;
+      /**
+       * Logo Url
+       * @default
+       */
+      logo_url: string;
+      /**
+       * Brand Color
+       * @default
+       */
+      brand_color: string;
+      /** Id */
+      id: number;
+      /** Is Primary */
+      is_primary: boolean;
+    };
+    /** CompanyOption */
+    CompanyOption: {
+      /** Id */
+      id: number;
+      /** Name */
+      name: string;
+      /** Short Name */
+      short_name: string;
+      /** Is Primary */
+      is_primary: boolean;
+    };
     /** CorrectionData */
     CorrectionData: {
       /** Question */
@@ -1480,7 +1769,7 @@ export interface components {
       /** Name */
       name: string;
       /** Phone */
-      phone: string;
+      phone?: string | null;
       /**
        * Dept
        * @default
@@ -1492,7 +1781,7 @@ export interface components {
        */
       title: string;
       /** Password */
-      password: string;
+      password?: string | null;
       /**
        * Role
        * @default employee
@@ -1509,6 +1798,8 @@ export interface components {
        * @default
        */
       business_scope: string;
+      /** Company Id */
+      company_id?: number | null;
     };
     /** EmployeeUpdate */
     EmployeeUpdate: {
@@ -1528,6 +1819,8 @@ export interface components {
       role?: ("employee" | "admin") | null;
       /** Status */
       status?: ("active" | "disabled") | null;
+      /** Company Id */
+      company_id?: number | null;
     };
     /** Empty */
     Empty: Record<string, never>;
@@ -1682,6 +1975,13 @@ export interface components {
     };
     /** LeadData */
     LeadData: {
+      /** Campaign Id */
+      campaign_id?: number | null;
+      /**
+       * Source
+       * @default link
+       */
+      source: string;
       /** Visitor Id */
       visitor_id: number;
       /** Id */
@@ -1713,6 +2013,16 @@ export interface components {
     };
     /** LeadInput */
     LeadInput: {
+      /** Campaign Id */
+      campaign_id?: number | null;
+      /** Visit Id */
+      visit_id?: number | null;
+      /**
+       * Source
+       * @default link
+       * @enum {string}
+       */
+      source: "nfc" | "qr" | "poster" | "link" | "sig";
       /** Card Code */
       card_code: string;
       /** Session Id */
@@ -1865,6 +2175,17 @@ export interface components {
     Page_AuditData_: {
       /** Items */
       items: components["schemas"]["AuditData"][];
+      /** Total */
+      total: number;
+      /** Page */
+      page: number;
+      /** Page Size */
+      page_size: number;
+    };
+    /** Page[CampaignData] */
+    Page_CampaignData_: {
+      /** Items */
+      items: components["schemas"]["CampaignData"][];
       /** Total */
       total: number;
       /** Page */
@@ -2058,6 +2379,33 @@ export interface components {
       /** Guide Questions */
       guide_questions: string[];
     };
+    /** PublicCampaign */
+    PublicCampaign: {
+      /** Id */
+      id: number;
+      /** Name */
+      name: string;
+      /**
+       * Start At
+       * Format: date-time
+       */
+      start_at: string;
+      /**
+       * End At
+       * Format: date-time
+       */
+      end_at: string;
+      /**
+       * Booth
+       * @default
+       */
+      booth: string;
+      /**
+       * Location
+       * @default
+       */
+      location: string;
+    };
     /** PublicCard */
     PublicCard: {
       /** Code */
@@ -2088,6 +2436,7 @@ export interface components {
       /** Wechat Qr Url */
       wechat_qr_url?: string | null;
       company: components["schemas"]["CompanyData"];
+      campaign?: components["schemas"]["PublicCampaign"] | null;
       /** Products */
       products?: components["schemas"]["ProductData"][];
       assistant?: components["schemas"]["PublicAssistant"] | null;
@@ -2124,6 +2473,16 @@ export interface components {
     SessionInput: {
       /** Card Code */
       card_code: string;
+      /** Visit Id */
+      visit_id?: number | null;
+      /** Campaign Id */
+      campaign_id?: number | null;
+      /**
+       * Source
+       * @default link
+       * @enum {string}
+       */
+      source: "nfc" | "qr" | "poster" | "link" | "sig";
     };
     /** SessionResult */
     SessionResult: {
@@ -2133,6 +2492,16 @@ export interface components {
       guide_questions: string[];
       /** Session Id */
       session_id: number;
+      /** Visit Id */
+      visit_id?: number | null;
+      /** Campaign Id */
+      campaign_id?: number | null;
+      /**
+       * Source
+       * @default link
+       * @enum {string}
+       */
+      source: "nfc" | "qr" | "poster" | "link" | "sig";
     };
     /** SettingData */
     SettingData: {
@@ -2160,6 +2529,31 @@ export interface components {
       /** Poster Url */
       poster_url: string;
     };
+    /** SourceBreakdownRow */
+    SourceBreakdownRow: {
+      /** Source */
+      source: string;
+      /**
+       * Visits
+       * @default 0
+       */
+      visits: number;
+      /**
+       * Visitors
+       * @default 0
+       */
+      visitors: number;
+      /**
+       * Chats
+       * @default 0
+       */
+      chats: number;
+      /**
+       * Leads
+       * @default 0
+       */
+      leads: number;
+    };
     /** Staff */
     Staff: {
       /** Id */
@@ -2167,7 +2561,7 @@ export interface components {
       /** Name */
       name: string;
       /** Phone */
-      phone: string;
+      phone?: string | null;
       /**
        * Role
        * @enum {string}
@@ -2208,9 +2602,26 @@ export interface components {
        * @default
        */
       card_code: string;
+      /**
+       * Company Id
+       * @default 0
+       */
+      company_id: number;
+      /**
+       * Company Name
+       * @default
+       */
+      company_name: string;
+      /**
+       * Login Enabled
+       * @default false
+       */
+      login_enabled: boolean;
     };
     /** StatsData */
     StatsData: {
+      /** Source Breakdown */
+      source_breakdown?: components["schemas"]["TrafficSource"][];
       /** Visits */
       visits: number;
       /** Visitors */
@@ -2290,6 +2701,19 @@ export interface components {
       /** Text */
       text: string;
     };
+    /** TrafficSource */
+    TrafficSource: {
+      /** Source */
+      source: string;
+      /** Visits */
+      visits: number;
+      /** Visitors */
+      visitors: number;
+      /** Chats */
+      chats: number;
+      /** Leads */
+      leads: number;
+    };
     /** TransferInput */
     TransferInput: {
       /** To Employee Id */
@@ -2317,11 +2741,15 @@ export interface components {
        * @enum {string}
        */
       source: "nfc" | "qr" | "poster" | "link" | "sig";
+      /** Campaign Id */
+      campaign_id?: number | null;
     };
     /** VisitResult */
     VisitResult: {
       /** Visit Id */
       visit_id: number;
+      /** Campaign Id */
+      campaign_id?: number | null;
     };
     /** VisitorData */
     VisitorData: {
@@ -2458,6 +2886,7 @@ export interface operations {
     parameters: {
       query?: {
         s?: "nfc" | "qr" | "poster" | "link" | "sig";
+        e?: number | null;
       };
       header?: never;
       path: {
@@ -2628,7 +3057,9 @@ export interface operations {
   };
   card_get_public: {
     parameters: {
-      query?: never;
+      query?: {
+        e?: number | null;
+      };
       header?: never;
       path: {
         code: string;
@@ -3015,7 +3446,10 @@ export interface operations {
   };
   me_card_share: {
     parameters: {
-      query?: never;
+      query?: {
+        s?: "nfc" | "qr" | "poster" | "link" | "sig";
+        e?: number | null;
+      };
       header?: never;
       path?: never;
       cookie?: never;
@@ -3029,6 +3463,15 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ShareData"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
@@ -3896,6 +4339,57 @@ export interface operations {
       };
     };
   };
+  campaign_get_public: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PublicCampaign"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  me_campaign_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PublicCampaign"][];
+        };
+      };
+    };
+  };
   company_get: {
     parameters: {
       query?: never;
@@ -3936,6 +4430,125 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["CompanyData"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  company_option_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CompanyOption"][];
+        };
+      };
+    };
+  };
+  company_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CompanyData"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CompanyItem"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  company_item_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CompanyItem"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  company_item_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CompanyData"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CompanyItem"];
         };
       };
       /** @description Validation Error */
@@ -5170,6 +5783,200 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["OK"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  campaign_list: {
+    parameters: {
+      query?: {
+        page?: number;
+        page_size?: number;
+        status?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["Page_CampaignData_"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  campaign_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CampaignInput"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CampaignData"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  campaign_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CampaignData"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  campaign_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CampaignInput"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CampaignData"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  campaign_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OK"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  campaign_report: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["CampaignReport"];
         };
       };
       /** @description Validation Error */
