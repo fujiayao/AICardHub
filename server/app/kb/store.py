@@ -321,12 +321,14 @@ class KnowledgeStore:
             target = next((item for item in versions if item["revision"] == revision), None)
             if target is None:
                 raise KeyError("Knowledge revision not found")
-            current = self._get(file_id)
+            # Validate the current record before replacing it, but never inherit
+            # approval from different content or from a historical revision.
+            self._get(file_id)
             target.update(
                 revision=versions[0]["revision"] + 1,
                 deleted=False,
-                public=current["public"] if current else False,
-                approved=current["approved"] if current else False,
+                public=False,
+                approved=False,
             )
             return self._save(target)
 

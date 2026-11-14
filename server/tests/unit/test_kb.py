@@ -140,6 +140,54 @@ def test_回滚增加版本但不会重新公开被撤回内容(store: Knowledge
     assert next_document["revision"] == 7
 
 
+@pytest.mark.parametrize("target_was_approved", [False, True], ids=["old-draft", "old-public"])
+def test_回滚批准绑定新版本且两个方向均须明确重新批准(
+    store: KnowledgeStore, target_was_approved: bool
+) -> None:
+    observer = KnowledgeStore(store.root)
+    first = store.upsert(
+        "demo",
+        "合成演示产品",
+        "演示产品的旧版合成正文",
+        public=target_was_approved,
+        approved=target_was_approved,
+    )
+    second = store.upsert(
+        "demo",
+        "合成演示产品",
+        "演示产品的当前合成正文",
+        public=not target_was_approved,
+        approved=not target_was_approved,
+    )
+    assert bool(observer.search("演示产品")) is not target_was_approved
+
+    restored = store.rollback("demo", first["revision"])
+    assert restored["revision"] == second["revision"] + 1
+    assert restored["content"] == first["content"]
+    assert restored["public"] is False and restored["approved"] is False
+    assert store.search("演示产品") == observer.search("演示产品") == []
+    assert store.get("demo") == restored
+    versions = store.history("demo")
+    assert versions[0] == restored and versions[1] == second and versions[2] == first
+
+    # Requesting publication alone cannot approve the restored revision.
+    pending = store.upsert("demo", restored["title"], restored["content"], public=True)
+    assert pending["revision"] == restored["revision"] + 1
+    assert pending["approved"] is False
+    assert store.search("演示产品") == observer.search("演示产品") == []
+
+    approved = store.upsert(
+        "demo",
+        restored["title"],
+        restored["content"],
+        public=True,
+        approved=True,
+    )
+    assert approved["revision"] == pending["revision"] + 1
+    assert observer.search("演示产品")[0]["revision"] == approved["revision"]
+    assert store.search("演示产品")[0]["content"] == first["content"]
+
+
 def test_并发写入不丢失版本(store: KnowledgeStore) -> None:
     def write(index: int) -> int:
         return KnowledgeStore(store.root).upsert("demo", "并发合成内容", str(index))["revision"]
