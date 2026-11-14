@@ -9,7 +9,7 @@ export const endpoints = {
  createLead: ['post', '/api/v1/public/leads', 'visitor'],
  card: ['get', '/api/v1/me/card', 'staff'], saveCard: ['put', '/api/v1/me/card', 'staff'], cardShare: ['get', '/api/v1/me/card/share', 'staff'], uploadPhoto: ['post', '/api/v1/me/card/photo', 'staff'],
  uploadWechatQR: ['post', '/api/v1/me/card/wechat-qr', 'staff'],
- assistant: ['get', '/api/v1/me/assistant', 'staff'], saveAssistant: ['put', '/api/v1/me/assistant', 'staff'], templates: ['get', '/api/v1/me/assistant/templates', 'staff'], polish: ['post', '/api/v1/me/assistant/polish', 'staff'],
+ assistant: ['get', '/api/v1/me/assistant', 'staff'], saveAssistant: ['put', '/api/v1/me/assistant', 'staff'], templates: ['get', '/api/v1/me/assistant/templates', 'staff'], polish: ['post', '/api/v1/me/assistant/polish', 'staff'], assistantMetrics: ['get', '/api/v1/me/assistant/metrics', 'staff'],
  leads: ['get', '/api/v1/me/leads', 'staff'], lead: ['get', '/api/v1/me/leads/{id}', 'staff'], updateLead: ['patch', '/api/v1/me/leads/{id}', 'staff'], stats: ['get', '/api/v1/me/stats', 'staff'],
  visitors: ['get', '/api/v1/me/visitors', 'staff'], visitor: ['get', '/api/v1/me/visitors/{id}', 'staff'],
  notifications: ['get', '/api/v1/me/notifications', 'staff'], unreadCount: ['get', '/api/v1/me/notifications/unread-count', 'staff'], readNotification: ['post', '/api/v1/me/notifications/{id}/read', 'staff'], readAll: ['post', '/api/v1/me/notifications/read-all', 'staff'],

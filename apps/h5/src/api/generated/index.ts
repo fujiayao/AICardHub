@@ -44,6 +44,8 @@ export function saveAssistant(input: { body: Schemas.AssistantInput }): Promise<
 export function templates(_input: {  } = {}): Promise<Array<Schemas.TemplateData>> { return request<Array<Schemas.TemplateData>>('get', `/api/v1/me/assistant/templates`, undefined, 'staff', undefined) }
 /** me_assistant_polish */
 export function polish(input: { body: Schemas.PolishInput }): Promise<Schemas.TextData> { return request<Schemas.TextData>('post', `/api/v1/me/assistant/polish`, input.body, 'staff', undefined) }
+/** me_assistant_metrics */
+export function assistantMetrics(_input: {  } = {}): Promise<Schemas.AssistantMetrics> { return request<Schemas.AssistantMetrics>('get', `/api/v1/me/assistant/metrics`, undefined, 'staff', undefined) }
 /** me_lead_list */
 export function leads(input: { query?: { "page"?: number; "page_size"?: number; "status"?: string; "q"?: string } } = {}): Promise<Schemas.Page_LeadData_> { return request<Schemas.Page_LeadData_>('get', `/api/v1/me/leads`, undefined, 'staff', input.query) }
 /** me_lead_get */
