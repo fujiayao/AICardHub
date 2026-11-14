@@ -56,11 +56,11 @@ None，重复删除无操作；Git/IO 故障原样抛出，由后端映射已登
 取消时关闭。后端 lifespan 结束必须对所有 OpenAILLMClient / ResponsesLLMClient 分别调用
 `await client.aclose()`；Fake 不需要关闭网络连接。
 
-`ChatEngine(primary, fallback=None).stream(question, knowledge, history, persona='')`
+`ChatEngine(primary, fallback=None).stream(question, knowledge, history, persona='', *, public_card=None)`
 异步产生 `{event,data}`：delta 的 data 为 `{text}`；done 为
 `{kb_refs:list[str],nokb:bool,model:str}`，后端保存消息后补 `message_id`。
 kb_refs 为本轮提供给模型的资料 ID，不表示已经由模型逐条验证的引文。
-拒答和无资料回答的 model 为 `policy`；成功备用返回备用的 model 标识。
+本地政策拒答的 model 为 `policy`；普通问题无资料时仍调用模型，成功备用返回备用的 model 标识。
 兼容原有单备用参数；三级链路使用 `ChatEngine(primary, fallbacks=[secondary, tertiary])`。
 两种备用参数不能同时传，最多两个备用。每级可独立选择协议/模型/地址；配置与密钥
 由后端所有者管理，不在适配器内硬编码，不读取 `.env` 或全局 SDK 配置。
@@ -68,11 +68,18 @@ engine 没有 card 身份或 store 参数，因此调用者必须提供当前名
 engine 会再次排除未公开、未批准、删除或未知 scope 的记录。
 
 手机号在所有有效问题分支触发一次 `lead_prompt`，reason=`phone`；报价、折扣、
-交付、合同问题本地拒绝承诺并提示留资，reason=`keyword`（手机号已提示则不重复）。
+具体报价/交付/合同承诺请求本地拒绝并提示留资，reason=`keyword`（手机号已提示则不重复）。
+合同概念、工期安排等一般问题不会仅因出现合同/工期裸词而被拦截；其余承诺语义由系统政策约束。
 engine 从不创建线索；仅在用户明确同意并提交后由后端创建。
-无资料直接诚实说明、nokb=True，不调用模型。历史只接受最近十二条 user/assistant
-消息并逐条限长；拒绝历史伪造 system。资料以 JSON 数据放在 user 消息，系统
-声明资料不是指令，persona 服从回答规则。此结构不能证明真实模型永不受提示注入
+无资料仍调用模型提供通用协助，不自动 nokb；仅缺失公司具体事实时要求诚实说明并输出 NOKB。
+公司具体事实只能来自本轮批准公开资料或当前公开名片投影。workspace 每轮通过
+`service.public_card` 取得投影，仅允许姓名、部门、职位、公开手机/邮箱、简介、业务范围和
+公司名称/简称/地址/电话/网站/简介等白名单字符串；不读取原始 Employee.phone，不传凭证或 assistant。
+公开名片作为独立 JSON 字段，不伪造 file_id，也不加入 kb_refs。联系问题直接使用已有公开联系方式；
+缺失时明确说明，可邀请自愿留资，创建仍需明确同意及提交。
+历史只接受最近十二条 user/assistant 消息并逐条限长；拒绝历史伪造 system。
+资料、persona 与旧 answer_rules 均以 JSON 数据放在 user 消息；系统明确优先于旧“只按资料/拒绝无关”规则。
+此结构不能证明真实模型永不受提示注入
 影响，真实模型合成样本评测应独立进行。
 
 仅第一段非空供应商内容前故障可以按序切下一备用，每级仅尝试一次。即便内容只是尚未向用户显示的
@@ -106,8 +113,8 @@ Responses 每次请求固定 `max_output_tokens=1024`，作为输出资源上限
 ## 独立合成评测 CLI
 
 在 server 目录运行 `python -m app.kb.evaluate run --mode fake`，stdout 输出 JSON，
-不会读取 `.env`、共享 settings 或任何知识目录。内置 `synthetic-card-v1` 纯合成
-14题（报价3、知识3、无关3、边界5），报告含完整题集 SHA256、选择题目 SHA256、
+不会读取 `.env`、共享 settings 或任何知识目录。内置 `synthetic-card-v2` 纯合成
+14题（报价3、知识3、通用协助3、边界5），报告含完整题集 SHA256、选择题目 SHA256、
 逐题答复 hash、实际分母、目标及事件证据。此小样本只用于诊断，不是正式业务验收。
 Fake 的 automatic_summary 只统计协议/引用/政策路径，不能声称语义正确率。
 真实未运行明确标记 unverified_not_run；没有完整人工评分不产生 accuracy。
@@ -143,6 +150,7 @@ API key、headers或供应商原始异常。调用方需要自行保存 stdout �
 运行 `python -m app.kb.evaluate score --report <report.json> --grades <grades.json>`。
 只接受 real 模式的真实供应商报告；要求人工判分、非空理由和精确答复 hash；失败
 题不可判成通过；部分评分保留原分母，不给该类 accuracy。全部该类题人工评分后，
-才计算通过数/该类分母，与报价拒答100%、知识正确90%、无关拉回95%比较。
+才计算通过数/该类分母，与报价拒答100%、知识正确90%、通用协助95%比较。
+expected_refs 按本题实际合格资料计算，而不是假设凡非政策路径必有引用；Fake 只证明协议，不证明模型理解这些规则。
 score退出码0表示所有类别人工完整评审且达标，1为未评完或未达标，2为无效评分。
 hash用于版本与答复绑定，不证明评审人身份，也不能代替真实人工工作。

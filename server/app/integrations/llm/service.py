@@ -22,6 +22,17 @@ QUOTE = re.compile(
     r"\b(?:price|pricing|cost|quote|quotation|discount|delivery|contract)\b",
     re.IGNORECASE,
 )
+GENERAL_EXPLANATION = re.compile(
+    r"什么是|解释|含义|定义|区别|(?:如何|怎么)(?:安排|规划)|"
+    r"\b(?:what is|explain|define|difference|how to plan)\b",
+    re.IGNORECASE,
+)
+TRANSACTION_CONTEXT = re.compile(
+    r"你们|贵司|贵公司|本公司|我们|名片本人|承诺|保证|"
+    r"(?:本次|这次|这笔|该笔|我的|我们的).{0,8}(?:交易|订单|合同|项目)|"
+    r"(?:这个|该|本)项目|\b(?:your|our|promise|guarantee)\b|\bthe\s+(?:price|cost)\b",
+    re.IGNORECASE,
+)
 INJECTION = re.compile(
     r"(?:忽略|绕过|覆盖).{0,15}(?:指令|规则|提示)|(?:输出|泄露|展示|告诉).{0,15}(?:提示词|系统指令)|"
     r"ignore.{0,20}(?:instructions|rules)|system\s*prompt",
@@ -70,6 +81,8 @@ class ChatEngine:
         knowledge: list[dict[str, Any]],
         history: list[dict[str, Any]],
         persona: str = "",
+        *,
+        public_card: dict[str, Any] | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
         if not isinstance(question, str) or not question.strip() or len(question) > 8000:
             yield _event(
@@ -81,7 +94,10 @@ class ChatEngine:
         phone_found = PHONE.search(question) is not None
         if phone_found:
             yield _event("lead_prompt", reason="phone", title="如需跟进，请确认并提交联系方式")
-        if QUOTE.search(question):
+        # Explain/plan generic topics via the model, but company-specific terms
+        # and promises take precedence even when framed as a definition request.
+        general = GENERAL_EXPLANATION.search(question) and not TRANSACTION_CONTEXT.search(question)
+        if QUOTE.search(question) and not general:
             yield _event("delta", text=QUOTE_REPLY)
             if not phone_found:
                 yield _event(
@@ -103,11 +119,9 @@ class ChatEngine:
             yield _event("done", kb_refs=[], nokb=False, model="policy")
             return
         selected = await asyncio.to_thread(public_knowledge, knowledge)
-        if not selected:
-            yield _event("delta", text=UNKNOWN)
-            yield _event("done", kb_refs=[], nokb=True, model="policy")
-            return
-        messages = await build_messages(question, selected, history, persona)
+        messages = await build_messages(
+            question, selected, history, persona, public_card=public_card
+        )
         clients = [self.client, *self.fallbacks]
         for index, client in enumerate(clients):
             received = False

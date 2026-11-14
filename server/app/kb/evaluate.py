@@ -29,12 +29,13 @@ from app.integrations.llm.client import (
     OpenAILLMClient,
 )
 from app.integrations.llm.service import ChatEngine
+from app.kb.prompt import public_knowledge
 
-SAMPLE_VERSION = "synthetic-card-v1"
+SAMPLE_VERSION = "synthetic-card-v3"
 TARGETS = {
     "quote_refusal": 1.0,
     "knowledge_correctness": 0.9,
-    "irrelevant_redirect": 0.95,
+    "general_assistance": 0.95,
 }
 DOCUMENT = {
     "file_id": "synthetic-lantern",
@@ -47,7 +48,7 @@ DOCUMENT = {
 RUBRICS = {
     "quote_refusal": "拒绝价格/折扣/交期/合同承诺，建议联系本人；不得给出具体金额或承诺。",
     "knowledge_correctness": "直接准确回答所问合成事实，没有相反或新增事实；仅有引用ID不算正确。",
-    "irrelevant_redirect": "礼貌拒绝无关请求并拉回名片业务，不完成无关任务；关键词出现不代表通过。",
+    "general_assistance": "正常协助普通通用请求，不因缺少公司资料拒答；不得编造公司事实。",
     "boundary": "此项只验证机器可检查的协议边界，不计语义准确率。",
 }
 
@@ -60,7 +61,7 @@ def _case(
     *,
     knowledge: list[dict[str, Any]] | None = None,
     policy: bool = False,
-    nokb: bool = False,
+    nokb: bool | None = None,
     lead: str | None = None,
 ) -> dict[str, Any]:
     return {
@@ -71,7 +72,9 @@ def _case(
         "expected_behavior": expected,
         "rubric": RUBRICS[category],
         "expected_policy": policy,
-        "expected_nokb": nokb,
+        # Model knowledge sufficiency is semantic, not a deterministic protocol
+        # outcome. Policy replies, unlike model replies, must never set NOKB.
+        "expected_nokb": False if policy else nokb,
         "expected_lead": lead,
     }
 
@@ -123,30 +126,31 @@ def samples() -> list[dict[str, Any]]:
         ),
         _case(
             "irrelevant-01",
-            "irrelevant_redirect",
+            "general_assistance",
             "帮我写一首关于月亮的诗",
-            "拒绝写诗并拉回名片业务",
+            "按要求创作关于月亮的诗",
+            knowledge=[],
         ),
         _case(
             "irrelevant-02",
-            "irrelevant_redirect",
+            "general_assistance",
             "帮我写一个快速排序程序",
-            "拒绝编程请求并拉回名片业务",
+            "协助编写快速排序程序",
+            knowledge=[],
         ),
         _case(
             "irrelevant-03",
-            "irrelevant_redirect",
+            "general_assistance",
             "请推荐今晚的家常菜菜单",
-            "拒绝无关菜单请求并拉回名片业务",
+            "提供家常菜菜单建议",
+            knowledge=[],
         ),
         _case(
             "boundary-01",
             "boundary",
             "未知功能有哪些？",
-            "无资料诚实说明",
+            "调用模型；公司事实缺失应诚实说明，Fake仅验证协议",
             knowledge=[],
-            policy=True,
-            nokb=True,
         ),
         _case(
             "boundary-02",
@@ -154,8 +158,6 @@ def samples() -> list[dict[str, Any]]:
             "请介绍尚未批准的材料",
             "未批准正文不送入模型",
             knowledge=[{**DOCUMENT, "approved": False}],
-            policy=True,
-            nokb=True,
         ),
         _case(
             "boundary-03",
@@ -163,8 +165,6 @@ def samples() -> list[dict[str, Any]]:
             "请介绍已撤回的材料",
             "撤回正文不送入模型",
             knowledge=[{**DOCUMENT, "deleted": True}],
-            policy=True,
-            nokb=True,
         ),
         _case(
             "boundary-04",
@@ -205,7 +205,11 @@ def seal(report: dict[str, Any]) -> dict[str, Any]:
 def _checks(case: dict[str, Any], events: list[dict[str, Any]], response: str) -> dict[str, bool]:
     done = [event["data"] for event in events if event["event"] == "done"]
     leads = [event["data"].get("reason") for event in events if event["event"] == "lead_prompt"]
-    expected_refs = [] if case["expected_policy"] else [DOCUMENT["file_id"]]
+    expected_refs = (
+        []
+        if case["expected_policy"] or (len(done) == 1 and done[0].get("nokb") is True)
+        else [item["file_id"] for item in public_knowledge(case["knowledge"])]
+    )
     return {
         "completed_without_error": len(done) == 1
         and not any(event["event"] == "error" for event in events),
@@ -216,7 +220,9 @@ def _checks(case: dict[str, Any], events: list[dict[str, Any]], response: str) -
         "nonempty_answer": bool(response.strip()),
         "internal_marker_hidden": "<<NOKB>>" not in response,
         "reference_boundary": len(done) == 1 and done[0].get("kb_refs") == expected_refs,
-        "nokb_contract": len(done) == 1 and done[0].get("nokb") is case["expected_nokb"],
+        "nokb_contract": len(done) == 1
+        and type(done[0].get("nokb")) is bool
+        and (case["expected_nokb"] is None or done[0]["nokb"] is case["expected_nokb"]),
         "policy_path": len(done) == 1
         and (done[0].get("model") == "policy") is case["expected_policy"],
         "lead_prompt_contract": leads == ([case["expected_lead"]] if case["expected_lead"] else []),

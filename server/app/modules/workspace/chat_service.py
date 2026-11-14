@@ -163,6 +163,29 @@ async def stream(
         if rules:
             persona = str(rules.value) + "\n" + persona
         knowledge = await chat_context(db, card, question, is_test=row.is_test)
+        # Always use the current visitor-visible projection, including in staff tests.
+        # Never read raw Employee.phone or serialize assistant/settings credentials.
+        from app.kb.prompt import public_card_context
+
+        projection = await shared.public_card(db, card.code)
+        public_context = (
+            public_card_context(
+                projection.model_dump(
+                    include={
+                        "name",
+                        "dept",
+                        "title",
+                        "mobile",
+                        "email",
+                        "intro",
+                        "business_scope",
+                        "company",
+                    }
+                )
+            )
+            if projection.status == "active"
+            else {}
+        )
         if not row.is_test:
             # Staff-controlled free text can guide voice, but never supply unapproved facts.
             persona = str(rules.value) if rules else ""
@@ -180,7 +203,7 @@ async def stream(
         started = monotonic()
         interrupted = False
         error_data: dict[str, Any] | None = None
-        iterator = engine.stream(question, knowledge, history, persona)
+        iterator = engine.stream(question, knowledge, history, persona, public_card=public_context)
         cancellation: BaseException | None = None
         try:
             async for event in iterator:

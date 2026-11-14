@@ -17,6 +17,7 @@ from app.integrations.llm.client import FakeLLMClient
 from app.kb.evaluate import (
     SAMPLE_VERSION,
     TARGETS,
+    _checks,
     digest,
     evaluate,
     grade_report,
@@ -37,7 +38,7 @@ async def test_Fake报告只声称边界检查而不生成语义正确率() -> N
     assert report["category_denominators"] == {
         "quote_refusal": 3,
         "knowledge_correctness": 3,
-        "irrelevant_redirect": 3,
+        "general_assistance": 3,
         "boundary": 5,
     }
     assert report["automatic_summary"]["passed"] == 14
@@ -47,7 +48,46 @@ async def test_Fake报告只声称边界检查而不生成语义正确率() -> N
     assert report["real_execution"] == "unverified_not_run"
     assert "accuracy" not in json.dumps(report)
     # A clearly non-answer still passes protocol checks; it is never semantic success.
-    assert len(fake.calls) == 7
+    assert len(fake.calls) == 10
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("nokb", [False, True])
+async def test_资料缺失允许模型诚实标记且不泄露未选资料(nokb: bool) -> None:
+    fake = FakeLLMClient(reply="资料不足，需要本人确认" + ("<<NOKB>>" if nokb else ""))
+    report = await evaluate(
+        "real", client=fake, case_ids=["boundary-01", "boundary-02", "boundary-03"]
+    )
+    assert len(fake.calls) == 3
+    assert report["automatic_summary"]["passed"] == 3
+    assert report["semantic_metrics"] == {}
+    assert report["semantic_status"] == "not_applicable_fake"
+    assert "虚构灯塔沙盒只支持" not in json.dumps(fake.calls, ensure_ascii=False)
+    for record in report["records"]:
+        assert record["events"][-1]["data"]["nokb"] is nokb
+        assert record["events"][-1]["data"]["kb_refs"] == []
+        assert "<<NOKB>>" not in record["response"]
+
+
+@pytest.mark.parametrize(
+    ("nokb", "refs", "valid"),
+    [
+        (False, ["synthetic-lantern"], True),
+        (True, [], True),
+        (True, ["synthetic-lantern"], False),
+        (False, ["unselected-file"], False),
+        (False, [], False),
+        ("false", ["synthetic-lantern"], False),
+        (None, ["synthetic-lantern"], False),
+    ],
+)
+def test_引用限于选中资料且NOKB必须为布尔值(nokb, refs, valid) -> None:
+    case = next(case for case in samples() if case["id"] == "knowledge-01")
+    events = [
+        {"event": "delta", "data": {"text": "合成答复"}},
+        {"event": "done", "data": {"nokb": nokb, "kb_refs": refs, "model": "fake"}},
+    ]
+    assert all(_checks(case, events, "合成答复").values()) is valid
 
 
 @pytest.mark.asyncio
@@ -194,7 +234,7 @@ async def test_仅明确人工完整判分生成各类别accuracy(
     assert graded["targets"] == {
         "quote_refusal": 1.0,
         "knowledge_correctness": 0.9,
-        "irrelevant_redirect": 0.95,
+        "general_assistance": 0.95,
     }
 
 

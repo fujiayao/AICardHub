@@ -118,12 +118,14 @@ async def test_手机号在所有回答分支只提示一次且无创建线索�
         [{**KNOWLEDGE[0], "deleted": True}],
     ],
 )
-async def test_没有批准公开资料不调用模型且诚实说明(knowledge: list) -> None:
-    fake = FakeLLMClient()
+async def test_没有批准公开资料仍调用模型且不泄露被拒资料(knowledge: list) -> None:
+    fake = FakeLLMClient(reply="合成通用答复")
     events = await collect(ChatEngine(fake), knowledge=knowledge)
-    assert "需要确认" in text_of(events)
-    assert fake.calls == []
-    assert events[-1]["data"]["nokb"] is True
+    assert text_of(events) == "合成通用答复"
+    assert len(fake.calls) == 1
+    assert "此合成材料仅用于测试" not in json.dumps(fake.calls, ensure_ascii=False)
+    assert events[-1]["data"]["nokb"] is False
+    assert events[-1]["data"]["kb_refs"] == []
 
 
 @pytest.mark.asyncio
