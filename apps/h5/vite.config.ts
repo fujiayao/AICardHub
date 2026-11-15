@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { defineConfig, loadEnv } from 'vite'
 import { createVitePlugins } from './build/vite/index.ts'
+import { normalizeBase } from './src/utils/app-path'
 
 // Only an http loopback origin is accepted as the dev proxy target; anything else
 // (https, external hosts, 0.0.0.0, private LAN, credentials, paths, query, hash) is rejected.
@@ -44,11 +45,13 @@ function isLoopbackHost(hostname: string): boolean {
   return false
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const root = import.meta.dirname
   const env = loadEnv(mode, root, 'AICARD_')
   const target = resolveApiTarget(env.AICARD_API_TARGET)
+  const base = command === 'build' ? normalizeBase(loadEnv(mode, root, 'VITE_').VITE_BASE) : '/'
   return {
+    base,
     plugins: createVitePlugins(),
     // Pre-bundle resolver-generated imports before lazy pages can trigger a reload.
     optimizeDeps: {

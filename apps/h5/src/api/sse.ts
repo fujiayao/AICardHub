@@ -1,4 +1,5 @@
 import type { Identity } from './tokens'
+import { withAppBase } from '@/utils/app-path'
 import { ApiError } from './client'
 import { clearToken, getToken } from './tokens'
 export type StreamEvent =
@@ -35,7 +36,7 @@ export function createEventParser(onEvent: (event: StreamEvent) => void) {
  return { feed, finish() { if (pending.trim()) feed('\n\n') } }
 }
 export async function streamChat(path: string, content: string, identity: Exclude<Identity, 'public'>, signal: AbortSignal, onEvent: (event: StreamEvent) => void) {
- const response = await fetch(path, { method: 'POST', signal, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken(identity)}`, Accept: 'text/event-stream' }, body: JSON.stringify({ content }) })
+ const response = await fetch(withAppBase(path), { method: 'POST', signal, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken(identity)}`, Accept: 'text/event-stream' }, body: JSON.stringify({ content }) })
  if (!response.ok) {
   if (response.status === 401) { clearToken(identity); if (identity === 'staff') window.dispatchEvent(new Event('staff-session-expired')) }
   const error = await response.json().catch(() => ({})) as { code?: string, message?: string }

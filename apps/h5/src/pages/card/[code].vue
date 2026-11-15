@@ -12,6 +12,7 @@ import { useResource } from '@/composables/useResource'
 import { ensureVisit } from '@/composables/useVisit'
 import { callPhone, copyText, isWechat, saveContact, share } from '@/platform'
 import { useVisitorStore } from '@/stores/visitor'
+import { cardShareUrl } from '@/utils/app-path'
 import { sceneCampaign, sceneQuery, sceneSource } from '@/utils/scene'
 import '@/components/visitor/dark-card.css'
 
@@ -84,7 +85,7 @@ function onShare() {
   if (!card.value) return
   // 分享永远走短链 /c/{code}，仅带来源+活动，绝不带 q/lead。
   const query = `s=${activeSource.value}${eventId.value ? `&e=${eventId.value}` : ''}`
-  share(`${card.value.name}｜${card.value.title}`, `${origin}/c/${card.value.code}?${query}`)
+  share(`${card.value.name}｜${card.value.title}`, cardShareUrl(card.value.code, query, origin))
 }
 </script>
 

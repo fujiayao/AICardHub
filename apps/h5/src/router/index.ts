@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from 'vue-router/auto-routes'
 import { clearToken, getToken } from '@/api/tokens'
 import { safeReturn } from '@/platform'
-export const router = createRouter({ history: createWebHistory(), routes, scrollBehavior: () => ({ top: 0 }) })
+export const router = createRouter({ history: createWebHistory(import.meta.env.BASE_URL), routes, scrollBehavior: () => ({ top: 0 }) })
 router.beforeEach((to) => {
  if (!to.path.startsWith('/staff/')) return
  if (!getToken('staff') && to.path !== '/staff/login') return { path: '/staff/login', query: { redirect: to.fullPath } }

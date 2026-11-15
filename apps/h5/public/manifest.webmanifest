@@ -1,1 +1,1 @@
-{"name": "数科名片", "short_name": "数科名片", "lang": "zh-CN", "start_url": "/staff/card", "display": "standalone", "icons": [{"src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]}
+{"name": "数科名片", "short_name": "数科名片", "lang": "zh-CN", "start_url": "./staff/card", "scope": "./", "display": "standalone", "icons": [{"src": "./icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]}

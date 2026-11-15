@@ -3,13 +3,14 @@ import type { PublicCard } from '@/api/generated'
 import { computed } from 'vue'
 import AnonymousPortrait from '@/components/common/AnonymousPortrait.vue'
 import { share } from '@/platform'
+import { cardShareUrl } from '@/utils/app-path'
 const props = defineProps<{ card: PublicCard, shareQuery?: string }>()
 const origin = window.location.origin
 const role = computed(() => [props.card.title, props.card.dept].filter(Boolean).join('｜'))
 const brandName = computed(() => props.card.company.short_name || props.card.company.name)
 function onShare() {
   const query = props.shareQuery || 's=link'
-  share(`${props.card.name}｜${props.card.title}`, `${origin}/c/${props.card.code}?${query}`)
+  share(`${props.card.name}｜${props.card.title}`, cardShareUrl(props.card.code, query, origin))
 }
 </script>
 

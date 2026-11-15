@@ -1,5 +1,6 @@
 import type { Identity } from './tokens'
 import axios from 'axios'
+import { mapAssetPaths, withAppBase } from '@/utils/app-path'
 import { clearToken, getToken } from './tokens'
 export class ApiError extends Error {
  constructor(public code: string, message: string, public status = 0) { super(message) }
@@ -8,10 +9,10 @@ const client = axios.create({ timeout: 30000 })
 export async function request<T>(method: string, path: string, body: unknown, identity: Identity, query?: Record<string, unknown>): Promise<T> {
  try {
   const token = getToken(identity)
-  const response = await client.request<T>({ method, url: path, data: body, params: query,
+  const response = await client.request<T>({ method, url: withAppBase(path), data: mapAssetPaths(body, 'storage'), params: query,
    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   })
-  return response.data
+  return mapAssetPaths(response.data)
  } catch (error) {
   if (axios.isAxiosError<{ code?: string, message?: string }>(error)) {
    const status = error.response?.status || 0

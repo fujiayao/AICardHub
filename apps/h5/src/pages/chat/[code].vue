@@ -12,6 +12,7 @@ import { useResource } from '@/composables/useResource'
 import { ensureVisit } from '@/composables/useVisit'
 import { callPhone, copyText, isWechat, saveContact, share } from '@/platform'
 import { useVisitorStore } from '@/stores/visitor'
+import { cardShareUrl } from '@/utils/app-path'
 import { sceneCampaign, sceneQuery, sceneSource } from '@/utils/scene'
 import '@/components/visitor/dark-card.css'
 
@@ -71,7 +72,7 @@ function contact() { if (isWechat) guide.value = true; else saveContact(code.val
 function onShare() {
   if (!card.value) return
   const query = `s=${activeSource.value}${eventId.value ? `&e=${eventId.value}` : ''}`
-  share(`${card.value.name}｜${card.value.title}`, `${origin}/c/${card.value.code}?${query}`)
+  share(`${card.value.name}｜${card.value.title}`, cardShareUrl(card.value.code, query, origin))
 }
 </script>
 
