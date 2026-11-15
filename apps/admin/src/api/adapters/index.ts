@@ -93,8 +93,11 @@ export const api = {
     body: Pick<Note, "title" | "content" | "public" | "approved">,
   ) =>
     id
-      ? ops.updateNote({ path: { file_id: id }, body })
-      : ops.createNote({ body }),
+      ? ops.updateNote({
+          path: { file_id: id },
+          body: { description: "", ...body },
+        })
+      : ops.createNote({ body: { description: "", ...body } }),
   deleteNote: (file_id: string) => ops.deleteNote({ path: { file_id } }),
   history: (file_id: string) => ops.history({ path: { file_id } }),
   rollback: (file_id: string, revision: number) =>

@@ -1,4 +1,4 @@
-// Generated from OpenAPI; DO NOT EDIT. SHA256 3ebe39cd03645b7c69558307f9e60097c4c2f9ccc98a327105cb630cdc64d4e2
+// Generated from OpenAPI; DO NOT EDIT. SHA256 34240ff74f1a65f98a808c0c183bb1661fcfd2e1de3deda4d6b9f76f697570bd
 export type AdminStats = { "today"?: DayMetrics; "yesterday"?: DayMetrics; "source_breakdown"?: Array<TrafficSource>; "visits": number; "visitors": number; "chats": number; "leads": number; "conversion_rate": number; "daily": Array<DailyStat>; "employees": number; "cards": number; "overdue_leads": number }
 export type AssistantData = { "template_id"?: (number | null); "persona_extra"?: string; "opening"?: string; "guide_questions"?: Array<string> }
 export type AssistantInput = { "template_id"?: (number | null); "persona_extra"?: string; "opening"?: string; "guide_questions"?: Array<string> }
@@ -79,6 +79,7 @@ export type SessionResult = { "opening": string; "guide_questions": Array<string
 export type SettingData = { "key": string; "value": unknown }
 export type SettingInput = { "value"?: unknown; "clear_secret"?: boolean }
 export type ShareData = { "short_url": string; "qr_url": string; "poster_url": string }
+export type ShareLinkData = { "short_url": string; "source": "nfc" | "qr" | "poster" | "link" | "sig"; "campaign_id": (number | null) }
 export type SourceBreakdownRow = { "source": string; "visits"?: number; "visitors"?: number; "chats"?: number; "leads"?: number }
 export type Staff = { "id": number; "name": string; "phone"?: (string | null); "role": "employee" | "admin"; "dept"?: string; "title"?: string; "email"?: string; "business_scope"?: string; "status"?: string; "must_change_pwd"?: boolean; "card_code"?: string; "company_id"?: number; "company_name"?: string; "login_enabled"?: boolean }
 export type StatsData = { "today"?: DayMetrics; "yesterday"?: DayMetrics; "source_breakdown"?: Array<TrafficSource>; "visits": number; "visitors": number; "chats": number; "leads": number; "conversion_rate": number; "daily": Array<DailyStat> }

@@ -7,7 +7,7 @@ export const endpoints = {
  initVisitor: ['post', '/api/v1/public/visitor/init', 'visitor'], createVisit: ['post', '/api/v1/public/visits', 'visitor'], updateVisit: ['patch', '/api/v1/public/visits/{id}', 'visitor'],
  createSession: ['post', '/api/v1/public/chat/sessions', 'visitor'], messages: ['get', '/api/v1/public/chat/sessions/{id}/messages', 'visitor'],
  createLead: ['post', '/api/v1/public/leads', 'visitor'],
- card: ['get', '/api/v1/me/card', 'staff'], saveCard: ['put', '/api/v1/me/card', 'staff'], cardShare: ['get', '/api/v1/me/card/share', 'staff'], uploadPhoto: ['post', '/api/v1/me/card/photo', 'staff'],
+ card: ['get', '/api/v1/me/card', 'staff'], saveCard: ['put', '/api/v1/me/card', 'staff'], cardShare: ['get', '/api/v1/me/card/share', 'staff'], cardShareLink: ['get', '/api/v1/me/card/share-link', 'staff'], uploadPhoto: ['post', '/api/v1/me/card/photo', 'staff'],
  uploadWechatQR: ['post', '/api/v1/me/card/wechat-qr', 'staff'],
  assistant: ['get', '/api/v1/me/assistant', 'staff'], saveAssistant: ['put', '/api/v1/me/assistant', 'staff'], templates: ['get', '/api/v1/me/assistant/templates', 'staff'], polish: ['post', '/api/v1/me/assistant/polish', 'staff'], assistantMetrics: ['get', '/api/v1/me/assistant/metrics', 'staff'],
  leads: ['get', '/api/v1/me/leads', 'staff'], lead: ['get', '/api/v1/me/leads/{id}', 'staff'], updateLead: ['patch', '/api/v1/me/leads/{id}', 'staff'], stats: ['get', '/api/v1/me/stats', 'staff'],

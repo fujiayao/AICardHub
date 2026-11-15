@@ -13,6 +13,7 @@ from app.core.config import get_settings
 from app.core.errors import AppError, ErrorCode
 from app.modules.workspace import schemas as s
 from app.modules.workspace import service as shared
+from app.modules.workspace import share_link_service as links
 from app.modules.workspace.models import Card
 
 POSTER_FONT_PATHS = (
@@ -89,17 +90,15 @@ async def photo(db: AsyncSession, card: Card, content: bytes) -> s.PhotoData:
 
 
 def create_share(
-    card: s.CardData, source: str = "link", campaign_id: int | None = None
+    card: s.CardData, source: s.Source = "link", campaign_id: int | None = None
 ) -> s.ShareData:
     # Validate before writing either image; never report a garbled poster as success.
     font = poster_font()
-    base = get_settings().public_base_url.rstrip("/")
-    suffix = f"&e={campaign_id}" if campaign_id is not None else ""
-    short = f"{base}/c/{card.code}?s={source}{suffix}"
+    short = links.short_url(card.code, source, campaign_id)
     token = f"{card.code}-{uuid4().hex[:10]}"
     qr_name, poster_name = f"{token}-qr.png", f"{token}-poster.jpg"
     qr = (
-        qrcode.make(f"{base}/c/{card.code}?s=qr{suffix}", image_factory=PilImage)
+        qrcode.make(links.short_url(card.code, "qr", campaign_id), image_factory=PilImage)
         .get_image()
         .convert("RGB")
     )
@@ -115,7 +114,7 @@ def create_share(
                 image.thumbnail((630, 400))
                 poster.paste(image, (60, 230))
     poster_qr = (
-        qrcode.make(f"{base}/c/{card.code}?s=poster{suffix}", image_factory=PilImage)
+        qrcode.make(links.short_url(card.code, "poster", campaign_id), image_factory=PilImage)
         .get_image()
         .convert("RGB")
     )
@@ -128,7 +127,7 @@ def create_share(
 
 
 async def share(
-    db: AsyncSession, card: Card, source: str = "link", campaign_id: int | None = None
+    db: AsyncSession, card: Card, source: s.Source = "link", campaign_id: int | None = None
 ) -> s.ShareData:
     return await run_in_threadpool(
         create_share, await shared.card_data(db, card), source, campaign_id

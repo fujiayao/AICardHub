@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">数科 NFC 助手</string>
+    <string name="app_version">数科 NFC 助手 · %1$s</string>
+    <string name="nfc_description">数科公开名片 NFC 分享</string>
+    <string name="mode_remaining">模式：%1$s · 剩余 %2$d 秒</string>
+    <string name="preview_card">%1$s\n%2$s\n%3$s\n%4$s</string>
+    <string name="preview_campaign">临时活动：%1$s\n结束时间：%2$s</string>
+</resources>

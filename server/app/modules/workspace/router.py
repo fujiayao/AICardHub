@@ -1,10 +1,8 @@
 from typing import Annotated
-from urllib.parse import quote
 
 from fastapi import APIRouter, File, Query, Request, UploadFile
-from fastapi.responses import PlainTextResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, StreamingResponse
 
-from app.core.config import normalize_root_path
 from app.core.deps import DB, Credentials, StaffDep, VisitorDep
 from app.modules.workspace import chat_service as chat
 from app.modules.workspace import knowledge_service as kb
@@ -12,6 +10,7 @@ from app.modules.workspace import me_service as me
 from app.modules.workspace import media_service as media
 from app.modules.workspace import schemas as s
 from app.modules.workspace import service as shared
+from app.modules.workspace import share_link_service as links
 
 router = APIRouter(prefix="/api/v1")
 public_redirect = APIRouter()
@@ -98,15 +97,22 @@ async def short_link(
     request: Request,
     s: s.Source = "link",
     e: int | None = Query(default=None, ge=1),
-) -> RedirectResponse:
-    await shared.by_code(db, code)
-    if e is not None:
-        from app.modules.workspace.campaign_service import get
-
-        await get(db, e, public=True)
-    suffix = f"&e={e}" if e is not None else ""
-    prefix = normalize_root_path(request.scope.get("root_path", ""))
-    return RedirectResponse(f"{prefix}/card/{quote(code, safe='')}?s={s}{suffix}", status_code=302)
+) -> RedirectResponse | HTMLResponse:
+    result = await links.resolve_short_link(
+        db, code, request.scope.get("root_path", ""), s, e, request.headers.get("accept", "")
+    )
+    headers = {"Cache-Control": "no-store", "Vary": "Accept"}
+    if result.recovery_html:
+        return HTMLResponse(
+            result.recovery_html,
+            status_code=404,
+            headers={
+                **headers,
+                "Content-Security-Policy": "default-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+    return RedirectResponse(result.location, status_code=302, headers=headers)
 
 
 @router.get(
@@ -194,11 +200,17 @@ async def card_update(payload: s.CardInput, db: DB, staff: StaffDep) -> s.CardDa
 async def card_share(
     db: DB, staff: StaffDep, s: s.Source = "link", e: int | None = Query(default=None, ge=1)
 ) -> s.ShareData:
-    if e is not None:
-        from app.modules.workspace.campaign_service import get
-
-        await get(db, e, public=True)
+    await links.validate_campaign(db, e)
     return await media.share(db, await shared.own_card(db, staff.id), s, e)
+
+
+@router.get(
+    "/me/card/share-link", operation_id="me_card_share_link", response_model=s.ShareLinkData
+)
+async def card_share_link(
+    db: DB, staff: StaffDep, query: Annotated[s.ShareLinkQuery, Query()]
+) -> s.ShareLinkData:
+    return await links.share_link(db, staff.id, query.s, query.e)
 
 
 @router.post("/me/card/photo", operation_id="me_card_photo", response_model=s.PhotoData)

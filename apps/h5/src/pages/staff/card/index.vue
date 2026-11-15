@@ -52,10 +52,11 @@ const { data, loading, error, reload } = useResource(async () => {
           </router-link>
         </div>
         <p v-else class="empty-inline">还没有访客，发送名片开启交流</p>
-        <div class="banner nfc-strip">
+        <router-link class="banner nfc-strip" to="/staff/card/share?tab=nfc">
           <span class="icon i-lucide-nfc nfc-ico" aria-hidden="true" />
-          <span class="grow">NFC 功能未启用</span>
-        </div>
+          <span class="grow">手机分享 · NFC 碰一碰与写贴纸</span>
+          <span class="icon i-lucide-chevron-right nfc-go" aria-hidden="true" />
+        </router-link>
         </div>
       </template>
     </ResourceState>
@@ -235,5 +236,8 @@ const { data, loading, error, reload } = useResource(async () => {
 }
 .nfc-ico {
   color: var(--c-ai);
+}
+.nfc-go {
+  color: var(--c-text-3);
 }
 </style>

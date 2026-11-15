@@ -249,6 +249,18 @@ class ShareData(Schema):
     poster_url: str
 
 
+class ShareLinkQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    s: Source = "link"
+    e: int | None = Field(default=None, ge=1)
+
+
+class ShareLinkData(Schema):
+    short_url: str
+    source: Source
+    campaign_id: int | None
+
+
 class PhotoData(Schema):
     photo_url: str
     photo_bg_url: str

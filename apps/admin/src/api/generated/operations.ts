@@ -1,4 +1,4 @@
-// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: b1226f19e1dc1e8ab7acc27be0d6c8f74fae19f66aa4313a7cb91ff0502a15ee
+// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: 34240ff74f1a65f98a808c0c183bb1661fcfd2e1de3deda4d6b9f76f697570bd
 import type { paths } from "./schema";
 import { request } from "../client";
 type Json<T> = T extends { content: { "application/json": infer J } }
