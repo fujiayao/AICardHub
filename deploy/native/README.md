@@ -1,434 +1,218 @@
-# AICardHub 原生 EL9 部署（T51-native）
+# AICardHub 原生 EL9 部署运行手册
 
-本目录是任务 T51 的人工作业授权变体：**不使用 Docker，不启用两个 API worker**。
-部署形态改为 CentOS Stream 9 / EL9 原生 systemd，API 固定一个 worker，scheduler
-作为独立进程。原始 T51 的 Docker/2-worker 要求已被项目负责人明确覆盖；本 README
-记录该授权。没有修改 `docs/adr/`，因为本任务只允许写 `deploy/native/**`。
+本目录只提供 AICardHub 在**现有** nginx TLS 站点中挂载 `/aicardhub` 前缀的部署材料。
+公开入口固定为 `https://haiwex.com/aicardhub`。不在本机创建独立 vhost、TLS 站点或
+公网监听，不修改其他站点和主机根路径；生产以 mainline 的现有 nginx、证书、MySQL 和 systemd 为准。
 
-- 基线提交：`fa89ef3efef230b18b1e2850f2283a82d9c0f39f`
-- 契约 SHA256：`3EBE39CD03645B7C69558307F9E60097C4C2F9CCC98A327105CB630CDC64D4E2`
-- 本任务没有 API 变更、数据库迁移、seed 或数据复制。
-- 本目录中的脚本是**本地编写和校验**的部署材料，不代表已在生产执行。
+本包是本地编写的交付材料，最终校验由 supervisor 在实现结束后单独执行并记录，不代表已在
+生产执行，也不代表完整验证已通过。旧 `fa89ef3` 构建产物不可部署；最终
+artifact 必须从当前 mainline 重新构建，包含 backend 前缀/字体修复 `97f3b82`、`ce33cab`
+和 frontend 前缀集成 `596248b`、`c42365f`。
 
-## 1. 边界与职责
+## 1. 固定部署契约
+- 生产 nginx 只使用 server 上下文 include：
+  `/opt/aicardhub/ops/nginx/aicardhub.locations.conf`。该 include 不含 `server`、
+  `listen`、`root`，所有 location 都限定在 `/aicardhub`。
+- H5 和后台 SPA 的 history fallback 使用 `error_page 404 =200`，深链接返回 200；
+  `/assets/**` 缺失文件仍为 404，不回退、不代理。
+- `/aicardhub/api/` 和 `/aicardhub/c/` 反代到 loopback API，剥离 `/aicardhub` 前缀；
+  SSE 关闭 buffering/cache，读、写、发送超时均为 120 秒。
+- `/aicardhub/.git`、`/aicardhub/admin/x/.env` 等任意层级点路径由最前面的引号正则
+  `^/aicardhub/(?:.*/)?\.` 拒绝。
+- `/aicardhub/files/` 只接受应用生成的 UUID 派生图片名；该 uploads 正则保留
+  `disable_symlinks on`，其他名称固定 404。
+- release 静态资源来自 `current/apps/h5/dist` 和 `current/apps/admin/dist`；因为
+  `current` 是有意保留的符号链接，静态资源 location 不使用 `disable_symlinks`。
+- API 固定 loopback `127.0.0.1:18000`、一个 worker，systemd 使用
+  `--root-path /aicardhub`；scheduler 是独立进程，不在 API 启动时启动。
+- 可选 stage wrapper 只监听 `127.0.0.1:18080`，复用同一 include，无 TLS，不对外。
 
-- 服务器探测、域名/证书发现、MySQL 供给、数据迁移和最终线上验收由 mainline 负责。
-- 本文档只描述非敏感事实；不包含真实域名、证书路径、账号、密码、公网 IP 或密钥。
-- 不覆盖、迁移或接管已有 nginx vhost、默认站点、`default_server`、全局 nginx 配置、
-  SELinux 全局策略、防火墙或其他业务端口。
-- 不执行 `apt`、`dnf upgrade`、盲目装包、替换系统 Python、关闭 SELinux 或打开防火墙。
-- `deploy/native/evidence/marker.txt` 是先前探测留下的证据文件，未改动。
+## 2. 主机前置
+- EL9 x86_64；mainline 现有 Python 3.12、MySQL 8、git 和 nginx。本包不远程复核这些
+  事实，preflight 会再次检查；生产运行时不需要 `uv`。
+- 需确认现有 Linux 运行时依赖、CJK 字体和 SELinux 策略；不执行 `apt`/`dnf`
+  升级或安装，不关闭 SELinux，不改防火墙。
+- release 必须预先在与生产相同的 EL9 x86_64 + Python 3.12 环境构建。生产机不拉包、
+  不构建前端、不创建 venv。
+- 数据迁移、数据库账号、证书和 secret 由 mainline 供给；README 不含账号、密码或公网 IP。
 
-### 已确认的非敏感服务器事实
+## 3. 目录、账号与权限
 
-| 项 | 事实 |
-|---|---|
-| 系统 | CentOS Stream 9 x86_64（EL9） |
-| CPU / 内存 | 4 vCPU；MemTotal 3722 MB，检查时可用 2914 MB |
-| Swap | 4 GiB |
-| 磁盘 | 检查时可用 52 GiB |
-| 现有服务 | nginx 已有 80/443 及若干 loopback 端口；不得改动 |
-| 已确认缺失 | `git`、MySQL client/server、`uv` 尚未安装 |
-| 待确认 | Python 3.12 运行时、MySQL 供给、域名/证书、nginx 的 SELinux 策略 |
-
-`uv`、Node/pnpm 和构建工具**不是生产运行时依赖**。生产不在 4 GiB 主机上拉包或构建。
-
-## 2. 目录布局
-
-默认根目录 `/opt/aicardhub`（可配置）：
-
-```text
-/opt/aicardhub/
-├── releases/<release-id>/
-│   ├── server/          # Python 源码、alembic.ini、uv.lock（只读）
-│   ├── h5/              # H5 构建产物（index.html + assets/）
-│   ├── admin/           # 后台构建产物（base=/admin/）
-│   ├── venv/            # 预构建 Python 3.12 venv
-│   └── RELEASE-METADATA
-├── current -> releases/<release-id>   # 原子切换的符号链接
-├── shared/
-│   ├── env              # root:root 0600，systemd EnvironmentFile
-│   ├── uploads/         # aicardhub:aicardhub 0755，公开的 UUID 图片
-│   └── kb/              # aicardhub:aicardhub 0700，私有知识库及 .git
-├── logs/                # 备份日志；应用日志走 journald
-└── ops/                 # backup.sh / restore.sh / lib.sh
-/var/backups/aicardhub/  # root:root 0700，私有备份
-/etc/aicardhub/          # root:root 0700；backup.env、mysql-backup.cnf
-```
-
-- release 代码 `root:root`，目录 0755、文件 0644（已有执行位的脚本保留执行位）。
-- `shared/env` 只能 0600；`shared/kb` 只有服务用户可进入；备份在 web root 之外。
-- 服务 `umask 0022`；上传图片是设计上公开的静态资源，知识库不是。
-- systemd 单元只把 `shared/uploads` 和 `shared/kb` 加入 `ReadWritePaths`。
-
-## 3. 配置
-
-复制 `aicardhub.conf.example` 到由 root 控制、非 secret 的位置，替换占位值：
-
-```bash
-install -m 0640 -o root -g root deploy/native/aicardhub.conf.example /etc/aicardhub/deploy.conf
-$EDITOR /etc/aicardhub/deploy.conf
-```
-
-配置只允许 `KEY=value`，值不能含空白、引号、分号或 shell 元字符。它不是产品
-环境文件；脚本不会 source 它。产品环境通过 `shared/env` 单独提供。
-
-主要变量：
-
-| 变量 | 默认/说明 |
-|---|---|
-| `DEPLOY_ROOT` | `/opt/aicardhub`，不能是 `/opt`、`/usr` 等保留目录 |
-| `SERVICE_USER` / `SERVICE_GROUP` | 固定 `aicardhub` / `aicardhub`，系统账号、nologin |
-| `RELEASES_DIR`, `SHARED_DIR`, `LOG_DIR`, `OPS_DIR` | 必须在 `DEPLOY_ROOT` 下 |
-| `CURRENT_LINK` | 必须是 `DEPLOY_ROOT/current` |
-| `ENV_FILE` | 必须是 `SHARED_DIR/env`，root:root 0600 |
-| `UPLOAD_DIR` / `KB_DIR` | 必须是 `SHARED_DIR/uploads` / `SHARED_DIR/kb` |
-| `MIGRATION_GATE_FILE` | 默认 `SHARED_DIR/migration-gate.ok`，root:root 0600 |
-| `API_HOST` / `API_PORT` | API 必须绑定 `127.0.0.1`；默认端口 18000 |
-| `API_WORKERS` | 固定 1 |
-| `API_UNIT` / `SCHEDULER_UNIT` | `aicardhub-api.service` / `aicardhub-scheduler.service` |
-| `API_MEMORY_HIGH/MAX` | 800M / 1200M 的 systemd 内存护栏 |
-| `SCHEDULER_MEMORY_HIGH/MAX` | 256M / 512M |
-| `SITE_NAME` / `SITE_DOMAIN` | nginx 文件名/占用域名；域名必须真实，示例值不用于生产 |
-| `HTTP_LISTEN` / `HTTPS_LISTEN` | 端口或 literal host:port；不是 `default_server` |
-| `TLS_CERTIFICATE` / `TLS_CERTIFICATE_KEY` | 证书/私钥绝对路径，安装前必须存在且私钥不可组/其他可读 |
-| `NGINX_CONF_DIR` | 默认 `/etc/nginx/conf.d`；只新增 `${SITE_NAME}.conf` |
-| `NGINX_USER` / `NGINX_GROUP` | nginx worker 账号，必须与 `aicardhub` 不同 |
-| `NGINX_ACCESS_LOG` / `NGINX_ERROR_LOG` | 专用文件，默认 `/var/log/nginx/aicardhub_*.log` |
-| `LOGROTATE_CONF_DIR` | 默认 `/etc/logrotate.d`，只新增专用文件 |
-| `BACKUP_ROOT` | 默认 `/var/backups/aicardhub`，不得在 `DEPLOY_ROOT` 内 |
-| `BACKUP_ENV_FILE` | 默认 `/etc/aicardhub/backup.env`，root:root 0600 |
-| `MYSQL_DEFAULTS_FILE` | 默认 `/etc/aicardhub/mysql-backup.cnf`，root:root 0600 |
-| `PYTHON_RUNTIME` | 默认 `/usr/bin/python3.12`，必须真实存在且为 3.12 |
-
-域名、TLS 路径、监听地址和所有路径都可配置；生产渲染会拒绝 `.invalid` 和
-`REPLACE...` 占位值。
-
-## 4. 先决条件
-
-生产主机必须具备：
-
-- EL9 x86_64；本方案不提供 Ubuntu/Debian 安装器。
-- **Python 3.12 运行时**，与预构建 venv 的 ABI 匹配；3.9/3.11 不可替代。
-- `git`（知识库 `app/kb/store.py` 在运行时执行本地 Git 提交）。
-- MySQL 8 服务与仓库；`mysqldump`（备份）和备份账号由 mainline 供给。
-- 现有 nginx（含 `conf.d` include）、systemd、curl、tar、gzip、sha256sum、flock、
-  `ss`、`getent`、`useradd/groupadd`、`install`、`stat`。
-- SELinux Enforcing 时还需要 `matchpathcon`、`semanage`（通常
-  `policycoreutils` / `policycoreutils-python-utils`）；具体包名由操作者按 EL9
-  仓库确认。
-- 域名和证书由 mainline 发现/提供；本目录只使用占位路径。
-
-已知当前缺失 `git`、MySQL client/server、`uv`；Python 3.12 版本待确认。脚本会
-在 preflight 中明确失败/告警，不会自行装包。生产不安装 `uv`/Node/pnpm，也不执行
-`uv sync` 或 `pnpm build`。
-
-## 5. 预构建 release 契约
-
-release 必须在与生产相同 ABI 的 EL9 x86_64 + Python 3.12 环境构建（CI 或临时构建机），
-默认不在生产机构建。目录根部必须包含：
+默认根目录为 `/opt/aicardhub`：
 
 ```text
-server/   app/、alembic/、alembic.ini、pyproject.toml、uv.lock
-h5/       index.html、assets/
-admin/    index.html、assets/（Vite base=/admin/）
-venv/     bin/python、pyvenv.cfg、依赖
+releases/<id>/server/             Python 源码、alembic、锁文件
+releases/<id>/apps/h5/dist/       H5 构建产物
+releases/<id>/apps/admin/dist/    后台构建产物
+releases/<id>/venv/               Python 3.12 运行时（release 前置）
+current -> releases/<id>          原子切换
+shared/uploads/                   公开图片，独立于 kb
+shared/kb/                        私有知识库，含 .git
+shared/env                        root:root 0600 EnvironmentFile
+ops/nginx/                        渲染后的 include 和可选 stage wrapper
+logs/                             备份日志；应用日志进 journald
 ```
 
-建议用 `python3.12 -m venv --copies` 生成可搬移 venv，再把锁文件依赖离线安装进去。
-systemd 使用 `venv/bin/python -m uvicorn ...`，不依赖 venv 里脚本的 shebang，因此
-release 目录可原子改名/切换。venv 中只允许指向 release 内部的相对符号链接。
+- release 代码 `root:root`、目录 0755、文件 0644，服务身份不能写 release。
+- `shared/uploads` 用于公开图片；`shared/kb` 对服务用户 0700，包含 `.git`，不得放到 web root 或日志目录。
+- `shared/env` 必须 `root:root 0600`，由 systemd `EnvironmentFile` 读取；不要用 shell
+  source，不要把 secret 写进 unit 或命令行。
+- `/var/backups/aicardhub` 和 `/etc/aicardhub` 由 root 管理，归档 0700/0600。
 
-`validate_artifact.py` 会拒绝：
+## 4. 应用环境
 
-- 绝对路径、`..`、hardlink、设备/FIFO、setuid/setgid；
-- 绝对或逃逸的符号链接，以及“先建符号链接再写其子路径”的归档；
-- `.git`、`node_modules`、`.env*`、`local-credentials.json`、`*.credentials.local.json`、
-  SQLite/DB 文件；
-- 缺少 `server/app/main.py`、`server/app/scheduler.py`、`alembic.ini`、`uv.lock`、
-  `h5/index.html`、`admin/index.html`、`venv/bin/python` 等必需项。
+按 `templates/app.env.example` 由 root 在带外创建 `shared/env`，至少确认：
 
-## 6. 本地渲染与校验
+```text
+PUBLIC_BASE_URL=https://haiwex.com/aicardhub
+AICARD_ROOT_PATH=/aicardhub
+AICARD_POSTER_FONT_PATH=/usr/share/fonts/google-noto-cjk/NotoSansCJK-Regular.ttc
+```
 
-不需要数据库、secret 或真实域名：
+字体路径必须按目标主机实际安装、可读的 CJK 字体确认或替换；示例不声明字体已安装。
+数据库、JWT、LLM 等 secret 只通过受控渠道注入。
+
+## 5. 渲染、预检、引导和安装
+
+配置模板为 `aicardhub.conf.example`；复制到 root 控制的非 secret 位置后修改：
 
 ```bash
 cd deploy/native
-python3 scripts/render.py --check --config aicardhub.conf.example
-python3 scripts/render.py --config aicardhub.conf.example --out /tmp/aicardhub-render
-python3 scripts/validate.py --config aicardhub.conf.example --render-dir /tmp/aicardhub-render
-bash scripts/verify-local.sh
+python3 scripts/render.py --check --config /etc/aicardhub/deploy.conf --production
+scripts/preflight.sh --config /etc/aicardhub/deploy.conf --mode render
+sudo scripts/preflight.sh --config /etc/aicardhub/deploy.conf --mode install
 ```
 
-Windows 上可用 Git Bash 执行最后一条；本任务没有在 Windows 上运行 `nginx -t` 或
-`systemd-analyze verify`。`render.sh` 只是 stdlib 渲染器的薄包装；默认只渲染，不改主机。
-
-## 7. 首次部署顺序
-
-所有主机命令以 root 执行，且先完成配置校验。每一步都可重复执行，但不会覆盖
-未带生成标记的文件、不会覆盖已存在的 `shared/env`、不会自动采用既有目录/账号。
-
-### 7.1 校验配置与主机
+首次创建账号和目录；先 dry-run，再应用：
 
 ```bash
-cd deploy/native
-py=/usr/bin/python3.12
-$py scripts/render.py --check --config /etc/aicardhub/deploy.conf
-scripts/preflight.sh --config /etc/aicardhub/deploy.conf --mode install --require-tls
+sudo scripts/bootstrap.sh --config /etc/aicardhub/deploy.conf
+sudo scripts/bootstrap.sh --config /etc/aicardhub/deploy.conf --apply
 ```
 
-`--mode render` 可在无 root、无真实证书的机器上运行。`--mode install` 会检查 EL9、
-Python 3.12、git、nginx、端口、磁盘、SELinux、证书/私钥和已有文件归属。
-
-### 7.2 创建账号和目录
+安装 unit、运维脚本和专用 logrotate；installer 只把 include/stage 渲染到
+`OPS_DIR/nginx`，不编辑 `nginx.conf`、不写 `conf.d`、不执行 `nginx -t`、不 reload：
 
 ```bash
-scripts/bootstrap.sh --config /etc/aicardhub/deploy.conf --apply
-```
-
-创建 `aicardhub` 系统组/用户、release/shared/logs/ops 目录、私有 kb 和备份根。
-如果同名账号/目录已存在但属性不符，脚本会停止，不会“接管”。
-
-### 7.3 安装 unit、运维脚本，可选 nginx/logrotate
-
-先安装 API/scheduler unit 和 ops 脚本：
-
-```bash
-scripts/install.sh --config /etc/aicardhub/deploy.conf \
+sudo scripts/install.sh --config /etc/aicardhub/deploy.conf \
   --env-file /secure/out-of-band/aicardhub.env \
   --install-units --install-logrotate
 ```
 
-- `--env-file` 只在目标不存在时复制为 root:root 0600；已有 live env 永不覆盖。
-- unit 安装后只 `daemon-reload`，不 enable、不 start。
-- `--install-nginx` 才会安装专用 vhost 并运行 `nginx -t`；`--reload-nginx` 才 reload。
-  建议在 API 激活并验证后再执行 nginx 安装/重载。
-- `--install-backup-timer` 只安装 backup service/timer，不 enable；需要先配置
-  `backup.env` 和 MySQL defaults 文件。
+需要每日备份时，先准备 `backup.env` 和 MySQL defaults 文件，再加
+`--install-backup-timer`；该选项只安装，不 enable timer。
 
-### 7.4 迁移门禁（mainline 所有）
+## 6. 接入现有 TLS nginx（必须人工）
 
-本任务不运行 Alembic、不迁移、不 seed、不复制数据。mainline 在批准的迁移窗口完成
-数据库准备后，写一个 root:root 0600 的门禁文件，例如：
+只把下面一行放进**现有 haiwex.com TLS server 块**，不要放进 `http` 上下文的
+`conf.d/*.conf`：
+
+```nginx
+include /opt/aicardhub/ops/nginx/aicardhub.locations.conf;
+```
+
+插入位置必须在现有通用 regex、静态或脚本 location 之前，确保点路径拒绝和
+`/aicardhub` 路由先匹配。人工检查现有 `^~` 或 regex location 是否会抢占
+`/aicardhub`；如有冲突由 mainline 评估并调整主机配置，本包不自动修改。确认后：
+
+```bash
+nginx -t && systemctl reload nginx
+```
+
+验证 `/aicardhub/`、H5/后台深链接为 200，缺失的 `/aicardhub/assets/...` 为 404，
+`/aicardhub/.git` 和 `/aicardhub/admin/x/.env` 为 404；其他站点根路径保持不变。
+
+可选 stage：审查 `ops/nginx/aicardhub.stage.conf` 后，人工复制到独立 conf.d，
+再 `nginx -t`；它只监听 `127.0.0.1:18080`，不接受公网流量。
+
+## 7. 安装 release、迁移门禁和激活
+
+artifact 根布局必须是 `server/`、`apps/h5/dist/`、`apps/admin/dist/`、`venv/`。
+`release.sh` 会校验归档、确认 Python 3.12，复制为 root-owned 只读目录，默认不切换
+current：
+
+```bash
+sudo scripts/release.sh --config /etc/aicardhub/deploy.conf \
+  --artifact /secure/releases/aicardhub-<id>.tar.gz \
+  --release-id <id>
+```
+
+mainline 完成数据迁移后，创建 root:root 0600 迁移门禁，内容必须匹配 release：
 
 ```text
-release_id=20261115-01
+release_id=<id>
 schema_compatible=yes
 alembic_revision=<approved-revision>
 approved_by=<mainline-role>
-approved_at=<UTC>
 ```
 
-`activate.sh` 要求 `release_id` 与本次 release 完全一致、`schema_compatible=yes`、
-revision 非空、`approved_by` 非空。门禁是激活前置条件，不是迁移脚本。
-
-### 7.5 安装 release
+然后激活：
 
 ```bash
-scripts/release.sh --config /etc/aicardhub/deploy.conf \
-  --artifact /secure/releases/aicardhub-20261115-01.tar.gz \
-  --release-id 20261115-01
+sudo scripts/activate.sh --config /etc/aicardhub/deploy.conf --release-id <id>
 ```
 
-脚本校验归档、安全解包、验证 venv 为 3.12、写 `RELEASE-METADATA`、递归设为
-`root:root` 和只读，最后把 staging 原子改名为 `releases/<id>`。默认不切换 current，
-不启动服务。旧 release 不会删除。
+激活先停止 scheduler 和 API（停止失败即中止，不改 `current`），再原子切换 `current`，
+只启动 API 并通过 loopback health 后才启动 scheduler。不会反向迁移数据库，也不会
+reload nginx。
 
-### 7.6 激活与健康门禁
+任何切换失败都会先停止两个 unit，并把 `current` 保留在失败时的目标；**不会**自动
+重启旧 release（其 schema 兼容性未知）。操作者必须为旧目标重新创建匹配的迁移门禁，
+再显式执行 `rollback.sh`。若目标就是当前 release 但不健康，激活在门禁通过后会走
+同样的停止/启动/health 流程以恢复它。
+
+## 8. 回滚
 
 ```bash
-scripts/activate.sh --config /etc/aicardhub/deploy.conf --release-id 20261115-01
+sudo scripts/rollback.sh --config /etc/aicardhub/deploy.conf --to <previous-id>
 ```
 
-流程：校验 env/门禁/SELinux → 原子切换 `current` → enable/restart API 和 scheduler →
-轮询 `http://127.0.0.1:<API_PORT>/health` 最多 30 秒 → 检查 scheduler 存活。失败时
-自动切回旧 release 并重启；首次部署失败则停止 unit 并移除 current。不会 reload nginx，
-不会回滚数据库。
+目标 release 必须仍存在；迁移门禁必须指向目标，并同时提供 `schema_compatible=yes`、
+有效的 `alembic_revision` 和 `approved_by`。回滚同样先停止两个 unit，API health 通过后
+才启动 scheduler。失败时两个 unit 保持停止，不自动重启任何 release；修正门禁后由操作者
+再次显式执行。回滚只切换代码和重启服务，不恢复数据库；schema 不兼容时由 mainline
+决定向前修复。
 
-### 7.7 安装/重载 nginx
+## 9. 备份与人工恢复
+
+将 `templates/backup.env.example` 复制为 `/etc/aicardhub/backup.env`，MySQL 凭据只放
+`MYSQL_DEFAULTS_FILE`（root:root 0600）。手动备份：
 
 ```bash
-scripts/install.sh --config /etc/aicardhub/deploy.conf --install-nginx --reload-nginx
+sudo /opt/aicardhub/ops/backup.sh --config /etc/aicardhub/backup.env
 ```
 
-`nginx -t` 通过才 reload；失败会恢复安装前的 vhost 文件且不 reload。只新增
-`NGINX_CONF_DIR/${SITE_NAME}.conf`，不碰 `nginx.conf`、默认站点或其他 vhost。
+备份会短暂停止 API/scheduler，生成 `database.sql`、`files.tar`（uploads、kb 含
+`.git`、env）、`SHA256SUMS` 和 `MANIFEST`，归档权限 0700/0600。确认配置后可
+`systemctl enable --now aicardhub-backup.timer`。
 
-验证：
+恢复只做验证并打印人工步骤，不自动执行：
 
 ```bash
-ss -ltnp 'sport = :18000'          # 应只有 127.0.0.1:18000
-curl -fsS http://127.0.0.1:18000/health
-journalctl -u aicardhub-api -u aicardhub-scheduler -n 100 --no-pager
+sudo /opt/aicardhub/ops/restore.sh --config /etc/aicardhub/backup.env \
+  --backup-dir /var/backups/aicardhub/aicardhub-backup-<timestamp>
 ```
 
-线上 H5、`/staff` 嵌套路由、`/admin` 嵌套路由、`/api`、`/c/`、SSE 逐字输出和真实
-上传需在 EL9 + 浏览器中另行验收；本任务未执行。
+`restore.sh` 先做结构校验：`SHA256SUMS` 只能列出 `database.sql`、`files.tar` 两个精确
+路径；`files.tar` 用 Python `tarfile` 解析，只允许 `env` 常规文件以及 `uploads/`、
+`kb/` 下的常规文件和目录，拒绝符号链接、硬链接、设备、FIFO、绝对路径、穿越路径和
+重复路径，并确认三者都存在。脚本只打印人工步骤，不执行恢复。
 
-## 8. nginx vhost 说明
+人工步骤按输出的安全顺序执行：停止两个服务 → 恢复 MySQL → 在 `shared/` 同文件系统的
+空 `mktemp` 暂存目录解包已校验归档 → 不覆盖、不 `rm -rf`，先把现有 `uploads`/`kb`
+改名为 `.retained-<timestamp>` 保留，再移入暂存目录 → 单独、可选、显式地处理 `env`
+并保留旧文件 → 修正所有权/标签 → 先启动 API 并检查 health，成功后才启动 scheduler。
+任何一步失败都保持两个服务停止。数据库恢复不可逆，必须有独立授权和新备份。
 
-模板：`templates/nginx/aicardhub.conf.in`。渲染后只含两个 server（HTTP→HTTPS 和
-HTTPS），**没有 `default_server`**。
+## 10. 日志、SELinux 和验证边界
 
-- `/`、`/card/*`、`/chat/*` → H5 `index.html` fallback；`/staff` 及 `/staff/**` 用同一份
-  H5 构建。
-- `/admin` 301 到 `/admin/`；`/admin/**` 用 `admin/index.html` fallback；
-  `/admin/assets/**` 单独长缓存。后台 Vite 生产 base 是 `/admin/`。
-- `/api/` 和 `/c/` 反代到 loopback upstream；所有 `/api/` 都关闭
-  `proxy_buffering`、`proxy_request_buffering`、`proxy_cache`，HTTP/1.1，读写超时
-  120 秒，覆盖访客对话和员工测试对话两条 SSE 路径。
-- `client_max_body_size 20m`；只在本 vhost 开启 gzip。
-- 限流只作用于本 vhost：API 8 r/s、burst 16、每 IP 20 连接；不修改其他 vhost。
-- `/files` 只允许应用生成的 UUID 派生名：
-  - 32 位小写 hex 照片 `.jpg`，或同名前缀 `-bg.jpg`；
-  - 32 位小写 hex 的 `-wechat.png`；
-  - 名片码（1–32 位小写字母/数字）+ 10 位 hex 的 `-qr.png` / `-poster.jpg`。
-  正则大小写敏感，扩展名必须小写；`/files/.env`、`/files/foo.php.jpg`、大写
-  `.JPG`、带路径段的名字都落到前缀 fallback `return 404`。该 fallback 不是
-  `try_files`、不是 proxy、不会落到 API 的 `StaticFiles /files`。
-- 符号链接由 `disable_symlinks on` 拒绝；`limit_except GET` 拒绝非 GET/HEAD。
-- dotfile/dot-directory 在本 vhost 全部 404；nginx 从不 serve `shared/kb`、`shared/env`
-  或 `/var/backups/aicardhub`。
-- TLS 证书/私钥、域名、监听端口都是变量；不假设证书位置。
-
-nginx worker 用户与 `aicardhub` 分离；不要给 nginx 加 `aicardhub` 组，上传目录使用
-公开图片所需的 0755/0644，知识库保持 0700。本配置不写全局 `user` 指令。
-
-## 9. EL9 SELinux
-
-先检查：
-
-```bash
-getenforce
-ls -Zd /opt/aicardhub /opt/aicardhub/shared/uploads /opt/aicardhub/shared/kb
-semanage port -l | grep 18000
-```
-
-Enforcing 时，preflight/activate 会要求：
-
-1. nginx 可读 `/opt/aicardhub/releases/<id>/h5`、`.../admin` 和 `shared/uploads`；
-2. loopback API 端口被允许；
-3. `matchpathcon` 与 `semanage` 可用。
-
-建议的**窄范围**操作（由操作者执行；脚本不会自动改策略）：
-
-```bash
-semanage fcontext -a -t httpd_sys_content_t '/opt/aicardhub/shared/uploads(/.*)?'
-semanage fcontext -a -t httpd_sys_content_t '/opt/aicardhub/releases/[^/]+/h5(/.*)?'
-semanage fcontext -a -t httpd_sys_content_t '/opt/aicardhub/releases/[^/]+/admin(/.*)?'
-restorecon -Rv /opt/aicardhub/shared/uploads /opt/aicardhub/releases
-semanage port -a -t http_port_t -p tcp 18000   # 若已存在则先查，不要重复添加
-```
-
-不要用 `setenforce 0`、不要全局关闭 SELinux、不要默认开启范围过宽的
-`httpd_can_network_connect`。若出现 AVC，用 `ausearch -m AVC -ts recent` 诊断并只加
-最小本地策略。标签/端口未满足时部署脚本会 abort，操作者完成上述步骤后重跑。
-
-## 10. 备份与恢复
-
-### 备份
-
-`backup.env.example` 复制为 `/etc/aicardhub/backup.env`（root:root 0600）；
-`mysql-backup.cnf.example` 复制为 `/etc/aicardhub/mysql-backup.cnf`（root:root 0600）。
-备份账号由 mainline 供给，最小权限，推荐 `SELECT, SHOW VIEW, TRIGGER, EVENT`，
-是否还需要其他权限由 DBA 按 MySQL 8 实例确认。密码只在这份 defaults-extra-file，
-不进入命令行、环境变量或日志。
-
-手动备份：
-
-```bash
-/opt/aicardhub/ops/backup.sh --config /etc/aicardhub/backup.env
-```
-
-行为：
-
-- 先校验命令、私有配置和目录，再创建任何输出；
-- 获取与部署共用的 `/run/aicardhub-*.lock`；
-- 停止 scheduler，再停 API；EXIT trap 保证失败/成功后都尝试按 API→scheduler 重启；
-- `mysqldump --single-transaction --quick --routines --events --triggers
-  --set-gtid-purged=OFF --no-tablespaces --databases <db>`；
-- 打包 `uploads`、整个 `kb`（含 `.git`）和受保护 `env`；
-- 校验 dump 完成标记、tar 成员、SHA256SUMS；
-- 以 0700 目录、0600 文件原子发布为 `aicardhub-backup-<UTC>`；
-- 只清理自己命名模式下的、超过 14 天的完成备份和自己遗留的 partial；
-- 不打印 dump 内容、不把密码放到 argv/env、不把归档放进 web root。
-
-`install.sh --install-backup-timer` 只安装 service/timer（默认 02:30，随机延迟 15 分钟，
-`Persistent=true`），不会 enable。操作者确认配置后：
-
-```bash
-systemctl enable --now aicardhub-backup.timer
-systemctl list-timers aicardhub-backup.timer
-```
-
-### 恢复
-
-`restore.sh` 只做验证和打印步骤，不执行恢复：
-
-```bash
-/opt/aicardhub/ops/restore.sh --config /etc/aicardhub/backup.env \
-  --backup-dir /var/backups/aicardhub/aicardhub-backup-...
-```
-
-它会校验 0700/0600、SHA256SUMS、dump 完成标记和 tar 成员名，然后打印：
-
-1. 先做新的备份并记录变更窗口；
-2. 停止 scheduler/API；
-3. 用同一 0600 defaults-extra-file 执行 `mysql ... < database.sql`；
-4. 只解包 `uploads`、`kb` 到 shared；`env` 仅在确实要回滚凭据时单独解包；
-5. 修正 `aicardhub:aicardhub` 所有权；Enforcing 时 `restorecon`；
-6. 启动 API→scheduler，检查 health 和 journal。
-
-数据库恢复不可逆，必须由 mainline/操作者按授权执行。备份包含私密 `env` 和知识库，
-归档本身必须 0600，离机副本必须加密并放在受控私有位置；不要生成公开下载链接。
-
-## 11. 日志
-
-- API/scheduler 的 stdout/stderr 进入 **journald**。用
-  `journalctl -u aicardhub-api -u aicardhub-scheduler` 查看。不要为了“有文件可转”
-  而伪造空应用日志；本目录不修改 journald 全局策略/保留期。
-- nginx 使用专用 `NGINX_ACCESS_LOG` / `NGINX_ERROR_LOG` 文件。
-- 备份写 `BACKUP_LOG`。
-- `templates/logrotate/aicardhub.conf.in` 只轮转上述专用 nginx 文件和备份日志；
-  nginx 日志 `kill -USR1` 重新打开，不重启全局 nginx。应用 journald 由主机策略管理。
-- 先把 `*.log` 安装/生成后再启用 logrotate；不要给不存在的应用日志造空轮转。
-
-## 12. 内存预算与非功能边界
-
-4 vCPU / 约 3.6 GiB RAM 的主机需要同时容纳 MySQL、nginx、一个 API worker 和
-一个 scheduler。默认 systemd 护栏：
-
-- API `MemoryHigh=800M`、`MemoryMax=1200M`；
-- scheduler `MemoryHigh=256M`、`MemoryMax=512M`；
-- `TasksMax` 256/128，`LimitNOFILE=65536`；
-- 不在主机构建前端/venv，不并行跑全量测试，不启动第二个 worker 或 scheduler。
-
-这些值是保守护栏，不是实测峰值；上线后应观察 `systemctl status`、`journalctl`、
-`free -m`、`ss -ltnp` 和 MySQL 内存。若 OOM，先减小 MySQL 缓冲/连接数或按实测调整
-护栏，不要增加 worker。
-
-## 13. 回滚
-
-```bash
-scripts/rollback.sh --config /etc/aicardhub/deploy.conf --to <previous-release-id>
-```
-
-- 目标 release 必须仍在 `releases/`；
-- 门禁文件必须改写为目标的 `release_id` 并确认 schema compatible；
-- 原子切换 current，重启 API/scheduler，跑同样的 30 秒 health 和 scheduler 检查；
-- 失败则切回原 current 并重启；
-- **不会反向执行数据库迁移**。如果新 schema 与旧代码不兼容，mainline 必须决定
-  向前修复而不是回滚，门禁就是该判断的落点。
-
-## 14. 本次未验证 / 风险
-
-- 没有在生产或任何 Linux 主机执行 `nginx -t`、`systemd-analyze verify`、
-  `systemctl start`、SSE 逐字验收、上传、MySQL dump 或 restore。
-- Python 3.12 运行时、MySQL 供给、域名/证书、nginx SELinux 策略仍未确认。
-- `git`、MySQL client/server、`uv` 当前缺失；`uv` 缺失不影响运行时，但 `git` 缺失
-  会阻断知识库写入。
-- 本地验证使用 Windows Python 3.13 + Git Bash 的 stdlib 渲染/语法检查；渲染器代码
-  兼容 3.12，未在 EL9 Python 3.12 下执行。
-- `scripts/check.sh` 未运行：它需要数据库、secret 和完整前后端环境，本任务未准备，
-  且不属于部署材料验证。
-- 没有 API 变更或数据库迁移；契约哈希见文首。
+- API/scheduler 使用 journald；nginx 使用专用 access/error 日志；备份写独立日志。
+  logrotate 只处理这些专用文件，不改 journald 策略。
+- Enforcing 时由 mainline 按实际标签确认；窄范围 fcontext 应覆盖
+  `releases/[^/]+/apps/h5/dist`、`.../admin/dist` 和 `shared/uploads`，loopback
+  18000 需标记为 `http_port_t`。先检查，避免重复添加。
+- 本目录本地验证：`bash scripts/verify-local.sh`。该验证不是 `nginx -t` 或
+  `systemd-analyze verify` 的替代。
+- 本次未执行远程操作、真实 nginx/systemd、SSE、MySQL 备份/恢复或生产验收；
+  未运行依赖数据库和 secret 的 `scripts/check.sh`。不要据此宣称已完成完整验证；
+  本地输出只以 `evidence/final-validation.txt` 的实际内容为准。

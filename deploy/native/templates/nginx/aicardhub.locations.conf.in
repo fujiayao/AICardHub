@@ -1,15 +1,15 @@
-# aicardhub-native: generated file; edit the template, not this file.
-# Server-context include for the EXISTING TLS server that already terminates
+# aicardhub-native: generated file
+# Edit the template, not this file. Server-context include for the EXISTING TLS server that already terminates
 # haiwex.com. Insert only inside that server block:
 #     include @@NGINX_INCLUDE_FILE@@;
 # Do not place this file in conf.d/*.conf: conf.d is included at http context.
 # There is deliberately no server block, listen, server_name, root, upstream,
 # gzip, limit_req_zone or other http/server-level directive here.
 
-# Dotfiles and dot-directories under the prefix are denied before content
-# locations. Content locations below are plain prefix/regex locations, not ^~,
-# so this rejection keeps winning.
-location ~ ^/aicardhub/\. {
+# Dotfiles and dot-directories in any path segment under the prefix are denied
+# before content locations. Content locations below are plain prefix/regex
+# locations, not ^~, so this rejection keeps winning.
+location ~ "^/aicardhub/(?:.*/)?\." {
     return 404;
 }
 
@@ -43,7 +43,7 @@ location /aicardhub/api/ {
 # NFC/QR short-link redirects. The prefix is stripped here. The backend's
 # Location header still needs its own /aicardhub-aware prefix handling; that
 # business-code change is owned by the backend agent and is documented as
-# pending in README/DELIVERY. No business code is edited by this package.
+# pending in README. No business code is edited by this package.
 location /aicardhub/c/ {
     client_max_body_size 20m;
     proxy_pass http://@@API_HOST@@:@@API_PORT@@/c/;
@@ -65,10 +65,13 @@ location /aicardhub/c/ {
     proxy_redirect off;
 }
 
-# Uploaded raster assets only, using the exact generated-name patterns. There
-# is no try_files and no proxy fallthrough. The alias serves from the real
-# shared/uploads directory, never from a release or the knowledge base.
-location ~ "^/aicardhub/files/((?:[0-9a-f]{32}(?:-bg)?\.jpg|[0-9a-f]{32}-wechat\.png|[0-9a-z]{1,32}-[0-9a-f]{10}-qr\.png|[0-9a-z]{1,32}-[0-9a-f]{10}-poster\.jpg))$" {
+# Uploaded raster assets only, using the exact generated-name patterns. Card
+# code segments use the project's card-code alphabet (lowercase letters,
+# digits, underscore, hyphen, colon); the hash suffix and file type are fixed,
+# so no arbitrary file can be served. There is no try_files and no proxy
+# fallthrough. The alias serves from the real shared/uploads directory, never
+# from a release or the knowledge base.
+location ~ "^/aicardhub/files/((?:[0-9a-f]{32}(?:-bg)?\.jpg|[0-9a-f]{32}-wechat\.png|[0-9a-z_:-]{1,32}-[0-9a-f]{10}-qr\.png|[0-9a-z_:-]{1,32}-[0-9a-f]{10}-poster\.jpg))$" {
     alias @@UPLOAD_DIR@@/$1;
     default_type application/octet-stream;
     types {
@@ -107,14 +110,13 @@ location = /aicardhub/admin/index.html {
 
 location /aicardhub/admin/assets/ {
     alias @@ADMIN_DIR@@/assets/;
-    disable_symlinks on;
     expires 30d;
 }
 
 location /aicardhub/admin/ {
     alias @@ADMIN_DIR@@/;
     index index.html;
-    error_page 404 /aicardhub/admin/index.html;
+    error_page 404 =200 /aicardhub/admin/index.html;
     expires -1;
 }
 
@@ -132,13 +134,12 @@ location = /aicardhub/index.html {
 
 location /aicardhub/assets/ {
     alias @@H5_DIR@@/assets/;
-    disable_symlinks on;
     expires 30d;
 }
 
 location /aicardhub/ {
     alias @@H5_DIR@@/;
     index index.html;
-    error_page 404 /aicardhub/index.html;
+    error_page 404 =200 /aicardhub/index.html;
     expires -1;
 }

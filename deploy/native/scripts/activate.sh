@@ -17,8 +17,12 @@ schema migration. The gate must contain:
   alembic_revision=<non-empty revision>
   approved_by=<name/role>
 This script never runs Alembic, seeds, copies data, reloads nginx or reverses DB
-changes. If health or the scheduler fails, it switches back to the previous
-release and restarts it. The old release directory is retained.
+changes. Both units are stopped before the switch. The API must pass its loopback
+health check before the scheduler is started. On any failed switch both units are
+left stopped and the current symlink is retained; the old release is NEVER
+restarted automatically because its schema compatibility is unknown. To recover
+an old release, the operator must create a fresh migration gate naming that
+release and run rollback.sh explicitly. Release directories are retained.
 EOF
 }
 
@@ -95,35 +99,32 @@ if [ -L "$current_link" ] && [ "$(readlink -f "$current_link")" = "$release_path
     log "release $release_id is current but unhealthy; restarting after the gate"
 fi
 
-rollback() {
+fail_activation() {
     local reason="$1"
     warn "activation failed: $reason"
+    warn "stopping both units; no previous release is restarted automatically"
+    systemctl stop "$scheduler_unit" 2>/dev/null || true
+    systemctl stop "$api_unit" 2>/dev/null || true
+    warn "both units are left stopped; current symlink retained at $current_link"
     if [ -n "$old_target" ]; then
-        warn "switching current back to $old_target"
-        atomic_symlink "$old_target" "$current_link" || true
-        systemctl restart "$api_unit" || true
-        systemctl restart "$scheduler_unit" || true
-        if health_check "$health_url" 20 1; then
-            warn "previous release is serving health checks again"
-        else
-            warn "previous release did not pass health checks; operator attention required"
-        fi
-    else
-        warn "there was no previous release; stopping AICardHub units"
-        rm -f -- "$current_link"
-        systemctl stop "$scheduler_unit" 2>/dev/null || true
-        systemctl stop "$api_unit" 2>/dev/null || true
+        warn "old release retained at $old_target"
+        warn "to use it again, create a fresh migration gate naming its release_id and run rollback.sh --to <its-id>; do not force"
     fi
     exit 1
 }
 
+log "stopping scheduler and API before the switch"
+systemctl stop "$scheduler_unit" || fail_activation "cannot stop the scheduler unit"
+systemctl stop "$api_unit" || fail_activation "cannot stop the API unit"
+
 log "switching current -> $release_path"
-atomic_symlink "$release_path" "$current_link" || rollback "cannot update current symlink"
-systemctl enable "$api_unit" "$scheduler_unit" >/dev/null 2>&1 || rollback "cannot enable units"
-systemctl stop "$scheduler_unit" 2>/dev/null || true
-systemctl restart "$api_unit" || rollback "API failed to restart"
-systemctl restart "$scheduler_unit" || rollback "scheduler failed to restart"
-health_check "$health_url" 30 1 || rollback "API health check did not pass within 30s"
+atomic_symlink "$release_path" "$current_link" || fail_activation "cannot update current symlink"
+systemctl enable "$api_unit" "$scheduler_unit" >/dev/null 2>&1 || fail_activation "cannot enable units"
+log "starting API for health verification"
+systemctl restart "$api_unit" || fail_activation "API failed to restart"
+health_check "$health_url" 30 1 || fail_activation "API health check did not pass within 30s"
+log "API health check passed; starting the scheduler"
+systemctl restart "$scheduler_unit" || fail_activation "scheduler failed to restart"
 sleep 3
-service_active "$scheduler_unit" || rollback "scheduler is not active"
+service_active "$scheduler_unit" || fail_activation "scheduler is not active"
 log "activation complete: $release_id is current; database was not changed by this script"

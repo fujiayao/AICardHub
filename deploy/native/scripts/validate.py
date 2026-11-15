@@ -20,6 +20,7 @@ sys.path.insert(0, str(HERE))
 import render  # noqa: E402
 
 NEGATIVE_CHECKS = 0
+QUOTED_LOCATION_RE = re.compile(r'(?m)^[ \t]*location[ \t]+~[ \t]+"([^"]+)"[ \t]*\{')
 
 
 class ValidationError(AssertionError):
@@ -85,7 +86,7 @@ def block(text: str, header: str) -> str:
             continue
         if in_single or in_double:
             continue
-        if char == "{":
+        if char == "{" and not re.match(r"\{\d+(?:,\d*)?\}", text[index:]):
             brace = index
             break
     require(brace >= 0, f"missing opening brace: {header}")
@@ -132,11 +133,20 @@ def location_paths(text: str) -> list[str]:
     return [path.strip('"') for path in paths]
 
 
+def quoted_location(text: str, needle: str) -> re.Match[str]:
+    for match in QUOTED_LOCATION_RE.finditer(text):
+        if needle in match.group(1):
+            return match
+    raise ValidationError(f"missing quoted-regex location containing {needle}")
+
+
 def check_locations(text: str, values: dict[str, str]) -> None:
     visible = strip_comments(text)
     uploads = values["UPLOAD_DIR"]
     h5 = values["H5_DIR"]
     admin = values["ADMIN_DIR"]
+    require(h5 == values["CURRENT_LINK"] + "/apps/h5/dist", "H5 alias must target current/apps/h5/dist")
+    require(admin == values["CURRENT_LINK"] + "/apps/admin/dist", "admin alias must target current/apps/admin/dist")
 
     lacks(visible, "server {", "locations include must not define a server")
     for directive in (
@@ -163,9 +173,19 @@ def check_locations(text: str, values: dict[str, str]) -> None:
             f"location is not anchored under /aicardhub: {path}",
         )
 
-    dot = "location ~ ^/aicardhub/\\."
-    files_header = 'location ~ "^/aicardhub/files/'
-    require(visible.find(dot) < visible.find(files_header), "dotfile denial must precede files regex")
+    dot_match = quoted_location(visible, "/(?:.*/)?")
+    dot_regex = dot_match.group(1)
+    require(dot_regex == r"^/aicardhub/(?:.*/)?\.", "dotfile denial must use the nested-path quoted regex")
+    dot_pattern = re.compile(dot_regex)
+    for denied in ("/aicardhub/.git", "/aicardhub/admin/x/.env"):
+        require(dot_pattern.match(denied), f"dotfile denial does not match {denied}")
+    require(not dot_pattern.match("/aicardhub/assets/app.js"), "dotfile denial matches normal assets")
+
+    files_match = quoted_location(visible, "/files/")
+    files_regex = files_match.group(1)
+    quoted_locations = list(QUOTED_LOCATION_RE.finditer(visible))
+    require(quoted_locations[0].start() == dot_match.start(), "dotfile denial must be the first app regex location")
+    require(files_match.start() > dot_match.start(), "dotfile denial must precede files regex")
 
     api = block(visible, "location /aicardhub/api/ {")
     short = block(visible, "location /aicardhub/c/ {")
@@ -184,7 +204,7 @@ def check_locations(text: str, values: dict[str, str]) -> None:
         has(section, "client_max_body_size 20m;", f"{label}: scoped body limit")
         lacks(section, "upstream ", f"{label}: no upstream")
 
-    files = block(visible, files_header)
+    files = block(visible, files_match.group(0))
     has(files, f"alias {uploads}/$1;", "files alias must use capture")
     has(files, "disable_symlinks on;", "files must disable symlinks")
     has(files, "limit_except GET", "files must only allow GET/HEAD")
@@ -192,8 +212,37 @@ def check_locations(text: str, values: dict[str, str]) -> None:
     has(files, "default_type application/octet-stream;")
     has(files, "image/jpeg jpg;")
     has(files, "image/png png;")
-    for token in ("{32}", "-bg", "wechat", "qr", "poster", "\\.jpg", "\\.png"):
-        has(files, token, f"files regex missing {token}")
+    for token in ("{32}", "-bg", "wechat", "qr", "poster", "\\.jpg", "\\.png", "[0-9a-z_:-]"):
+        has(files_regex, token, f"files regex missing {token}")
+    files_pattern = re.compile(files_regex)
+    require(
+        files_pattern.fullmatch("/aicardhub/files/" + "a" * 32 + ".jpg"),
+        "files regex does not accept a legitimate UUID asset",
+    )
+    require(
+        files_pattern.fullmatch("/aicardhub/files/my_card-1:staff-abc0123456-qr.png"),
+        "files regex does not accept the project card-code alphabet",
+    )
+    require(
+        files_pattern.fullmatch("/aicardhub/files/staff_1-a-abc0123456-poster.jpg"),
+        "files regex does not accept a legal card code with a fixed hash suffix",
+    )
+    require(
+        not files_pattern.fullmatch("/aicardhub/files/staff1-abc0123456-qr.PNG"),
+        "files regex accepts an uppercase extension",
+    )
+    require(
+        not files_pattern.fullmatch("/aicardhub/files/staff1-abc012345-qr.png"),
+        "files regex accepts a wrong-length hash suffix",
+    )
+    require(
+        not files_pattern.fullmatch("/aicardhub/files/../../shared/env"),
+        "files regex accepts path traversal",
+    )
+    require(
+        not files_pattern.fullmatch("/aicardhub/files/foo.php.jpg"),
+        "files regex accepts a rejected .php.jpg name",
+    )
     for forbidden in ("proxy_pass", "try_files", "root ", "php", "JPG", "PNG"):
         lacks(files, forbidden, f"files block must not contain {forbidden}")
 
@@ -210,9 +259,12 @@ def check_locations(text: str, values: dict[str, str]) -> None:
     admin_assets = block(visible, "location /aicardhub/admin/assets/ {")
     has(admin_assets, f"alias {admin}/assets/;")
     lacks(admin_assets, "try_files", "missing admin assets must 404")
+    lacks(admin_assets, "disable_symlinks", "release assets must allow the current symlink")
+    for forbidden in ("error_page", "proxy_pass", "return 200"):
+        lacks(admin_assets, forbidden, f"missing admin assets must not use {forbidden}")
     admin_spa = block(visible, "location /aicardhub/admin/ {")
     has(admin_spa, f"alias {admin}/;")
-    has(admin_spa, "error_page 404 /aicardhub/admin/index.html;")
+    has(admin_spa, "error_page 404 =200 /aicardhub/admin/index.html;")
     lacks(admin_spa, "try_files", "admin fallback must use a safe alias/error_page")
 
     h5_root = block(visible, "location = /aicardhub/ {")
@@ -222,9 +274,12 @@ def check_locations(text: str, values: dict[str, str]) -> None:
     h5_assets = block(visible, "location /aicardhub/assets/ {")
     has(h5_assets, f"alias {h5}/assets/;")
     lacks(h5_assets, "try_files", "missing H5 assets must 404")
+    lacks(h5_assets, "disable_symlinks", "release assets must allow the current symlink")
+    for forbidden in ("error_page", "proxy_pass", "return 200"):
+        lacks(h5_assets, forbidden, f"missing H5 assets must not use {forbidden}")
     h5_spa = block(visible, "location /aicardhub/ {")
     has(h5_spa, f"alias {h5}/;")
-    has(h5_spa, "error_page 404 /aicardhub/index.html;")
+    has(h5_spa, "error_page 404 =200 /aicardhub/index.html;")
     lacks(h5_spa, "try_files", "H5 fallback must use a safe alias/error_page")
 
     has(visible, "location = /aicardhub {\n    return 301 /aicardhub/;")
@@ -300,7 +355,11 @@ def check_outputs(written: dict[str, Path], values: dict[str, str]) -> None:
         require(b"\r" not in raw, f"{name}: CRLF is not allowed")
         require(raw.endswith(b"\n"), f"{name}: must end with newline")
         text = raw.decode("utf-8")
-        require(text.startswith(render.GENERATED_MARKER), f"{name}: generated marker missing")
+        first_line = text.split("\n", 1)[0]
+        require(
+            first_line == render.GENERATED_MARKER,
+            f"{name}: first line must be exactly the standalone generated marker",
+        )
         require("@@" not in text, f"{name}: unresolved template token")
     locations = written["aicardhub.locations.conf"].read_text(encoding="utf-8")
     stage = written["aicardhub.stage.conf"].read_text(encoding="utf-8")
@@ -396,6 +455,12 @@ def check_repo_files(root: Path) -> None:
     for path in (root / "scripts").glob("*.sh"):
         text = path.read_text(encoding="utf-8")
         require(text.startswith("#!/usr/bin/env bash\n"), f"{path}: missing bash shebang")
+    for path in sorted((root / "templates").rglob("*.in")):
+        first_line = path.read_text(encoding="utf-8").split("\n", 1)[0]
+        require(
+            first_line == render.GENERATED_MARKER,
+            f"{path}: template first line must be exactly the standalone generated marker",
+        )
     require(not (root / "templates" / "nginx" / "aicardhub.conf.in").exists(), "obsolete standalone vhost template still present")
 
     backup_env = (root / "templates" / "backup.env.example").read_text(encoding="utf-8")
@@ -427,6 +492,11 @@ def check_repo_files(root: Path) -> None:
     for key in sorted(backup_keys):
         require(f"\n{key}=" in "\n" + backup_env, f"backup.env.example missing {key}")
     app_env = (root / "templates" / "app.env.example").read_text(encoding="utf-8")
+    require("AICARD_ROOT_PATH=/aicardhub" in app_env, "app.env.example missing AICARD_ROOT_PATH")
+    require(
+        "AICARD_POSTER_FONT_PATH=/usr/share/fonts/google-noto-cjk/NotoSansCJK-Regular.ttc" in app_env,
+        "app.env.example missing the documented CJK font path",
+    )
     require(
         "PUBLIC_BASE_URL=https://haiwex.com/aicardhub" in app_env,
         "app.env.example must use the authorized public prefix URL",
@@ -461,7 +531,7 @@ def main(argv: list[str] | None = None) -> int:
         with tempfile.TemporaryDirectory(prefix="aicardhub-production-test-") as temp_name:
             render.render_to(args.config, Path(temp_name), production=True)
         print("validation passed")
-        print("  nginx invariants: prefix-only locations, dotfile deny first, SSE buffering off, 120s timeouts")
+        print("  nginx invariants: prefix-only locations, nested-dot deny first, 200 SPA fallbacks, SSE buffering off, 120s timeouts")
         print("  stage invariant: single loopback 127.0.0.1:18080 server, no TLS/root/public listen")
         print("  systemd invariants: aicardhub user, loopback one worker with /aicardhub root-path, independent scheduler")
         print(f"  negative config tests: {NEGATIVE_CHECKS} (including parser and production-placeholder checks)")

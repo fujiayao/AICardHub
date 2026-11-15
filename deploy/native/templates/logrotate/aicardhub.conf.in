@@ -1,5 +1,5 @@
-# aicardhub-native: generated file; edit the template, not this file.
-# Rotates only dedicated AICardHub nginx logs and the backup log.
+# aicardhub-native: generated file
+# Edit the template, not this file. Rotates only dedicated AICardHub nginx logs and the backup log.
 # API/scheduler output goes to journald; journald retention is host policy and is
 # intentionally not changed here. Do not add a fake empty app log rotation.
 

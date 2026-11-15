@@ -1,4 +1,5 @@
-# aicardhub-native: generated file; edit the template, not this file.
+# aicardhub-native: generated file
+# Edit the template, not this file.
 [Unit]
 Description=AICardHub API (loopback @@API_HOST@@:@@API_PORT@@, one worker)
 After=network-online.target

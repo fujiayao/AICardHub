@@ -1,10 +1,14 @@
-== render ==
-D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub.locations.conf
-D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub.stage.conf
-D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub-api.service
-D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub-scheduler.service
-D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub-backup.service
-D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub-backup.timer
-D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub.logrotate
-== template/config invariants ==
-validation failed: files regex missing {32}
+Current round: one lightweight validate.py run, after ClaudeCode exited.
+Command: python -B deploy/native/scripts/validate.py
+Exit: 0
+validation passed
+  nginx invariants: prefix-only locations, nested-dot deny first, 200 SPA fallbacks, SSE buffering off, 120s timeouts
+  stage invariant: single loopback 127.0.0.1:18080 server, no TLS/root/public listen
+  systemd invariants: aicardhub user, loopback one worker with /aicardhub root-path, independent scheduler
+  negative config tests: 25 (including parser and production-placeholder checks)
+  line endings: LF only
+
+Sequential shell syntax check (bash -n only)
+Exit: 0
+bash syntax passed for existing deployment shell scripts
+Not run: verify-local.sh, builds, product tests, nginx/systemd, backup/restore, SSH or deployment.

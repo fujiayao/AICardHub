@@ -1,5 +1,5 @@
-# aicardhub-native: generated file; edit the template, not this file.
-# OPTIONAL loopback-only staging server. It is rendered to an app-owned path
+# aicardhub-native: generated file
+# Edit the template, not this file. OPTIONAL loopback-only staging server. It is rendered to an app-owned path
 # and is NOT installed, included or reloaded by any script. Mainline may copy
 # this server block to a separate conf.d file after review, then run nginx -t.
 # It must never listen publicly and never exists alongside a second stage server.

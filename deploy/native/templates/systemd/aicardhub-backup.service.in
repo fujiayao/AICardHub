@@ -1,4 +1,5 @@
-# aicardhub-native: generated file; edit the template, not this file.
+# aicardhub-native: generated file
+# Edit the template, not this file.
 [Unit]
 Description=AICardHub private backup (briefly quiesces API and scheduler)
 ConditionPathExists=@@OPS_DIR@@/backup.sh

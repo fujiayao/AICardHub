@@ -10,10 +10,12 @@ usage() {
     cat >&2 <<'EOF'
 Usage: rollback.sh --config FILE --to RELEASE-ID [--lock-held]
 
-Switches current to a retained release, restarts API/scheduler and requires the
-same health/scheduler checks as activation. The migration gate must name the
-target release and confirm that the current database schema is compatible with
-it. Rollback never reverses database migrations or restores data.
+Switches current to a retained release and requires the same gate as activation:
+release_id, schema_compatible=yes, a valid alembic_revision and approved_by.
+Both units are stopped before the switch; the target API must pass its loopback
+health check before the scheduler starts. On failure both units are left stopped
+and no release is restarted automatically; the operator must fix the gate and
+rerun explicitly. Rollback never reverses database migrations or restores data.
 EOF
 }
 
@@ -43,49 +45,60 @@ target="$(cfg RELEASES_DIR)/$target_id"
 [ ! -L "$target" ] || die "target release must not be a symlink: $target"
 require_private_file "$(cfg ENV_FILE)" "product environment"
 require_private_file "$(cfg MIGRATION_GATE_FILE)" "migration gate"
+[ -f "$target/RELEASE-METADATA" ] || die "release metadata missing: $target/RELEASE-METADATA"
+[ "$(awk -F= '$1=="release_id" {print $2; exit}' "$target/RELEASE-METADATA")" = "$target_id" ] \
+    || die "release metadata id does not match $target_id"
 "$SCRIPT_DIR/preflight.sh" --config "$config" --mode activate --release-dir "$target"
 
 gate_value() {
     awk -F= -v key="$1" '$1==key {sub(/^[^=]*=/, ""); print; exit}' "$(cfg MIGRATION_GATE_FILE)"
 }
-[ "$(gate_value release_id)" = "$target_id" ] || die "migration gate does not name target $target_id"
-[ "$(gate_value schema_compatible)" = "yes" ] || die "migration gate does not confirm schema compatibility"
-[ -n "$(gate_value approved_by)" ] || die "migration gate has no approver"
+gate_release="$(gate_value release_id)"
+gate_compatible="$(gate_value schema_compatible)"
+gate_revision="$(gate_value alembic_revision)"
+gate_approved="$(gate_value approved_by)"
+[ "$gate_release" = "$target_id" ] || die "migration gate does not name target $target_id"
+[ "$gate_compatible" = "yes" ] || die "migration gate does not confirm schema compatibility"
+[[ "$gate_revision" =~ ^[A-Za-z0-9_]{1,64}$ ]] || die "migration gate has no valid alembic revision"
+[ -n "$gate_approved" ] || die "migration gate has no approver"
 
 current_link="$(cfg CURRENT_LINK)"
 old_target=""
 if [ -L "$current_link" ]; then old_target="$(readlink -f "$current_link")"; fi
-if [ "$old_target" = "$target" ]; then
-    log "target release is already current"
-    exit 0
-fi
 
 api_unit="$(cfg API_UNIT)"
 scheduler_unit="$(cfg SCHEDULER_UNIT)"
 health_url="http://$(cfg API_HOST):$(cfg API_PORT)/health"
 
+if [ "$old_target" = "$target" ] && service_active "$api_unit" \
+    && service_active "$scheduler_unit" && health_check "$health_url" 1 1; then
+    log "target release is already current and healthy"
+    exit 0
+fi
+
 rollback_failed() {
-    warn "rollback target failed health checks"
-    if [ -n "$old_target" ]; then
-        atomic_symlink "$old_target" "$current_link" || true
-        systemctl restart "$api_unit" || true
-        systemctl restart "$scheduler_unit" || true
-        if health_check "$health_url" 20 1; then
-            warn "previous current release is serving health checks again"
-        else
-            warn "previous release is unhealthy; operator attention required"
-        fi
-    fi
+    local reason="$1"
+    warn "rollback failed: $reason"
+    warn "stopping both units; no release is restarted automatically"
+    systemctl stop "$scheduler_unit" 2>/dev/null || true
+    systemctl stop "$api_unit" 2>/dev/null || true
+    warn "both units are left stopped; current symlink retained at $current_link"
+    warn "fix the migration gate for the intended target and rerun rollback.sh explicitly; do not force"
     exit 1
 }
 
+log "stopping scheduler and API before the switch"
+systemctl stop "$scheduler_unit" || rollback_failed "cannot stop the scheduler unit"
+systemctl stop "$api_unit" || rollback_failed "cannot stop the API unit"
+
 log "switching current -> $target"
-atomic_symlink "$target" "$current_link" || rollback_failed
-systemctl enable "$api_unit" "$scheduler_unit" >/dev/null 2>&1 || rollback_failed
-systemctl stop "$scheduler_unit" 2>/dev/null || true
-systemctl restart "$api_unit" || rollback_failed
-systemctl restart "$scheduler_unit" || rollback_failed
-health_check "$health_url" 30 1 || rollback_failed
+atomic_symlink "$target" "$current_link" || rollback_failed "cannot update current symlink"
+systemctl enable "$api_unit" "$scheduler_unit" >/dev/null 2>&1 || rollback_failed "cannot enable units"
+log "starting API for health verification"
+systemctl restart "$api_unit" || rollback_failed "API failed to restart"
+health_check "$health_url" 30 1 || rollback_failed "API health check did not pass within 30s"
+log "API health check passed; starting the scheduler"
+systemctl restart "$scheduler_unit" || rollback_failed "scheduler failed to restart"
 sleep 3
-service_active "$scheduler_unit" || rollback_failed
+service_active "$scheduler_unit" || rollback_failed "scheduler is not active"
 log "rollback complete: $target_id is current; database was not changed"

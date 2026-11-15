@@ -1244,5 +1244,477 @@
         "Model metadata for `workbuddy/deepseek-v4.1-flash` not found. Defaulting to fallback metadata; this can degrade performance and cause issues."
       ]
     }
-  ]
+  ],
+  "claude_code_followup": {
+    "execution_client": "ClaudeCode CLI via Magpie loopback",
+    "supervision": "Codex / GPT6.1Sol per task assignment; implementation delegated to the specified ClaudeCode route",
+    "process": {
+      "started": "2026-11-15T09:32:11.267Z",
+      "pid": 16664,
+      "exe": "D:/nvm/nodejs/node_modules/@anthropic-ai/claude-code/bin/claude.exe",
+      "args": [
+        "--print",
+        "--model",
+        "workbuddy/deepseek-v4.1-flash",
+        "--effort",
+        "low",
+        "--permission-mode",
+        "dontAsk",
+        "--strict-mcp-config",
+        "--mcp-config",
+        "{\"mcpServers\":{}}",
+        "--tools",
+        "Read,Edit",
+        "--allowedTools",
+        "Read",
+        "Edit",
+        "--output-format",
+        "stream-json",
+        "--verbose"
+      ],
+      "model": "workbuddy/deepseek-v4.1-flash",
+      "baseURL": "http://127.0.0.1:3425",
+      "tools": [
+        "Read",
+        "Edit"
+      ],
+      "environment": {
+        "UV_THREADPOOL_SIZE": "1",
+        "RAYON_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "1"
+      },
+      "observed": {
+        "PID": 16664,
+        "Priority": "BelowNormal",
+        "ProcessorAffinity": 1
+      }
+    },
+    "exit": {
+      "started": "2026-11-15T09:32:11.267Z",
+      "ended": "2026-11-15T09:34:54.607Z",
+      "pid": 16664,
+      "model": "workbuddy/deepseek-v4.1-flash",
+      "code": 0,
+      "signal": null,
+      "reason": "",
+      "events": 10110
+    },
+    "init": {
+      "model": "workbuddy/deepseek-v4.1-flash",
+      "tools": [
+        "Edit",
+        "Read"
+      ]
+    },
+    "final": {
+      "subtype": "success",
+      "is_error": false,
+      "num_turns": 49,
+      "duration_ms": 145959,
+      "models": [
+        "workbuddy/deepseek-v4.1-flash"
+      ]
+    },
+    "tool_calls": {
+      "Read": 18,
+      "Edit": 30
+    },
+    "tool_results": 48,
+    "tool_errors": 1,
+    "tool_error_explanation": "One Read of nonexistent server/app/modules/cards/schemas.py. No route failure or model fallback observed.",
+    "tool_call_receipts": [
+      {
+        "id": "call_00_ET_qyefB9WLluPkLYIAtDRn6838",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/AGENTS.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_ET_qyefB9WLluPkLYIAtDRn6838",
+        "is_error": false
+      },
+      {
+        "id": "call_01_ET_lJfgGwyIkcxRcAsp2DCX7877",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/REVIEW-WIP.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_ET_lJfgGwyIkcxRcAsp2DCX7877",
+        "is_error": false
+      },
+      {
+        "id": "call_00_7fDLPLbpC8EbH5XSoTt14894",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/README.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_7fDLPLbpC8EbH5XSoTt14894",
+        "is_error": false
+      },
+      {
+        "id": "call_00_bMphfRmAtx7vqwSe4Zkq2404",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/validate.py",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_bMphfRmAtx7vqwSe4Zkq2404",
+        "is_error": false
+      },
+      {
+        "id": "call_01_xS611ymke5lDaLfr4qiX3990",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/nginx/aicardhub.locations.conf.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_xS611ymke5lDaLfr4qiX3990",
+        "is_error": false
+      },
+      {
+        "id": "call_02_OfKJKL0DAdZBU0Jf3wWf9719",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/app.env.example",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_02_OfKJKL0DAdZBU0Jf3wWf9719",
+        "is_error": false
+      },
+      {
+        "id": "call_00_mCt6rH5CPSFHpdc7qpbs1874",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/lib.sh",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_mCt6rH5CPSFHpdc7qpbs1874",
+        "is_error": false
+      },
+      {
+        "id": "call_01_GvL7dPiG1nbzMao8VTsa6588",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/restore.sh",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_GvL7dPiG1nbzMao8VTsa6588",
+        "is_error": false
+      },
+      {
+        "id": "call_00_kE4wP3lPHVyj7eKmDdyU6004",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/activate.sh",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_kE4wP3lPHVyj7eKmDdyU6004",
+        "is_error": false
+      },
+      {
+        "id": "call_01_4DZHUnHkp8VyTEuzWl0f0912",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/rollback.sh",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_4DZHUnHkp8VyTEuzWl0f0912",
+        "is_error": false
+      },
+      {
+        "id": "call_00_Fgh0wa8QtJlB9bgafesx7937",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/render.py",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_Fgh0wa8QtJlB9bgafesx7937",
+        "is_error": false
+      },
+      {
+        "id": "call_00_m8MoG3VgCWaFE3teKkKW4859",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/nginx/aicardhub.stage.conf.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_m8MoG3VgCWaFE3teKkKW4859",
+        "is_error": false
+      },
+      {
+        "id": "call_01_DosJoQPr1QwN5yHPe8Z12370",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/systemd/aicardhub-api.service.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_DosJoQPr1QwN5yHPe8Z12370",
+        "is_error": false
+      },
+      {
+        "id": "call_02_2iUVyIaqgFcKGZOQZvkp0515",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/systemd/aicardhub-scheduler.service.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_02_2iUVyIaqgFcKGZOQZvkp0515",
+        "is_error": false
+      },
+      {
+        "id": "call_03_oPJnrpFseizk71pIS49d6257",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/systemd/aicardhub-backup.service.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_03_oPJnrpFseizk71pIS49d6257",
+        "is_error": false
+      },
+      {
+        "id": "call_04_JhdhiaTuaf793os3vzVv8682",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/systemd/aicardhub-backup.timer.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_04_JhdhiaTuaf793os3vzVv8682",
+        "is_error": false
+      },
+      {
+        "id": "call_05_K0MUdTFIrTwuC1RyEaqS6778",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/logrotate/aicardhub.conf.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_05_K0MUdTFIrTwuC1RyEaqS6778",
+        "is_error": false
+      },
+      {
+        "id": "call_00_bZXWr4MqYemes8VA06DT0920",
+        "tool": "Read",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/server/app/modules/cards/schemas.py",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_bZXWr4MqYemes8VA06DT0920",
+        "is_error": true
+      },
+      {
+        "id": "call_00_yWb6wPZXPIdfCEJXuzZi6381",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/nginx/aicardhub.locations.conf.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_yWb6wPZXPIdfCEJXuzZi6381",
+        "is_error": false
+      },
+      {
+        "id": "call_01_rqmjkuoCyGPVGhGZZ95b1484",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/nginx/aicardhub.stage.conf.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_rqmjkuoCyGPVGhGZZ95b1484",
+        "is_error": false
+      },
+      {
+        "id": "call_02_RG5SnaMaOXYJhztGGov19816",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/systemd/aicardhub-api.service.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_02_RG5SnaMaOXYJhztGGov19816",
+        "is_error": false
+      },
+      {
+        "id": "call_03_5AcAZ5nZ5941jV2OXVhi7968",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/systemd/aicardhub-scheduler.service.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_03_5AcAZ5nZ5941jV2OXVhi7968",
+        "is_error": false
+      },
+      {
+        "id": "call_04_conLM3g4cKXWiQakk9Ej0930",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/systemd/aicardhub-backup.service.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_04_conLM3g4cKXWiQakk9Ej0930",
+        "is_error": false
+      },
+      {
+        "id": "call_05_hBPlSdZVc9csukcbeMCx4781",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/systemd/aicardhub-backup.timer.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_05_hBPlSdZVc9csukcbeMCx4781",
+        "is_error": false
+      },
+      {
+        "id": "call_06_tl0MiUhFdmb3XBIq37WW7662",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/logrotate/aicardhub.conf.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_06_tl0MiUhFdmb3XBIq37WW7662",
+        "is_error": false
+      },
+      {
+        "id": "call_00_2pOwxUoVDkiDra0owFGS8055",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/nginx/aicardhub.locations.conf.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_2pOwxUoVDkiDra0owFGS8055",
+        "is_error": false
+      },
+      {
+        "id": "call_00_9hI5hyCcocE6gnVxic5f7694",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/validate.py",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_9hI5hyCcocE6gnVxic5f7694",
+        "is_error": false
+      },
+      {
+        "id": "call_01_D8yB22Qmpz8zvwVqVd0V1715",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/validate.py",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_D8yB22Qmpz8zvwVqVd0V1715",
+        "is_error": false
+      },
+      {
+        "id": "call_00_pf0OO05XiGWhV8MbemVK4185",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/validate.py",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_pf0OO05XiGWhV8MbemVK4185",
+        "is_error": false
+      },
+      {
+        "id": "call_01_7LRMVHCNfjW56ONR15lR3868",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/validate.py",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_7LRMVHCNfjW56ONR15lR3868",
+        "is_error": false
+      },
+      {
+        "id": "call_00_f7EaxMhGk6IQEW3T82aw6594",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/activate.sh",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_f7EaxMhGk6IQEW3T82aw6594",
+        "is_error": false
+      },
+      {
+        "id": "call_01_cPQIwG1EF2008WjZGEPL6729",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/activate.sh",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_cPQIwG1EF2008WjZGEPL6729",
+        "is_error": false
+      },
+      {
+        "id": "call_00_MAbZoRzHKmhViZgnDpYB5302",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/rollback.sh",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_MAbZoRzHKmhViZgnDpYB5302",
+        "is_error": false
+      },
+      {
+        "id": "call_01_23Et1uPmf9C3vSckKtyV4190",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/rollback.sh",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_23Et1uPmf9C3vSckKtyV4190",
+        "is_error": false
+      },
+      {
+        "id": "call_00_EEzCLXzB6GZ0PR1lAVbp6250",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/restore.sh",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_EEzCLXzB6GZ0PR1lAVbp6250",
+        "is_error": false
+      },
+      {
+        "id": "call_00_O5BBCn9WhJgK6PVp07j97849",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/README.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_O5BBCn9WhJgK6PVp07j97849",
+        "is_error": false
+      },
+      {
+        "id": "call_01_zaMiZ6aflP1rtnPNWGMS5760",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/README.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_zaMiZ6aflP1rtnPNWGMS5760",
+        "is_error": false
+      },
+      {
+        "id": "call_02_a6opje82zNkKiDwCOyDB3007",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/README.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_02_a6opje82zNkKiDwCOyDB3007",
+        "is_error": false
+      },
+      {
+        "id": "call_03_LxNn6oDgAmYXGZVq14bd6163",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/README.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_03_LxNn6oDgAmYXGZVq14bd6163",
+        "is_error": false
+      },
+      {
+        "id": "call_04_UmgQRibOaYJmTnelStSv0522",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/README.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_04_UmgQRibOaYJmTnelStSv0522",
+        "is_error": false
+      },
+      {
+        "id": "call_00_xn9xZR6nKzkLg9IuWLjt7817",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/REVIEW-WIP.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_xn9xZR6nKzkLg9IuWLjt7817",
+        "is_error": false
+      },
+      {
+        "id": "call_01_YpPrnNdxAhjeITyM5O5l4365",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/REVIEW-WIP.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_YpPrnNdxAhjeITyM5O5l4365",
+        "is_error": false
+      },
+      {
+        "id": "call_02_0LwyDKbdsR5qi8scSknC5410",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/REVIEW-WIP.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_02_0LwyDKbdsR5qi8scSknC5410",
+        "is_error": false
+      },
+      {
+        "id": "call_00_VLifGl2m7Z2UuAxcNn1c1537",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/REVIEW-WIP.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_VLifGl2m7Z2UuAxcNn1c1537",
+        "is_error": false
+      },
+      {
+        "id": "call_01_jGakR5SvoLUiVKUPTqsR6605",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/REVIEW-WIP.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_jGakR5SvoLUiVKUPTqsR6605",
+        "is_error": false
+      },
+      {
+        "id": "call_00_xLyGnByZ0rB9dKGrnWVn2715",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/scripts/restore.sh",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_xLyGnByZ0rB9dKGrnWVn2715",
+        "is_error": false
+      },
+      {
+        "id": "call_01_caSFYuq8F7MsXRPCRpJR6999",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/README.md",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_01_caSFYuq8F7MsXRPCRpJR6999",
+        "is_error": false
+      },
+      {
+        "id": "call_00_CiK9DPCwpiXz3lJki9Se7084",
+        "tool": "Edit",
+        "path": "D:/AIWork/智能名片/worktrees/native-deploy-deepseek/deploy/native/templates/nginx/aicardhub.locations.conf.in",
+        "reported_model": "workbuddy/deepseek-v4.1-flash",
+        "tool_use_id": "call_00_CiK9DPCwpiXz3lJki9Se7084",
+        "is_error": false
+      }
+    ],
+    "logs": {
+      "directory": "D:/dev/cache/tmp/aicard-native-cc-20261115",
+      "execution_sha256": "513338c6c45e5850c37be9297d1c1940e7b088d07736d0613fcd95d6a743a757",
+      "stderr_sha256": "c1fddaf18896911ccce7b4c2ca14091d3c19a65569a7cbaa90a6433fe7af85e4"
+    },
+    "warning": "stderr contains claude-code:unrecognized_model for the custom route; actual init/assistant/final model keys are workbuddy/deepseek-v4.1-flash. This is route/tool evidence, not an independent attestation of upstream internals.",
+    "limits": "One worker; Read/Edit only; BelowNormal; affinity=1; single-thread environment; no Bash/Agent/MCP tools; no fallback or retry worker. No global configuration edits. Supervisor ran one validate.py and then bash -n after process exit. No full tests/builds, remote operations or deployment.",
+    "review": "No remaining P1 identified in the bounded static review of the requested fixes. This is not production acceptance: EL9 nginx/systemd, runtime/font, existing location precedence, operator schema attestation, and actual backup/restore remain unverified."
+  }
 }
