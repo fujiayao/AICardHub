@@ -113,7 +113,7 @@ function onLead(summary: { name: string, phone: string, company_name: string }) 
       <span class="dk-ai-mark"><span class="icon i-lucide-sparkles" /></span>
       <div class="dk-ai-head-text">
         <div class="dk-ai-t">{{ card.name ? `${card.name}的 AI 助手` : 'AI 助手' }}</div>
-        <div class="dk-ai-s">基于已公开资料回答 · 不确定会直说</div>
+        <div class="dk-ai-s">日常问答与业务咨询 · 按需查询资料</div>
       </div>
       <div class="dk-ai-badge"><span class="dk-ai-badge-dot" />AI 可用</div>
     </div>
@@ -149,7 +149,7 @@ function onLead(summary: { name: string, phone: string, company_name: string }) 
       <div class="dk-inputbar">
         <input
           v-model="draft" type="text" aria-label="输入消息"
-          :placeholder="restoring ? '正在接入…' : '问点什么，比如「做过哪些项目」'"
+          :placeholder="restoring ? '正在接入…' : '问点什么，日常问题或业务咨询都可以'"
           :disabled="restoring" autocomplete="off"
           @keydown.enter="onEnter" @compositionstart="composing = true" @compositionend="composing = false"
         >
