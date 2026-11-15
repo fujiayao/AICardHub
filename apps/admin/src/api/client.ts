@@ -1,5 +1,6 @@
 import { ElMessage } from "element-plus";
 import { readSession, tokenExpired, clearSession } from "./session";
+import { apiUrl, mapAssetPaths } from "./urls";
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -39,22 +40,25 @@ export async function request<T>(
   options.signal?.addEventListener("abort", abort, { once: true });
   const multipart = options.body instanceof FormData;
   try {
-    const response = await fetch(path + (query.size ? `?${query}` : ""), {
-      method,
-      headers: {
-        ...(!multipart ? { "Content-Type": "application/json" } : {}),
-        ...(!login && session
-          ? { Authorization: `Bearer ${session.token}` }
-          : {}),
+    const response = await fetch(
+      apiUrl(path) + (query.size ? `?${query}` : ""),
+      {
+        method,
+        headers: {
+          ...(!multipart ? { "Content-Type": "application/json" } : {}),
+          ...(!login && session
+            ? { Authorization: `Bearer ${session.token}` }
+            : {}),
+        },
+        body:
+          options.body === undefined
+            ? undefined
+            : multipart
+              ? (options.body as FormData)
+              : JSON.stringify(mapAssetPaths(options.body, "storage")),
+        signal: controller.signal,
       },
-      body:
-        options.body === undefined
-          ? undefined
-          : multipart
-            ? (options.body as FormData)
-            : JSON.stringify(options.body),
-      signal: controller.signal,
-    });
+    );
     if (response.status === 204) return undefined as T;
     const data: unknown = await response.json();
     if (!response.ok) {
@@ -74,7 +78,7 @@ export async function request<T>(
         window.dispatchEvent(new Event("admin-password-required"));
       throw new ApiError(message, code, response.status);
     }
-    return data as T;
+    return mapAssetPaths(data) as T;
   } catch (error) {
     if (options.signal?.aborted) throw error;
     const normalized =

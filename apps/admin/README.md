@@ -16,6 +16,8 @@ pnpm test
 
 生产默认 base 为 `/admin/`，路由 history 同步读取 Vite BASE_URL；反向代理需将 `/admin/*` 页面导航回退至 `/admin/index.html`。可用未跟踪环境变量 `VITE_BASE=/其他路径/` 覆盖；开发默认根路径。
 
+部署在现有站点子路径时，使用 `VITE_BASE=/aicardhub/admin/` 构建。统一 client 从该 base 去掉末尾 `/admin/`，将 API（含表单上传）发送到 `/aicardhub/api/...`。响应中图片字段 `logo_url`、`image_url`、`photo_url`、`photo_bg_url`、`wechat_qr_url`、`qr_url`、`poster_url` 的 `/files/...` 地址映射到 `/aicardhub/files/...`，JSON 保存前还原，避免部署前缀进入数据库。知识正文、标题、普通 URL、外部地址、原生上传内容保持不变。路由 `push`/`replace` 仍使用 `/login` 等逻辑路径，由 history base 处理前缀。
+
 `gen:api` 默认读取仓库 `contracts/openapi.json`，也接受参数或 `OPENAPI_SOURCE`（本地路径或真实后端 OpenAPI URL）。例如本工作区内：
 
 ```powershell
