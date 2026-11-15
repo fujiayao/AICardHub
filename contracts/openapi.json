@@ -908,6 +908,75 @@
         }
       }
     },
+    "/api/v1/me/card/share-link": {
+      "get": {
+        "summary": "Card Share Link",
+        "operationId": "me_card_share_link",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "s",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "nfc",
+                "qr",
+                "poster",
+                "link",
+                "sig"
+              ],
+              "type": "string",
+              "default": "link",
+              "title": "S"
+            }
+          },
+          {
+            "name": "e",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "E"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareLinkData"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me/card/photo": {
       "post": {
         "summary": "Card Photo",
@@ -7653,6 +7722,44 @@
           "poster_url"
         ],
         "title": "ShareData"
+      },
+      "ShareLinkData": {
+        "properties": {
+          "short_url": {
+            "type": "string",
+            "title": "Short Url"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "nfc",
+              "qr",
+              "poster",
+              "link",
+              "sig"
+            ],
+            "title": "Source"
+          },
+          "campaign_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Campaign Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "short_url",
+          "source",
+          "campaign_id"
+        ],
+        "title": "ShareLinkData"
       },
       "SourceBreakdownRow": {
         "properties": {

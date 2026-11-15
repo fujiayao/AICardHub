@@ -1,4 +1,4 @@
-// Generated from OpenAPI; DO NOT EDIT. SHA256 3ebe39cd03645b7c69558307f9e60097c4c2f9ccc98a327105cb630cdc64d4e2
+// Generated from OpenAPI; DO NOT EDIT. SHA256 34240ff74f1a65f98a808c0c183bb1661fcfd2e1de3deda4d6b9f76f697570bd
 import { request } from '../client'
 import type * as Schemas from './schemas'
 export type * from './schemas'
@@ -32,6 +32,8 @@ export function card(_input: {  } = {}): Promise<Schemas.CardData> { return requ
 export function saveCard(input: { body: Schemas.CardInput }): Promise<Schemas.CardData> { return request<Schemas.CardData>('put', `/api/v1/me/card`, input.body, 'staff', undefined) }
 /** me_card_share */
 export function cardShare(input: { query?: { "s"?: "nfc" | "qr" | "poster" | "link" | "sig"; "e"?: (number | null) } } = {}): Promise<Schemas.ShareData> { return request<Schemas.ShareData>('get', `/api/v1/me/card/share`, undefined, 'staff', input.query) }
+/** me_card_share_link */
+export function cardShareLink(input: { query?: { "s"?: "nfc" | "qr" | "poster" | "link" | "sig"; "e"?: (number | null) } } = {}): Promise<Schemas.ShareLinkData> { return request<Schemas.ShareLinkData>('get', `/api/v1/me/card/share-link`, undefined, 'staff', input.query) }
 /** me_card_photo */
 export function uploadPhoto(input: { body: FormData }): Promise<Schemas.PhotoData> { return request<Schemas.PhotoData>('post', `/api/v1/me/card/photo`, input.body, 'staff', undefined) }
 /** me_card_wechat_qr */

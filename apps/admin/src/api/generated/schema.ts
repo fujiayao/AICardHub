@@ -1,4 +1,4 @@
-// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: b1226f19e1dc1e8ab7acc27be0d6c8f74fae19f66aa4313a7cb91ff0502a15ee
+// Generated from backend OpenAPI. DO NOT EDIT. Source SHA256: 34240ff74f1a65f98a808c0c183bb1661fcfd2e1de3deda4d6b9f76f697570bd
 export interface paths {
   "/health": {
     parameters: {
@@ -111,6 +111,23 @@ export interface paths {
     };
     /** Profile */
     get: operations["me_profile"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/me/assistant/metrics": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Assistant Metrics */
+    get: operations["me_assistant_metrics"];
     put?: never;
     post?: never;
     delete?: never;
@@ -303,6 +320,23 @@ export interface paths {
     };
     /** Card Share */
     get: operations["me_card_share"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/me/card/share-link": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Card Share Link */
+    get: operations["me_card_share_link"];
     put?: never;
     post?: never;
     delete?: never;
@@ -1313,6 +1347,8 @@ export interface components {
   schemas: {
     /** AdminStats */
     AdminStats: {
+      today?: components["schemas"]["DayMetrics"];
+      yesterday?: components["schemas"]["DayMetrics"];
       /** Source Breakdown */
       source_breakdown?: components["schemas"]["TrafficSource"][];
       /** Visits */
@@ -1367,6 +1403,24 @@ export interface components {
       opening: string;
       /** Guide Questions */
       guide_questions?: string[];
+    };
+    /** AssistantMetrics */
+    AssistantMetrics: {
+      /** Answers */
+      answers: number;
+      /** Unanswered */
+      unanswered: number;
+      /** Disliked */
+      disliked: number;
+      /** Notes */
+      notes: number;
+      /** Corrections */
+      corrections: number;
+      /**
+       * Period Days
+       * @default 7
+       */
+      period_days: number;
     };
     /** AuditData */
     AuditData: {
@@ -1569,6 +1623,21 @@ export interface components {
        * @default
        */
       title: string;
+      /**
+       * Company Id
+       * @default 0
+       */
+      company_id: number;
+      /**
+       * Company Name
+       * @default
+       */
+      company_name: string;
+      /**
+       * Company Short Name
+       * @default
+       */
+      company_short_name: string;
     };
     /** CardInput */
     CardInput: {
@@ -1752,6 +1821,29 @@ export interface components {
       /** Leads */
       leads: number;
     };
+    /** DayMetrics */
+    DayMetrics: {
+      /**
+       * Visits
+       * @default 0
+       */
+      visits: number;
+      /**
+       * Visitors
+       * @default 0
+       */
+      visitors: number;
+      /**
+       * Chats
+       * @default 0
+       */
+      chats: number;
+      /**
+       * Leads
+       * @default 0
+       */
+      leads: number;
+    };
     /** Draft */
     Draft: {
       /** Title */
@@ -1932,6 +2024,11 @@ export interface components {
     KnowledgeUploadDraft: {
       /** Title */
       title: string;
+      /**
+       * Description
+       * @default
+       */
+      description: string;
       /** Content */
       content: string;
       /**
@@ -1946,11 +2043,6 @@ export interface components {
       approved: boolean;
       /** File Id */
       file_id: string;
-      /**
-       * Description
-       * @default
-       */
-      description: string;
       /**
        * Scope
        * @default company
@@ -2099,6 +2191,11 @@ export interface components {
     NoteData: {
       /** Title */
       title: string;
+      /**
+       * Description
+       * @default
+       */
+      description: string;
       /** Content */
       content: string;
       /**
@@ -2122,11 +2219,26 @@ export interface components {
       file_id: string;
       /** Revision */
       revision: number;
+      /**
+       * Updated
+       * @default
+       */
+      updated: string;
+      /**
+       * Tokens
+       * @default 0
+       */
+      tokens: number;
     };
     /** NoteInput */
     NoteInput: {
       /** Title */
       title: string;
+      /**
+       * Description
+       * @default
+       */
+      description: string;
       /** Content */
       content: string;
       /**
@@ -2529,6 +2641,18 @@ export interface components {
       /** Poster Url */
       poster_url: string;
     };
+    /** ShareLinkData */
+    ShareLinkData: {
+      /** Short Url */
+      short_url: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: "nfc" | "qr" | "poster" | "link" | "sig";
+      /** Campaign Id */
+      campaign_id: number | null;
+    };
     /** SourceBreakdownRow */
     SourceBreakdownRow: {
       /** Source */
@@ -2620,6 +2744,8 @@ export interface components {
     };
     /** StatsData */
     StatsData: {
+      today?: components["schemas"]["DayMetrics"];
+      yesterday?: components["schemas"]["DayMetrics"];
       /** Source Breakdown */
       source_breakdown?: components["schemas"]["TrafficSource"][];
       /** Visits */
@@ -2762,6 +2888,10 @@ export interface components {
        * Format: date-time
        */
       last_seen_at: string;
+      /** Source */
+      source?: ("nfc" | "qr" | "poster" | "link" | "sig") | null;
+      /** Intent Level */
+      intent_level?: ("A" | "B" | "C") | null;
     };
     /** VisitorDetail */
     VisitorDetail: {
@@ -2774,6 +2904,10 @@ export interface components {
        * Format: date-time
        */
       last_seen_at: string;
+      /** Source */
+      source?: ("nfc" | "qr" | "poster" | "link" | "sig") | null;
+      /** Intent Level */
+      intent_level?: ("A" | "B" | "C") | null;
       /** Visits */
       visits?: components["schemas"]["VisitorVisit"][];
       /** Sessions */
@@ -3051,6 +3185,26 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["Staff"];
+        };
+      };
+    };
+  };
+  me_assistant_metrics: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AssistantMetrics"];
         };
       };
     };
@@ -3463,6 +3617,38 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["ShareData"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  me_card_share_link: {
+    parameters: {
+      query?: {
+        s?: "nfc" | "qr" | "poster" | "link" | "sig";
+        e?: number | null;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ShareLinkData"];
         };
       };
       /** @description Validation Error */

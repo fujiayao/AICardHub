@@ -1,6 +1,6 @@
 # NFC：Magpie 多智能体开发执行包
 
-日期：2026-11-15。负责人已授权启动子代理开发。模型分配按本次明确要求：GPT-6.1-Sol 与 DeepSeek V4.1 Flash 承担主要开发、测试与复核；量惟 Claude Opus 5.5 仅承担 UI 页面任务。实际进展见 tasks/reports/nfc/。
+日期：2026-11-15。当前已完成软件候选，详见 [实际集成报告](../reports/nfc/integration.md)，手机与贴纸射频待硬件验收，生产发布未执行。负责人已授权启动子代理开发。模型分配按本次明确要求：GPT-6.1-Sol 与 DeepSeek V4.1 Flash 承担主要开发、测试与复核；量惟 Claude Opus 5.5 仅承担 UI 页面任务。实际进展见 tasks/reports/nfc/。
 
 ## 1. 启动入口
 

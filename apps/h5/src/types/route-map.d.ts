@@ -66,6 +66,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/share/nfc': RouteRecordInfo<
+      '/share/nfc',
+      '/share/nfc',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/staff/assistant/': RouteRecordInfo<
       '/staff/assistant/',
       '/staff/assistant',
@@ -205,6 +212,14 @@ declare module 'vue-router/auto-routes' {
     'src/pages/login.vue': {
       routes:
         | '/login'
+      views:
+        | never
+      pathParamNames:
+        | never
+    }
+    'src/pages/share/nfc.vue': {
+      routes:
+        | '/share/nfc'
       views:
         | never
       pathParamNames:

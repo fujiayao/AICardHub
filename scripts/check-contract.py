@@ -20,6 +20,7 @@ REQUIRED = {
     "/api/v1/public/chat/sessions/{session_id}/messages": {"get", "post"},
     "/api/v1/me/card": {"get", "put"},
     "/api/v1/me/card/share": {"get"},
+    "/api/v1/me/card/share-link": {"get"},
     "/api/v1/me/assistant": {"get", "put"},
     "/api/v1/me/leads": {"get"},
     "/api/v1/me/stats": {"get"},
