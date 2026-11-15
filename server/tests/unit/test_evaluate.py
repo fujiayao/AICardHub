@@ -48,7 +48,7 @@ async def test_Fake报告只声称边界检查而不生成语义正确率() -> N
     assert report["real_execution"] == "unverified_not_run"
     assert "accuracy" not in json.dumps(report)
     # A clearly non-answer still passes protocol checks; it is never semantic success.
-    assert len(fake.calls) == 10
+    assert len(fake.calls) == 14
 
 
 @pytest.mark.asyncio
@@ -83,6 +83,7 @@ async def test_资料缺失允许模型诚实标记且不泄露未选资料(nokb
 )
 def test_引用限于选中资料且NOKB必须为布尔值(nokb, refs, valid) -> None:
     case = next(case for case in samples() if case["id"] == "knowledge-01")
+    case["used_refs"] = ["synthetic-lantern"]
     events = [
         {"event": "delta", "data": {"text": "合成答复"}},
         {"event": "done", "data": {"nokb": nokb, "kb_refs": refs, "model": "fake"}},
@@ -107,8 +108,8 @@ async def test_失败题仍计入分母并保留安全错误() -> None:
     fake = FakeLLMClient(fail_after=0, error=RuntimeError("fake-secret-header"))
     report = await evaluate(client=fake, case_ids=["quote-01", "knowledge-01"])
     assert report["denominator"] == 2
-    assert report["automatic_summary"]["passed"] == 1
-    assert report["automatic_summary"]["failed"] == 1
+    assert report["automatic_summary"]["passed"] == 0
+    assert report["automatic_summary"]["failed"] == 2
     assert report["records"][1]["status"] == "failed"
     assert "fake-secret-header" not in json.dumps(report)
     assert "accuracy" not in json.dumps(report)

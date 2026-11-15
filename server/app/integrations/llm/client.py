@@ -55,6 +55,7 @@ class FakeLLMClient:
         fail_after: int | None = None,
         error: Exception | None = None,
         delay: float = 0,
+        tool_rounds: Sequence[Any] | None = None,
     ):
         if chunk_size < 1 or delay < 0 or (fail_after is not None and fail_after < 0):
             raise ValueError("Invalid fake streaming configuration")
@@ -65,6 +66,8 @@ class FakeLLMClient:
         )
         self.fail_after, self.error, self.delay = fail_after, error, delay
         self.calls: list[list[dict[str, str]]] = []
+        self.tool_rounds = list(tool_rounds) if tool_rounds is not None else None
+        self.tool_invocations: list[dict[str, Any]] = []
         self.closed_streams = 0
         self.stream_started = asyncio.Event()
 
@@ -82,6 +85,35 @@ class FakeLLMClient:
                 emitted += bool(chunk)
             if self.fail_after is not None and emitted >= self.fail_after:
                 raise self.error or ConnectionError("Synthetic provider failure")
+        finally:
+            self.closed_streams += 1
+
+    async def stream_tools(
+        self, messages: list[dict[str, Any]], definitions: list[dict[str, Any]]
+    ) -> AsyncIterator[Any]:
+        from copy import deepcopy
+
+        self.tool_invocations.append(
+            deepcopy({"messages": messages, "tools": definitions, "tool_choice": "auto"})
+        )
+        if self.tool_rounds is None:
+            async with managed_stream(
+                self.stream(cast(list[dict[str, str]], messages))
+            ) as iterator:
+                async for text in iterator:
+                    yield text
+            return
+        self.stream_started.set()
+        try:
+            if self.delay:
+                await asyncio.sleep(self.delay)
+            index = len(self.tool_invocations) - 1
+            if index >= len(self.tool_rounds):
+                raise RuntimeError("Fake script exhausted")
+            part = self.tool_rounds[index]
+            if isinstance(part, BaseException):
+                raise part
+            yield part
         finally:
             self.closed_streams += 1
 
@@ -152,6 +184,21 @@ class OpenAILLMClient:
                         raise RuntimeError("Chat completion has no valid text")
                     return
         raise RuntimeError("Chat stream ended without completion")
+
+    async def stream_tools(
+        self, messages: list[dict[str, Any]], definitions: list[dict[str, Any]]
+    ) -> AsyncIterator[Any]:
+        from app.integrations.llm.native_tools import chat_turn, responses_turn
+
+        method = responses_turn if isinstance(self, ResponsesLLMClient) else chat_turn
+        iterator = method(self._client, self.model, messages, definitions)
+        try:
+            async for part in iterator:
+                yield part
+        finally:
+            close = getattr(iterator, "aclose", None)
+            if close is not None:
+                await close()
 
     async def aclose(self) -> None:
         await self._client.close()

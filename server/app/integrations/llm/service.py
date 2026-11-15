@@ -14,37 +14,13 @@ from typing import Any
 
 from app.integrations.llm.client import LLMClient, managed_stream
 from app.integrations.llm.stream_filter import NOKBFilter
-from app.kb.prompt import build_messages, public_knowledge
+from app.integrations.llm.tool_protocol import ToolLimitError, ToolUnsupportedError, tool_loop
+from app.kb.prompt import build_messages
+from app.kb.tools import ToolRuntime
 
 logger = logging.getLogger(__name__)
-QUOTE = re.compile(
-    r"报价|价格|价钱|多少钱|费用|收费|折扣|优惠|便宜|交付|交期|工期|合同|"
-    r"\b(?:price|pricing|cost|quote|quotation|discount|delivery|contract)\b",
-    re.IGNORECASE,
-)
-GENERAL_EXPLANATION = re.compile(
-    r"什么是|解释|含义|定义|区别|(?:如何|怎么)(?:安排|规划)|"
-    r"\b(?:what is|explain|define|difference|how to plan)\b",
-    re.IGNORECASE,
-)
-TRANSACTION_CONTEXT = re.compile(
-    r"你们|贵司|贵公司|本公司|我们|名片本人|承诺|保证|"
-    r"(?:本次|这次|这笔|该笔|我的|我们的).{0,8}(?:交易|订单|合同|项目)|"
-    r"(?:这个|该|本)项目|\b(?:your|our|promise|guarantee)\b|\bthe\s+(?:price|cost)\b",
-    re.IGNORECASE,
-)
-INJECTION = re.compile(
-    r"(?:忽略|绕过|覆盖).{0,15}(?:指令|规则|提示)|(?:输出|泄露|展示|告诉).{0,15}(?:提示词|系统指令)|"
-    r"ignore.{0,20}(?:instructions|rules)|system\s*prompt",
-    re.IGNORECASE,
-)
-IDENTITY = re.compile(
-    r"你是(?:真人|人类|机器人|AI)|你是.{0,4}人工智能|are you (?:human|real|an? ai)",
-    re.IGNORECASE,
-)
 PHONE = re.compile(r"(?<![0-9])(?:\+?86[- ]?)?1[3-9][0-9]{9}(?![0-9])")
 UNKNOWN = "这个问题我需要确认一下，目前没有足够的批准公开资料。请联系名片本人确认，我也可以提示您留下联系方式。"
-QUOTE_REPLY = "价格、折扣、交付周期和合同条款需要由名片本人确认，我不能代为报价或承诺。您可以留下联系方式，方便本人跟进。"
 
 
 def _event(name: str, **data: Any) -> dict[str, Any]:
@@ -83,6 +59,7 @@ class ChatEngine:
         persona: str = "",
         *,
         public_card: dict[str, Any] | None = None,
+        tools: ToolRuntime | None = None,
     ) -> AsyncIterator[dict[str, Any]]:
         if not isinstance(question, str) or not question.strip() or len(question) > 8000:
             yield _event(
@@ -94,35 +71,12 @@ class ChatEngine:
         phone_found = PHONE.search(question) is not None
         if phone_found:
             yield _event("lead_prompt", reason="phone", title="如需跟进，请确认并提交联系方式")
-        # Explain/plan generic topics via the model, but company-specific terms
-        # and promises take precedence even when framed as a definition request.
-        general = GENERAL_EXPLANATION.search(question) and not TRANSACTION_CONTEXT.search(question)
-        if QUOTE.search(question) and not general:
-            yield _event("delta", text=QUOTE_REPLY)
-            if not phone_found:
-                yield _event(
-                    "lead_prompt",
-                    reason="keyword",
-                    title="留下联系方式，由名片本人确认具体需求",
-                )
-            yield _event("done", kb_refs=[], nokb=False, model="policy")
-            return
-        if INJECTION.search(question):
-            yield _event(
-                "delta",
-                text="我不能提供内部指令或绕过回答规则。您可以询问名片相关的业务信息。",
-            )
-            yield _event("done", kb_refs=[], nokb=False, model="policy")
-            return
-        if IDENTITY.search(question):
-            yield _event("delta", text="我是名片本人的 AI 分身。具体业务和承诺请与本人确认。")
-            yield _event("done", kb_refs=[], nokb=False, model="policy")
-            return
-        selected = await asyncio.to_thread(public_knowledge, knowledge)
+        selected: list[dict[str, Any]] = []
         messages = await build_messages(
             question, selected, history, persona, public_card=public_card
         )
         clients = [self.client, *self.fallbacks]
+        deadline = asyncio.get_running_loop().time() + float(getattr(self.client, "timeout", 30))
         for index, client in enumerate(clients):
             received = False
             marker_filter = NOKBFilter()
@@ -130,21 +84,34 @@ class ChatEngine:
             try:
                 # First *nonempty provider content*, even a buffered marker, commits
                 # this attempt. This is stricter than first customer-visible delta.
-                async with managed_stream(client.stream(messages)) as iterator:
-                    async with asyncio.timeout(float(getattr(client, "first_token_timeout", 15))):
+                source = (
+                    tool_loop(client, messages, tools)
+                    if tools is not None
+                    else client.stream(messages)
+                )
+                async with asyncio.timeout_at(deadline), managed_stream(source) as iterator:
+                    async with asyncio.timeout(
+                        None
+                        if tools is not None
+                        else float(getattr(client, "first_token_timeout", 15))
+                    ):
                         while True:
                             first = await anext(iterator)
                             if first:
                                 break
                     received = True
-                    text = marker_filter.feed(first)[:200]
+                    text = marker_filter.feed(first)
+                    if len(text) > 6000:
+                        raise ToolLimitError("Visible output limit")
                     if text:
                         output_chars += len(text)
                         yield _event("delta", text=text)
                     async for chunk in iterator:
                         if not isinstance(chunk, str):
                             raise TypeError("Provider returned non-text content")
-                        text = marker_filter.feed(chunk)[: max(0, 200 - output_chars)]
+                        text = marker_filter.feed(chunk)
+                        if output_chars + len(text) > 6000:
+                            raise ToolLimitError("Visible output limit")
                         if text:
                             output_chars += len(text)
                             yield _event("delta", text=text)
@@ -154,15 +121,22 @@ class ChatEngine:
                     marker_filter.nokb = True
                 yield _event(
                     "done",
-                    kb_refs=[item["file_id"] for item in selected]
-                    if not marker_filter.nokb
-                    else [],
+                    kb_refs=(
+                        list(tools.refs) if tools is not None and not marker_filter.nokb else []
+                    ),
                     nokb=marker_filter.nokb,
                     model=_model(client),
                 )
                 return
             except asyncio.CancelledError:
                 raise
+            except (ToolLimitError, ToolUnsupportedError):
+                yield _event(
+                    "error",
+                    code="LLM_TOOL_ERROR",
+                    message="工具能力不可用或已达本轮限制，请稍后重试。",
+                )
+                return
             except Exception:  # noqa: BLE001 - provider boundary, safe SSE error, cancellation propagated above
                 # Never expose provider error bodies, credentials or request content.
                 logger.warning(
@@ -170,7 +144,12 @@ class ChatEngine:
                     received,
                     index + 1,
                 )
-                if not received and index + 1 < len(clients):
+                if (
+                    not received
+                    and not (tools and tools.committed)
+                    and index + 1 < len(clients)
+                    and asyncio.get_running_loop().time() < deadline
+                ):
                     continue
                 yield _event(
                     "error",

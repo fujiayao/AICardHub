@@ -120,7 +120,8 @@ async def stream(
     employee_id: int | None = None,
 ) -> AsyncIterator[str]:
     from app.integrations.llm.service import ChatEngine
-    from app.modules.workspace.render_service import chat_context
+    from app.kb.tools import ToolRuntime
+    from app.modules.workspace.knowledge_service import get_store
     from app.modules.workspace.runtime_settings import clients, load
 
     async with SessionLocal() as db:
@@ -162,7 +163,8 @@ async def stream(
         rules = await repo.optional(db, Setting, Setting.key == "answer_rules")
         if rules:
             persona = str(rules.value) + "\n" + persona
-        knowledge = await chat_context(db, card, question, is_test=row.is_test)
+        # Knowledge is available to the model as scoped tools, never eagerly retrieved.
+        knowledge: list[dict[str, Any]] = []
         # Always use the current visitor-visible projection, including in staff tests.
         # Never read raw Employee.phone or serialize assistant/settings credentials.
         from app.kb.prompt import public_card_context
@@ -203,7 +205,27 @@ async def stream(
         started = monotonic()
         interrupted = False
         error_data: dict[str, Any] | None = None
-        iterator = engine.stream(question, knowledge, history, persona, public_card=public_context)
+
+        async def current_public_card() -> dict[str, Any]:
+            async with SessionLocal() as card_db:
+                current = await shared.public_card(card_db, card.code)
+                return (
+                    public_card_context(current.model_dump()) if current.status == "active" else {}
+                )
+
+        tools = ToolRuntime(
+            await get_store(), card.code, card_reader=current_public_card, preview=row.is_test
+        )
+        identity: dict[str, Any] = {
+            key: public_context[key] for key in ("name", "title") if key in public_context
+        }
+        company = public_context.get("company", {})
+        identity["company"] = {
+            key: company[key] for key in ("name", "short_name") if key in company
+        }
+        iterator = engine.stream(
+            question, knowledge, history, persona, public_card=identity, tools=tools
+        )
         cancellation: BaseException | None = None
         try:
             async for event in iterator:
@@ -281,6 +303,15 @@ async def stream(
             nokb=bool(done.get("nokb", False) or filter_.nokb),
             model=str(done.get("model", settings.llm_mode)),
             latency_ms=int((monotonic() - started) * 1000),
+        )
+        logger.info(
+            "assistant_turn session={} model={} tools={} refs={} interrupted={} error={}",
+            session_id,
+            response.model,
+            tools.count,
+            response.kb_refs,
+            interrupted,
+            error_data is not None,
         )
         db.add(response)
         if response.nokb and not row.is_test:

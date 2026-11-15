@@ -1,5 +1,8 @@
 # AI 内核接入
 
+> 当前生产行为以文末 **ADR-004：模型自主选择的只读知识工具** 为准。
+> 前面保留的冻结初版说明中，自动检索、报价关键词政策和200字限制均已由ADR-004替代。
+
 实现 `contracts/IMPLEMENTATION.md` 的本地冻结协议，不依赖 core、数据库或 FastAPI。
 运行依赖由后端所有者统一添加：`python-frontmatter`、`filelock`、`tiktoken`、`openai`。
 测试工具：`pytest`、`pytest-asyncio`、`pytest-cov`；静态检查：`ruff`、`mypy`。
@@ -154,3 +157,34 @@ API key、headers或供应商原始异常。调用方需要自行保存 stdout �
 expected_refs 按本题实际合格资料计算，而不是假设凡非政策路径必有引用；Fake 只证明协议，不证明模型理解这些规则。
 score退出码0表示所有类别人工完整评审且达标，1为未评完或未达标，2为无效评分。
 hash用于版本与答复绑定，不证明评审人身份，也不能代替真实人工工作。
+
+## ADR-004：模型自主选择的只读知识工具（2026-11-15）
+
+架构借鉴 open-ai-canvas 的目录发现、工具注册与结果回填；没有复制其 Go/Node/React 运行平台。
+源 web/services/skill-runtime.ts 的 linked-context 与真正工具循环不同。本实现使用现有 OpenAI SDK
+原生 Responses function_call/function_call_output，以及 Chat Completions assistant.tool_calls/tool 消息闭环。
+
+应用固定加载 app/kb/SKILL.md（不接受用户路径）。生产对话不预检索；只常驻姓名、职位、所属公司。
+模型以 tool_choice=auto 自主调用 list_public_knowledge、search_public_knowledge、read_public_knowledge、
+get_public_card。目录仅含 ID/title/description/版本及来源元数据，最多64条/12000字符，不计引用；
+搜索最多3条摘要，读取逐次重新检查权限、批准、撤销，正文返回最多6500字符。
+公司scope目前全局共享，因此提示词明确区分资料来源企业与当前名片所属企业，不推断同一归属。
+公开访客仅可读批准公开资料；已经session_access验证的员工测试会话额外可读本人草稿/纠错，
+不修改存储批准标志、不得读他人草稿；纠错优先且明确为preview。
+
+每轮最多4次provider回合、8工具调用、参数4096 UTF-8字节、ID200字符、名称100字符；重复call_id
+明确拒绝不重复执行。整个对话工具循环及备用共享一个primary timeout预算，工具执行后不再fallback；
+工具阶段不受原15秒纯文本首token限制。未开始内容及工具前才允许备用。任何部分文本（含内部标记）
+均禁止重放。取消关闭provider流；后台只读线程即使稍后完成也不能补写引用或发起新调用。
+
+移除QUOTE/IDENTITY/INJECTION关键词固定拒答和200字符截断。默认简洁但遵循所需篇幅；可见6000
+字符上限，超限error不done；native tools输出token上限4096。外部SSE与OpenAPI不变。
+引用只来源实际成功返回正文/摘要的工具，目录和公开名片不伪造file_id；NOKB抑制引用。
+工具失败以ok:false安全结果回传模型，预算/协议失败明确error，不伪称成功。
+
+审计格式：assistant_tool name=... count=... result_count=... ok=... refs=...
+Loguru可在控制台观察；不记录问题、参数、正文、密码和密钥。未知工具名记unknown。
+本轮首轮Claude Code经Magpie gptpro/gpt-6.1-sol在429 usage_limit_reached后退出；后续Codex完成修复。
+自动验证使用FakeLLM/模拟SDK；真实供应商、完整check脚本与浏览器矩阵由主线独立验收。
+
+旧 evaluate CLI 目前仅验证普通对话协议：旧 knowledge 参数为内部签名兼容保留，engine不自动使用，因此不能声称它评估了工具检索或工具语义。工具闭环/权限由新增Fake与模拟SDK测试覆盖，真实工具语义由主线浏览器+脱敏审计另行验收。

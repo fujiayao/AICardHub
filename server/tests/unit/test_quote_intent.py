@@ -30,7 +30,7 @@ async def test_商务术语的通用解释不本地拒答(question):
     ],
 )
 async def test_公司具体交易条款不可作承诺(question):
-    fake = FakeLLMClient(reply="不得输出的合成承诺")
+    fake = FakeLLMClient(reply="公开资料不足，需要确认，不作承诺")
     events = [event async for event in ChatEngine(fake).stream(question, [], [])]
-    assert fake.calls == []
-    assert events[-1]["data"]["model"] == "policy"
+    assert len(fake.calls) == 1
+    assert events[-1]["data"]["model"] == fake.model
