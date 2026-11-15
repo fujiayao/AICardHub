@@ -217,7 +217,9 @@ async def stream(
             await get_store(), card.code, card_reader=current_public_card, preview=row.is_test
         )
         identity: dict[str, Any] = {
-            key: public_context[key] for key in ("name", "title") if key in public_context
+            key: public_context[key]
+            for key in ("name", "title", "dept", "business_scope")
+            if key in public_context
         }
         company = public_context.get("company", {})
         identity["company"] = {
