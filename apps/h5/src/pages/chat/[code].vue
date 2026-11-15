@@ -1,54 +1,148 @@
-<!-- 原型: A2 AI 对话 / A3 留资成功 -->
+<!-- 原型: A2 AI 对话（暗色，复用 DarkCardHero + DarkInlineChat）/ A3 留资成功 / A4 停用 -->
+<!-- 对话页：复用首页同一场景访问（ensureVisit 单飞，不重复 createVisit）；首次发送才建会话；返回名片仅带 s/e。 -->
 <script setup lang="ts">
-import type { ChatMessage } from '@/composables/useChatStream'
-import { showToast } from 'vant'
-import { computed, shallowRef } from 'vue'
+import { computed, onUnmounted, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ApiError, errorMessage } from '@/api/client'
-import { createSession, feedback, messages as getMessages, publicCard } from '@/api/generated'
-import AnonymousPortrait from '@/components/common/AnonymousPortrait.vue'
-import ChatComposer from '@/components/common/ChatComposer.vue'
-import ChatConversation from '@/components/common/ChatConversation.vue'
-import DemoBadge from '@/components/common/DemoBadge.vue'
+import { publicCard, updateVisit } from '@/api/generated'
 import ResourceState from '@/components/common/ResourceState.vue'
+import DarkCardHero from '@/components/visitor/DarkCardHero.vue'
+import DarkInlineChat from '@/components/visitor/DarkInlineChat.vue'
 import DisabledCard from '@/components/visitor/DisabledCard.vue'
-import LeadSheet from '@/components/visitor/LeadSheet.vue'
-import LeadSuccess from '@/components/visitor/LeadSuccess.vue'
-import { useChatStream } from '@/composables/useChatStream'
 import { useResource } from '@/composables/useResource'
-import { callPhone } from '@/platform'
+import { ensureVisit } from '@/composables/useVisit'
+import { callPhone, copyText, isWechat, saveContact, share } from '@/platform'
 import { useVisitorStore } from '@/stores/visitor'
-import { sceneCampaign, sceneKey, sceneQuery, sceneSource } from '@/utils/scene'
-const route = useRoute('/chat/[code]'); const router = useRouter(); const code = String(route.params.code)
-const campaignId = sceneCampaign(route.query.e); const source = sceneSource(route.query.s)
-const visitId = shallowRef<number>();
-const visitor = useVisitorStore(); const sessionId = shallowRef<number>()
-const lead = shallowRef(route.query.lead === '1')
-const summary = shallowRef<{ name: string, phone: string, company_name: string }>()
-const stream = useChatStream(() => `/api/v1/public/chat/sessions/${sessionId.value}/messages`)
-const { messages, sending, error: chatError, model, leadPrompts } = stream
-const { data, loading, error, reload } = useResource(async () => {
- const card = await publicCard({ path: { code }, query: { e: campaignId } })
- if (card.status === 'disabled') return { card, opening: '', questions: [] }
- await visitor.ensure()
- const key = `shuke.chat.${code}.${campaignId || 'business'}.${source}`
- const storedVisit = Number(sessionStorage.getItem(sceneKey(code, campaignId, source)))
- visitId.value = Number.isSafeInteger(storedVisit) && storedVisit > 0 ? storedVisit : undefined
- const remembered = Number(sessionStorage.getItem(key))
- if (remembered) {
-  try { const history = await getMessages({ path: { id: remembered } }); messages.value = history.items; sessionId.value = remembered }
-  catch (e) { if (!(e instanceof ApiError) || ![403, 404].includes(e.status)) throw e; sessionStorage.removeItem(key) }
- }
- let opening = card.assistant?.opening || ''; let questions = card.assistant?.guide_questions || []
- if (!sessionId.value) { const session = await createSession({ body: { card_code: code, campaign_id: campaignId, visit_id: visitId.value, source } }); sessionId.value = session.session_id; opening = session.opening; questions = session.guide_questions; sessionStorage.setItem(key, String(sessionId.value)) }
- if (typeof route.query.q === 'string') { const question = route.query.q; await router.replace({ path: route.path, query: sceneQuery(source, campaignId) }); void stream.send(question) }
- return { card, opening, questions }
+import { sceneCampaign, sceneQuery, sceneSource } from '@/utils/scene'
+import '@/components/visitor/dark-card.css'
+
+const route = useRoute('/chat/[code]'); const router = useRouter(); const visitor = useVisitorStore()
+const code = computed(() => String(route.params.code))
+const origin = window.location.origin
+const eventId = computed(() => sceneCampaign(route.query.e))
+const activeSource = computed(() => sceneSource(route.query.s))
+const autoQuestion = computed(() => (typeof route.query.q === 'string' ? route.query.q : undefined))
+const leadDeepLink = computed(() => route.query.lead === '1')
+const wechat = shallowRef(false); const guide = shallowRef(false); const trackingError = shallowRef('')
+const liveVisitId = shallowRef<number>(); let visitRevision = 0; let started = Date.now()
+
+const { data: card, loading, error, reload } = useResource(async () => {
+  return await publicCard({ path: { code: code.value }, query: { e: eventId.value } })
 })
-const role = computed(() => data.value ? [data.value.card.title, data.value.card.dept].filter(Boolean).join('｜') : '')
-async function down(message: ChatMessage) {
- if (message.id < 0 || message.feedback) return
- try { await feedback({ path: { id: message.id }, body: { feedback: 'down' } }); message.feedback = true; showToast('感谢反馈') } catch (e) { showToast(errorMessage(e)) }
+
+watch(card, (value) => {
+  if (!value) return
+  document.title = value.status === 'disabled' ? '该名片已停用' : `${value.name}｜${value.title}｜${value.company.short_name || value.company.name}`
+  if (value.status === 'active') void trackVisit()
+})
+
+async function trackVisit() {
+  // 优先复用首页/同场景已建访问（ensureVisit 读缓存 + 单飞）；直连对话无缓存时创建一次。
+  const revision = ++visitRevision
+  const activeCode = code.value; const campaign = eventId.value; const source = activeSource.value
+  try {
+    const id = await ensureVisit(() => visitor.ensure(), activeCode, campaign, source)
+    if (revision !== visitRevision) return
+    liveVisitId.value = id
+  } catch (e) { trackingError.value = e instanceof Error && e.message ? `访问记录暂未同步：${e.message}` : '访问记录暂未同步，对话不受影响' }
+}
+function stay() {
+  visitRevision++
+  if (liveVisitId.value) {
+    const id = liveVisitId.value; liveVisitId.value = undefined
+    void updateVisit({ path: { id }, body: { stay_seconds: Math.min(86400, Math.floor((Date.now() - started) / 1000)) } }).catch((e) => { trackingError.value = e instanceof Error && e.message ? `停留记录未同步：${e.message}` : '停留记录未同步' })
+  }
+}
+window.addEventListener('pagehide', stay)
+onUnmounted(() => { stay(); window.removeEventListener('pagehide', stay) })
+
+// code/campaign/source 变化才重载名片与访问；仅 q 变化不重载（DarkInlineChat 自行 watch 消费）。
+watch([code, eventId, activeSource], () => { stay(); started = Date.now(); trackingError.value = ''; wechat.value = false; guide.value = false; void reload() })
+
+// 对话页会话 key 固定 card/campaign/source，q 不进 key，避免仅移除 q 时 remount。
+const sceneId = computed(() => `${code.value}.${eventId.value || 'business'}.${activeSource.value}`)
+
+function back() { void router.push({ path: `/card/${code.value}`, query: sceneQuery(activeSource.value, eventId.value) }) }
+// 只剥离 q，保留 s/e 与 lead（不触发 remount，也不重复打开留资弹层）。
+function stripQuestion() {
+  const query = { ...sceneQuery(activeSource.value, eventId.value), ...(leadDeepLink.value ? { lead: '1' } : {}) }
+  void router.replace({ path: route.path, query })
+}
+function contact() { if (isWechat) guide.value = true; else saveContact(code.value) }
+function onShare() {
+  if (!card.value) return
+  const query = `s=${activeSource.value}${eventId.value ? `&e=${eventId.value}` : ''}`
+  share(`${card.value.name}｜${card.value.title}`, `${origin}/c/${card.value.code}?${query}`)
 }
 </script>
-<template><ResourceState :loading="loading" :error="error" @retry="reload"><DisabledCard v-if="data?.card.status === 'disabled'" :company="data.card.company" /><LeadSuccess v-else-if="summary && data" :name="data.card.name || ''" :phone="data.card.mobile" :summary="summary" :code="code" :back-query="sceneQuery(source, campaignId)" @continue="summary = undefined" /><main v-else-if="data" class="page chat-page"><header class="chat-nav"><button class="nav-back" aria-label="返回名片" @click="router.push({ path: `/card/${code}`, query: sceneQuery(source, campaignId) })"><span class="icon i-lucide-chevron-left" /></button><div class="chat-head"><span class="avatar avatar-ai"><img v-if="data.card.photo_url" :src="data.card.photo_url" :alt="`${data.card.name}的职业照`"><AnonymousPortrait v-else /></span><div class="chat-head-text"><b>{{ data.card.name }}的 AI 分身</b><span>内容由 AI 生成，仅供参考</span></div></div><button v-if="data.card.mobile" class="nav-phone" aria-label="拨打电话" @click="callPhone(data.card.mobile)"><span class="icon i-lucide-phone" /></button><span v-else class="nav-phone-spacer" /></header><div class="content"><DemoBadge :model="model" /><section v-if="!messages.length" class="welcome-wrap"><div class="welcome"><span class="welcome-avatar avatar avatar-ai"><img v-if="data.card.photo_url" :src="data.card.photo_url" :alt="`${data.card.name}的职业照`"><AnonymousPortrait v-else /></span><h2>你好，我是{{ data.card.name }}的 AI 分身</h2><p v-if="role" class="welcome-role">{{ role }}</p></div><div v-if="data.opening" class="welcome-opening"><article class="message assistant"><span class="msg-avatar avatar avatar-ai"><AnonymousPortrait /></span><div class="msg-main"><div class="bubble"><span class="ai-mark"><span class="icon i-lucide-sparkles" aria-hidden="true" />AI</span><p class="preline opening-text">{{ data.opening }}</p></div></div></article></div><div v-if="data.questions.length" class="guide-list"><p class="guide-lbl">你可以这样问我</p><button v-for="question in data.questions" :key="question" class="guide-q" :disabled="sending" @click="stream.send(question)"><span class="icon i-lucide-sparkles guide-spark" /><span class="guide-q-text">{{ question }}</span><span class="icon i-lucide-chevron-right guide-arrow" /></button></div></section><ChatConversation :messages="messages" :sending="sending" @feedback="down" @retry="stream.retry" /><p v-if="chatError" class="error" role="alert">{{ chatError }}</p><section v-for="(prompt, index) in leadPrompts" :key="index" class="lead-card"><b>{{ prompt.title }}</b><p>{{ prompt.reason }}</p><div class="lead-card-row"><van-button type="primary" size="small" @click="lead = true">留下联系方式</van-button><van-button v-if="data.card.mobile" plain size="small" @click="callPhone(data.card.mobile)"><span class="icon i-lucide-phone" />直接打电话</van-button></div></section></div><ChatComposer :disabled="!sessionId" :sending="sending" @send="stream.send" @stop="stream.stop" /><LeadSheet v-model="lead" :code="code" :session-id="sessionId" :campaign-id="campaignId" :visit-id="visitId" :source="source" @submitted="summary = $event" /></main></ResourceState></template>
-<style scoped>.chat-page{padding-bottom:140px;background:linear-gradient(180deg,var(--c-chat-bg-top) 0%,var(--c-bg) 260px)}.chat-nav{height:48px;display:grid;grid-template-columns:48px 1fr 48px;align-items:center;background:transparent;position:relative;z-index:3}.nav-back,.nav-phone{display:grid;place-items:center;border:0;padding:0;background:transparent;color:var(--c-ink);cursor:pointer}.nav-back .icon{width:24px;height:24px}.nav-phone .icon{width:22px;height:22px}.nav-phone-spacer{display:block}.chat-head{display:flex;align-items:center;gap:8px;justify-content:center;min-width:0}.chat-head .avatar{width:30px;height:30px;border-radius:var(--r-pill);overflow:hidden;flex:none;background:linear-gradient(165deg,var(--c-hero-top),var(--c-ink));position:relative}.chat-head .avatar img{width:100%;height:100%;object-fit:cover;object-position:center top}.avatar-ai::after{content:"";position:absolute;right:0;bottom:0;width:28%;height:28%;border-radius:var(--r-pill);background:var(--c-ai);border:2px solid var(--c-surface)}.chat-head-text{min-width:0}.chat-head-text b{display:block;font-size:var(--fs-base);color:var(--c-ink);line-height:1.3}.chat-head-text span{display:block;font-size:11px;color:var(--c-text-3);line-height:1.3}.content{padding:0}.welcome-wrap{display:grid;gap:4px}.welcome{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 24px 8px}.welcome-avatar{position:relative;display:block;width:76px;height:76px;border-radius:var(--r-pill);overflow:hidden;background:linear-gradient(165deg,var(--c-hero-top),var(--c-ink));box-shadow:var(--sh-welcome)}.welcome-avatar img{width:100%;height:100%;object-fit:cover;object-position:center top}.welcome h2{margin:14px 0 4px;font-size:var(--fs-lg);color:var(--c-ink)}.welcome-role{margin:0;font-size:var(--fs-sm);color:var(--c-text-2)}.welcome-opening{padding:0 16px}.welcome-opening .message{max-width:88%;display:grid;grid-template-columns:32px 1fr;gap:8px;align-items:start}.welcome-opening .msg-avatar{width:32px;height:32px;border-radius:var(--r-pill);overflow:hidden;background:linear-gradient(165deg,var(--c-hero-top),var(--c-ink));position:relative;flex:none}.welcome-opening .msg-avatar img{width:100%;height:100%;object-fit:cover}.welcome-opening .bubble{padding:var(--sp-3) var(--sp-4);background:var(--c-surface);border-radius:2px var(--r-lg) var(--r-lg);box-shadow:var(--sh-soft)}.welcome-opening .ai-mark{display:inline-flex;align-items:center;gap:2px;color:var(--c-ai);font-size:var(--fs-xs);font-weight:600;margin-bottom:var(--sp-2)}.welcome-opening .ai-mark .icon{width:14px;height:14px}.opening-text{margin:0}.guide-list{margin:4px 16px 0;display:flex;flex-direction:column;gap:8px}.guide-lbl{font-size:var(--fs-xs);color:var(--c-text-3);margin:6px 2px 0}.guide-q{display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;border-radius:12px;background:var(--c-surface);font-size:var(--fs-base);color:var(--c-ink);box-shadow:var(--sh-soft);text-align:left;min-height:44px;cursor:pointer;width:100%}.guide-q:disabled{opacity:.5}.guide-spark{width:18px;height:18px;flex:none;color:var(--c-ai)}.guide-q-text{flex:1;min-width:0}.guide-arrow{width:16px;height:16px;flex:none;color:var(--c-text-3)}.lead-card{margin:0 16px 0 44px;padding:14px;border-radius:14px;background:var(--c-surface);border:1px solid var(--c-lead-card-line);box-shadow:var(--sh-soft)}.lead-card b{display:block;color:var(--c-ink);font-size:var(--fs-base)}.lead-card p{margin:4px 0 12px;font-size:var(--fs-sm);color:var(--c-text-2)}.lead-card-row{display:flex;gap:8px}.lead-card-row :deep(.van-button){flex:1}.lead-card-row .icon{width:16px;height:16px;margin-right:4px}</style>
+
+<template>
+  <ResourceState :loading="loading" :error="error" @retry="reload">
+    <DisabledCard v-if="card?.status === 'disabled'" :company="card.company" />
+    <main v-else-if="card" class="vc-dark">
+      <nav class="dk-nav">
+        <button class="dk-nav-back" aria-label="返回名片" @click="back"><span class="icon i-lucide-chevron-left" />返回名片</button>
+      </nav>
+      <DarkCardHero
+        :card="card"
+        :has-wechat="Boolean(card.wechat_qr_url)"
+        @contact="contact"
+        @call="card.mobile && callPhone(card.mobile)"
+        @wechat="wechat = true"
+        @share="onShare"
+      />
+      <DarkInlineChat
+        :key="sceneId"
+        :card="card"
+        :code="code"
+        :campaign-id="eventId"
+        :source="activeSource"
+        :visit-id="liveVisitId"
+        :auto-question="autoQuestion"
+        :lead-deep-link="leadDeepLink"
+        @auto-consumed="stripQuestion"
+      />
+      <p v-if="trackingError" class="vc-dark-note">{{ trackingError }}</p>
+
+      <van-popup v-model:show="wechat" position="bottom" round closeable>
+        <div class="sheet stack">
+          <h2>添加微信</h2>
+          <img v-if="card.wechat_qr_url" :src="card.wechat_qr_url" alt="员工微信二维码">
+          <p class="muted">长按识别二维码添加微信</p>
+        </div>
+      </van-popup>
+
+      <van-overlay :z-index="30" :show="guide" @click="guide = false">
+        <section class="wechat-guide" role="dialog" aria-label="在浏览器打开" @click.stop>
+          <span class="icon i-lucide-arrow-up-right wg-arrow" aria-hidden="true" />
+          <h2>在浏览器中打开，即可存入通讯录</h2>
+          <p class="wg-lead">微信里无法直接保存联系人。点击右上角 <span class="wg-dots" aria-hidden="true"><i /><i /><i /></span>，选择「在浏览器打开」，再点“存通讯录”。</p>
+          <div v-if="card.mobile" class="wg-alt">
+            <span class="wg-alt-lbl">也可以直接复制号码</span>
+            <div class="wg-alt-row"><b class="num">{{ card.mobile }}</b><van-button size="small" @click="copyText(card.mobile)">复制</van-button></div>
+          </div>
+          <div class="wg-ok"><van-button plain @click="guide = false">知道了</van-button></div>
+        </section>
+      </van-overlay>
+    </main>
+  </ResourceState>
+</template>
+
+<style scoped>
+.dk-nav { display: flex; align-items: center; height: 44px; padding: 0 10px; }
+.dk-nav-back { display: flex; align-items: center; gap: 2px; border: 0; background: transparent; color: var(--dk-tag); font-size: 13px; cursor: pointer; }
+.dk-nav-back .icon { width: 22px; height: 22px; }
+.vc-dark-note { text-align: center; font-size: 10.5px; color: var(--dk-expo); padding: 8px 22px 14px; }
+.wechat-guide { padding: 60px 28px; display: block; color: var(--dk-txt); }
+.wechat-guide h2 { color: var(--dk-txt); font-size: 18px; margin-top: 8px; }
+.wg-arrow { display: block; margin-left: auto; width: 48px; height: 48px; color: var(--dk-txt); }
+.wg-lead { margin-top: 12px; font-size: 13px; line-height: 1.8; color: var(--dk-tag); }
+.wg-dots { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; background: var(--dk-surface-soft); vertical-align: middle; }
+.wg-dots i { width: 4px; height: 4px; border-radius: 20px; background: var(--dk-txt); }
+.wg-alt { margin-top: 28px; padding: 16px; border-radius: 12px; background: var(--dk-surface-soft); }
+.wg-alt-lbl { font-size: 13px; color: var(--dk-tag); }
+.wg-alt-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.wg-alt-row .num { font-size: 20px; letter-spacing: .04em; color: var(--dk-txt); }
+.wg-ok { text-align: center; margin-top: 36px; }
+.sheet.stack { padding: 20px; display: grid; gap: 12px; justify-items: center; }
+.sheet.stack img { max-width: 220px; }
+</style>

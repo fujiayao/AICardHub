@@ -3,7 +3,7 @@
 // 懒加载：静态名片立即可见；挂载后先 visitor.ensure 再恢复历史；首次提问/留资才创建会话，不为浏览产生空会话。
 import type { PublicCard } from '@/api/generated'
 import type { Source } from '@/utils/scene'
-import { onMounted, onScopeDispose, shallowRef } from 'vue'
+import { onMounted, onScopeDispose, shallowRef, watch } from 'vue'
 import { ApiError } from '@/api/client'
 import { createSession, messages as getMessages } from '@/api/generated'
 import DarkMessages from '@/components/visitor/DarkMessages.vue'
@@ -65,8 +65,20 @@ async function restore() {
     if (!disposed) restoring.value = false
   }
   if (!disposed && !initError.value && props.leadDeepLink) await openLead()
-  if (!disposed && !initError.value && props.autoQuestion) { emit('autoConsumed'); void send(props.autoQuestion) }
+  if (!disposed && props.autoQuestion) await consumeAuto(props.autoQuestion)
 }
+
+// q 只消费一次：先把问题落入草稿（接入失败/建会话失败时草稿保留，可手动重试，不丢问题），
+// 仅在可发送时机剥离 URL 的 q 并发送；忙碌/接入中/出错时保留 q 与草稿，不覆盖进行中的发送。
+async function consumeAuto(question: string) {
+  if (disposed || !question) return
+  if (!sending.value && !sessionPending) draft.value = question
+  if (restoring.value || sending.value || sessionPending || initError.value) return
+  emit('autoConsumed')
+  await send(question)
+}
+// 同一组件内仅 q 变化（不 remount）时补发一次；首个 q 由 restore 处理，故 watch 不 immediate。
+watch(() => props.autoQuestion, (question) => { if (question) void consumeAuto(question) })
 
 // 单飞 + 失败可重试；仅首次提问时创建会话
 function ensureSession(): Promise<number | undefined> {
