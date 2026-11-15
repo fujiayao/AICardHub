@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette._utils import get_route_path
 
 from app.core.db import get_db
 from app.core.errors import AppError, ErrorCode
@@ -30,8 +31,11 @@ async def get_current_staff(request: Request, db: DB, credentials: Credentials) 
         raise AppError(ErrorCode.AUTH_INVALID, 401, "账号或密码错误")
     if payload.get("version") != employee.token_version:
         raise AppError(ErrorCode.AUTH_REQUIRED, 401, "请重新登录")
-    allowed = ("/api/v1/me/profile", "/api/v1/auth/change-password")
-    if employee.must_change_pwd and request.url.path not in allowed:
+    allowed = {
+        ("GET", "/api/v1/me/profile"),
+        ("POST", "/api/v1/auth/change-password"),
+    }
+    if employee.must_change_pwd and (request.method, get_route_path(request.scope)) not in allowed:
         raise AppError(ErrorCode.PASSWORD_CHANGE_REQUIRED, 403, "请先修改初始密码")
     return employee
 
