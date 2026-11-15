@@ -1,6 +1,6 @@
-# 数科 NFC 安卓助手（软件候选）
+# 数科 NFC 安卓助手
 
-`cn.aicardhub.nfc`，版本 `0.1.0-candidate` / versionCode `1`。本应用仅使用 Android 原生系统控件，保存于内存的公开名片链接，不含员工登录或令牌。未接真机，不在任何机型上宣称 NFC 射频验收通过。
+`cn.aicardhub.nfc`，版本 `1.0.0` / versionCode `2`。本应用使用 Android 原生系统控件，名片公开链接保存在内存中，不含员工登录或令牌。未接真机，不在任何机型上宣称 NFC 射频验收通过。
 
 ## 冻结构建输入
 
@@ -22,7 +22,7 @@
 $env:JAVA_HOME = 'C:/Program Files/Java/jdk-21.0.12'
 $env:ANDROID_HOME = '<project-local-toolchain>/android-sdk'
 $env:GRADLE_USER_HOME = '<project-local-toolchain>/gradle-home'
-./gradlew.bat testDebugUnitTest assembleDebug lintDebug -PpublicBaseUrl=https://haiwex.com/aicardhub
+./gradlew.bat testReleaseUnitTest assembleRelease lintRelease -PpublicBaseUrl=https://haiwex.com/aicardhub
 ```
 
 Windows 中文目录同时会触发 AGP 路径检查和 JDK native GBK/Gradle UTF-8 参数文件不一致。本次构建用临时 ASCII 盘符映射解决，实际文件仍在项目内：
@@ -33,12 +33,16 @@ subst.exe N: D:\AIWork\智能名片
 $env:JAVA_HOME = 'C:/Program Files/Java/jdk-21.0.12'
 $env:ANDROID_HOME = 'N:/.local/nfc-toolchain/android-sdk'
 $env:GRADLE_USER_HOME = 'N:/.local/nfc-toolchain/gradle-home'
-& 'N:/.local/nfc-toolchain/gradle-8.11.1/bin/gradle.bat' -p 'N:/worktrees/nfc-implementation/apps/nfc-android' testDebugUnitTest assembleDebug lintDebug -PpublicBaseUrl=https://haiwex.com/aicardhub
+& 'N:/.local/nfc-toolchain/gradle-8.11.1/bin/gradle.bat' -p 'N:/worktrees/nfc-implementation/apps/nfc-android' testReleaseUnitTest assembleRelease lintRelease -PpublicBaseUrl=https://haiwex.com/aicardhub
 & 'N:/.local/nfc-toolchain/gradle-8.11.1/bin/gradle.bat' --stop
 subst.exe N: /D
 ```
 
-产物：`app/build/outputs/apk/debug/app-debug.apk`。该文件是 debug 测试签名候选，不能作为正式分发包。正式发布由发布负责人提供专用证书和域名根 assetlinks 关联，禁止把私钥放入 Git。单元测试报告在 `app/build/reports/tests/testDebugUnitTest/`，lint 报告在 `app/build/reports/lint-results-debug.html`。
+产物：`app/build/outputs/apk/release/app-release.apk`。发布构建要求通过当前构建进程环境注入 `NFC_SIGNING_STORE_FILE`、`NFC_SIGNING_STORE_PASSWORD`、`NFC_SIGNING_KEY_ALIAS`、`NFC_SIGNING_KEY_PASSWORD`；缺少任意项会阻止发布构建。独立发布签名位于项目 Git 范围外的受限本地目录，私钥及密码不放入 Git、APK、日志或服务器静态目录。升级需要保留同一包名和发布证书。
+
+如果手机已安装旧的 debug 版本，由于证书不同，需先卸载旧版再安装 1.0.0；应用没有持久化员工账号或私人资料。正式 APK 的指纹必须与域名根 `/.well-known/assetlinks.json` 中对应声明一致。显式 Android intent 和普通 HTTPS App Link 均使用同一受控 `/share/nfc` 路径，首次启动和 `onNewIntent` 均只预览名片，不自动开始模拟或写入。
+
+单元测试报告在 `app/build/reports/tests/testReleaseUnitTest/`，lint 报告在 `app/build/reports/lint-results-release.html`。
 
 wrapper 下载地址为 Gradle 官方 HTTPS 来源，固定 SHA-256 `f397b287023acdba1e9f6fc5ea72d22dd63669d59ed4a289a29b1a76eee151c6`。本机官方分发跳转 GitHub 无法直连，使用腾讯镜像下载，并与 `https://downloads.gradle.org/distributions/gradle-8.11.1-bin.zip.sha256` 官方值核对一致后解包。没有改写 wrapper 为非官方来源。
 

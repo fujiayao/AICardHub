@@ -14,7 +14,7 @@ import LoginForm from "@/components/auth/LoginForm.vue";
         <p class="muted">使用管理员手机号登录。员工账号请从员工端进入。</p>
         <LoginForm />
         <p class="muted auth-foot">
-          本地候选 · 管理员会话独立保存，过期后需重新登录。
+          管理员会话独立保存，过期后需重新登录。
         </p>
       </div>
     </section>

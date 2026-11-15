@@ -63,7 +63,7 @@ class MainActivity : Activity(), NfcAdapter.ReaderCallback {
         override fun run() {
             if (!resumed) return
             val current = controller.current()
-            modeText.text = "模式：${current.name.lowercase()} · 剩余 ${controller.remainingMs() / 1000} 秒"
+            modeText.text = getString(R.string.mode_remaining, current.name.lowercase(), controller.remainingMs() / 1000)
             if (current != NfcMode.IDLE && !SessionStore.deviceReady(this@MainActivity)) stop("请保持亮屏并解锁")
             else if (current == NfcMode.IDLE && modeToken >= 0) stop("本次操作已结束")
             handler.postDelayed(this, 500)
@@ -76,7 +76,7 @@ class MainActivity : Activity(), NfcAdapter.ReaderCallback {
         val column = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(24, 32, 24, 24) }
         setContentView(ScrollView(this).apply { addView(column) })
         fun text(value: String) = TextView(this).also { it.text = value; it.setPadding(0, 12, 0, 12); column.addView(it) }
-        text("数科 NFC 助手 · 测试候选 ${BuildConfig.VERSION_NAME}")
+        text(getString(R.string.app_version, BuildConfig.VERSION_NAME))
         text("安卓可模拟名片、读写 NDEF 贴纸；iPhone 可接收。请保持助手前台、亮屏、解锁。每次最多 5 分钟。")
         input = EditText(this).apply { hint = "粘贴 NFC 配置链接或 s=nfc 公开短链"; inputType = 17; maxLines = 4; column.addView(this) }
         fun button(label: String, action: () -> Unit) { column.addView(Button(this).apply { this.text = label; setOnClickListener { action() } }) }
@@ -113,8 +113,8 @@ class MainActivity : Activity(), NfcAdapter.ReaderCallback {
         val version = revision
         background(version, { client.load(parsed) }) { result ->
             request = parsed; preview = result
-            previewText.text = "${result.name}\n${result.company}\n${links.shortUrl(parsed)}\n" +
-                (result.campaign?.let { "临时活动：$it\n结束时间：${result.expiresAt}" } ?: "固定名片，无活动")
+            val activity = result.campaign?.let { getString(R.string.preview_campaign, it, result.expiresAt.toString()) } ?: "固定名片，无活动"
+            previewText.text = getString(R.string.preview_card, result.name, result.company, links.shortUrl(parsed), activity)
             show(if (parsed.mode == ImportMode.WRITE) "请核对以上公开内容，再选择写入长期贴纸" else "请核对以上公开内容，再选择操作")
         }
     }

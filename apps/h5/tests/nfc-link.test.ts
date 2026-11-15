@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { nfcApkUrl, nfcCampaign, nfcCode, nfcHelperUrl, parseNfcQuery } from '../src/utils/nfc-link'
+import { nfcApkUrl, nfcCampaign, nfcCode, nfcHelperUrl, nfcIntentUrl, nfcPublicShortUrl, parseNfcQuery } from '../src/utils/nfc-link'
 
 describe.each(['https://haiwex.com', 'https://haiwex.com/aicardhub'])('helper link from backend base %s', (base) => {
   const prefix = new URL(base).pathname.replace(/\/$/, '')
@@ -21,6 +21,32 @@ describe('helper link refusal', () => {
     for (const bad of ['http://127.0.0.1:8000/c/abc?s=nfc', 'https://u:p@haiwex.com/c/abc', 'https://haiwex.com/card/abc', 'https://haiwex.com/c/a.b', 'https://haiwex.com/c/%E5%BC%A0', 'not a url',
       'https://haiwex.com/c/%E0%A4%A', 'https://haiwex.com:8443/c/abc', 'https://haiwex.com/c/abc#x', 'https://haiwex.com/a.b/c/abc', 'https://haiwex.com/a%20b/c/abc', 'https://haiwex.com/c/abc?s=nfc&next=https://x', 'https://haiwex.com/c/abc/'])
       expect(nfcHelperUrl(bad, 'emulate')).toBeUndefined()
+  })
+})
+
+describe('explicit Android launch', () => {
+  it('keeps the trusted https App Link as intent data and encoded browser fallback', () => {
+    const helper = 'https://haiwex.com/aicardhub/share/nfc?code=staff-01&mode=emulate&e=42'
+    const intent = nfcIntentUrl(helper)!
+    expect(intent).toBe(`intent://haiwex.com/aicardhub/share/nfc?code=staff-01&mode=emulate&e=42#Intent;scheme=https;package=cn.aicardhub.nfc;S.browser_fallback_url=${encodeURIComponent(helper)};end`)
+    expect(decodeURIComponent(intent.split('S.browser_fallback_url=')[1].split(';end')[0])).toBe(helper)
+    expect(intent).not.toContain('token')
+  })
+  it('rejects unsafe data, invalid modes and duplicate parameters', () => {
+    for (const bad of [
+      'http://haiwex.com/aicardhub/share/nfc?code=a',
+      'https://u:p@haiwex.com/aicardhub/share/nfc?code=a',
+      'https://haiwex.com/aicardhub/card/a?code=a',
+      'https://haiwex.com/aicardhub/share/nfc?code=a&code=b',
+      'https://haiwex.com/aicardhub/share/nfc?code=a&mode=write&e=1',
+      'https://haiwex.com/aicardhub/share/nfc?code=a&next=https://evil.test',
+      'https://haiwex.com/aicardhub/share/nfc?code=a#Intent;package=evil',
+    ]) expect(nfcIntentUrl(bad)).toBeUndefined()
+  })
+  it('builds a usable public NFC URL without staff authentication and drops activity from write', () => {
+    expect(nfcPublicShortUrl({ code: 'staff-01', mode: 'emulate', campaign: 42 }, 'https://haiwex.com', '/aicardhub/')).toBe('https://haiwex.com/aicardhub/c/staff-01?s=nfc&e=42')
+    expect(nfcPublicShortUrl({ code: 'staff-01', mode: 'write', campaign: 42 }, 'https://haiwex.com', '/aicardhub/')).toBe('https://haiwex.com/aicardhub/c/staff-01?s=nfc')
+    expect(nfcPublicShortUrl({ code: 'staff-01', mode: 'write' }, 'http://127.0.0.1', '/')).toBeUndefined()
   })
 })
 

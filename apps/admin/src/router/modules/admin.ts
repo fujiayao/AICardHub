@@ -90,7 +90,7 @@ export const adminRoutes: RouteRecordRaw[] = [
     path: "/scope",
     name: "scope",
     component: () => import("@/views/Scope.vue"),
-    meta: { title: "交付范围 / NFC", icon: "nfc", group: "系统" },
+    meta: { title: "NFC 分享与贴纸", icon: "nfc", group: "系统" },
   },
   {
     path: "/settings",

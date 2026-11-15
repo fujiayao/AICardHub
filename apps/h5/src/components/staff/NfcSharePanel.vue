@@ -41,12 +41,12 @@ function open(url: string | undefined) { if (url) openAppLink(url) }
         <section class="block stack">
           <div class="row between"><h3>手机碰一碰</h3><span class="tag">{{ campaign ? '展会活动' : '商务' }}</span></div>
           <p class="muted">在助手中预览并确认后开始模拟。对方手机靠近后按其系统提示打开链接；读取效果因机型、NFC 开关与锁屏状态而异。</p>
-          <van-button type="primary" block :disabled="!emulateUrl" @click="open(emulateUrl)"><span class="icon i-lucide-nfc" aria-hidden="true" />在 NFC 助手中打开</van-button>
+          <van-button type="primary" block :disabled="!emulateUrl || isWechat || !isAndroid" @click="open(emulateUrl)"><span class="icon i-lucide-nfc" aria-hidden="true" />打开 NFC 助手</van-button>
         </section>
         <section class="block stack">
           <h3>写入 NFC 贴纸</h3>
           <p class="muted">长期贴纸只写入固定名片链接，不带活动参数；写入后助手会回读校验。</p>
-          <van-button block :disabled="!writeUrl" @click="open(writeUrl)"><span class="icon i-lucide-pen-line" aria-hidden="true" />用助手写贴纸</van-button>
+          <van-button block :disabled="!writeUrl || isWechat || !isAndroid" @click="open(writeUrl)"><span class="icon i-lucide-pen-line" aria-hidden="true" />写入 NFC 贴纸</van-button>
         </section>
         <p v-if="!emulateUrl" class="error">服务配置的名片地址不是公司自有 HTTPS 域名，无法唤起 NFC 助手；下方链接仍可复制，但正式使用前需管理员配置 HTTPS 域名。</p>
         <NfcInstallHelp />
@@ -60,7 +60,7 @@ function open(url: string | undefined) { if (url) openAppLink(url) }
             <van-button v-else size="small" block @click="emit('fallback', 'qr')">改用二维码</van-button>
           </div>
         </section>
-        <p class="muted small">网页无法检测本机 NFC 或助手是否已安装；点击后若未跳转，请先安装助手或手动粘贴链接。设备能力与 NFC 开关由助手检查。</p>
+        <p class="muted small">首次使用先安装安卓助手。若点击后未打开，请使用系统浏览器重试，或复制名片链接粘贴到助手。NFC 开关与手机支持情况会在助手中检查。</p>
       </template>
     </div>
   </ResourceState>

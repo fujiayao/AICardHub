@@ -1,24 +1,36 @@
-<!-- C8 范围说明：NFC 拆为手机分享 / 贴纸写入 / 库存绑定挂失三项状态 -->
+<!-- C8 NFC 分享与贴纸使用说明 -->
 <script setup lang="ts">
 import PageHeader from "@/components/shared/PageHeader.vue";
 
+function downloadUrl(value: unknown): string {
+  try {
+    if (typeof value !== "string" || !value.trim()) return "";
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password
+      ? url.href
+      : "";
+  } catch {
+    return "";
+  }
+}
+const apkUrl = downloadUrl(import.meta.env.VITE_NFC_APK_URL);
 const nfcItems = [
   {
     title: "手机 NFC 分享",
-    tag: "调试候选",
-    type: "primary",
+    tag: "可使用",
+    type: "success",
     lines: [
       "员工在 H5「发送名片 → 手机 NFC」打开安卓 NFC 助手，模拟标准 NDEF 网址；接收方安卓与 iPhone 由系统读取后打开 H5 名片。",
-      "iPhone 仅作为接收方，不提供 iPhone 发卡。安卓助手尚未发布，暂无已验证真机清单；请勿视为全员可用。",
+      "使用安卓浏览器打开员工端，先下载安装助手；iPhone 作为接收方，靠近后按系统通知打开名片。",
     ],
   },
   {
     title: "NFC 贴纸写入",
-    tag: "调试候选",
-    type: "primary",
+    tag: "可使用",
+    type: "success",
     lines: [
       "安卓助手写入员工固定短链（s=nfc，不带活动参数），写后回读校验；首版不提供永久锁卡。",
-      "贴纸射频与采购验收尚未完成，结果以真机/贴纸矩阵记录为准。",
+      "写入前检查贴纸是否可写及容量，写入后立即回读。请保持贴紧，看到“写入完成”后再移开。",
     ],
   },
   {
@@ -27,7 +39,7 @@ const nfcItems = [
     type: "warning",
     lines: [
       "物理卡登记、绑定、解绑、挂失和换人重新绑定尚未交付；贴纸写入不替代库存管理。",
-      "本地候选不提供上述操作入口，也不会把修改员工名片当成物理卡管理。",
+      "固定名片链接可重复写入贴纸；需要更换员工时请重新写入，员工停用会同步关闭对应名片。",
     ],
   },
 ] as const;
@@ -35,8 +47,8 @@ const nfcItems = [
 <template>
   <section class="page">
     <PageHeader
-      title="交付范围 / NFC"
-      desc="说明本地候选已交付与暂缓的能力，避免把未交付功能当作已完成。"
+      title="NFC 分享与贴纸"
+      desc="使用安卓手机递名片或写入 NFC 贴纸，接收方通过系统读取并打开名片。"
     />
     <div v-for="item in nfcItems" :key="item.title" class="panel">
       <div class="panel-head">
@@ -46,20 +58,31 @@ const nfcItems = [
       <p v-for="line in item.lines" :key="line">{{ line }}</p>
     </div>
     <p class="muted">
-      安装包：未发布，需要试用请联系项目负责人。帮助：员工端「我的 → NFC
-      分享」。无法使用 NFC 时，请使用二维码或复制链接分享。NFC
+      帮助：员工端「我的 → NFC
+      分享」。使用手机模拟名片时，请保持助手前台、亮屏并解锁。无法使用 NFC
+      时，请使用二维码或复制链接分享。NFC
       来源数据来自链接参数，属于渠道归因，不代表真实碰触次数。
+    </p>
+    <p v-if="apkUrl">
+      <el-button
+        type="primary"
+        tag="a"
+        :href="apkUrl"
+        target="_blank"
+        rel="noopener"
+        >下载安卓 NFC 助手</el-button
+      >
     </p>
     <div class="panel">
       <div class="panel-head">
-        <h2>后续原计划功能</h2>
+        <h2>其他功能进度</h2>
         <el-tag type="info">待交付</el-tag>
       </div>
       <p>
         已提供员工Excel逐行导入与批量Markdown解析预览入口。文件夹递归导入、评测运行、产品配图上传及排序、来源分布与员工排行仍待交付。
       </p>
       <p class="muted">
-        本地候选不代表完成原计划全量一期，也不代表真实模型评测或一周灰度通过。
+        上述功能按各自计划推进，不影响当前 NFC 分享与贴纸操作。
       </p>
     </div>
   </section>

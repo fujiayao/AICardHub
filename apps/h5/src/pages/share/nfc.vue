@@ -6,8 +6,8 @@ import { publicCard } from '@/api/generated'
 import NfcInstallHelp from '@/components/common/NfcInstallHelp.vue'
 import ResourceState from '@/components/common/ResourceState.vue'
 import { useResource } from '@/composables/useResource'
-import { isIOS } from '@/platform'
-import { parseNfcQuery } from '@/utils/nfc-link'
+import { copyText, isAndroid, isIOS, isWechat, openAppLink } from '@/platform'
+import { nfcHelperUrl, nfcPublicShortUrl, parseNfcQuery } from '@/utils/nfc-link'
 
 const route = useRoute()
 const parsed = computed(() => parseNfcQuery(route.query))
@@ -15,6 +15,9 @@ const invalid = computed(() => typeof parsed.value === 'string' ? parsed.value :
 const params = computed(() => typeof parsed.value === 'string' ? undefined : parsed.value)
 const mode = computed(() => params.value?.mode)
 const campaign = computed(() => params.value?.campaign)
+const shortUrl = computed(() => params.value && nfcPublicShortUrl(params.value, window.location.origin, import.meta.env.BASE_URL))
+const helperUrl = computed(() => shortUrl.value && params.value && nfcHelperUrl(shortUrl.value, params.value.mode, params.value.campaign))
+function openHelper() { if (helperUrl.value) openAppLink(helperUrl.value) }
 const { data, loading, error, reload } = useResource(async () => {
   const current = params.value
   return current ? await publicCard({ path: { code: current.code }, query: { e: current.campaign } }) : undefined
@@ -36,7 +39,7 @@ const role = computed(() => data.value ? [data.value.title, data.value.company.s
         <template v-if="data">
           <section class="panel stack">
             <div class="row between"><h2>{{ mode === 'write' ? '写入 NFC 贴纸' : '手机碰一碰分享' }}</h2><span class="tag">{{ campaign ? '展会活动' : '商务' }}</span></div>
-            <p class="muted">本页在未安装或未关联 NFC 助手时显示，用于确认名片内容。名片预览不会记录为客户访问。</p>
+            <p class="muted">先核对名片，再打开安卓助手。首次使用可在下方下载安装。</p>
             <div class="preview">
               <b>{{ data.name || '未命名' }}</b>
               <span class="muted">{{ role }}</span>
@@ -49,10 +52,15 @@ const role = computed(() => data.value ? [data.value.title, data.value.company.s
             <p class="muted">iPhone 可读取他人的 NFC 名片；发送自己的名片请回到员工端使用二维码或系统分享。</p>
           </section>
           <section v-else class="panel stack">
-            <h2>如何使用</h2>
+            <h2>开始使用</h2>
+            <p v-if="isWechat" class="notice">请点右上角「…」，选择在浏览器打开，再启动 NFC 助手。</p>
+            <p v-else-if="!isAndroid" class="muted">请在安卓手机浏览器打开本页，安装助手后继续。</p>
+            <van-button v-if="data.status === 'active'" type="primary" block :disabled="!helperUrl || !isAndroid || isWechat" @click="openHelper">已安装，打开 NFC 助手</van-button>
+            <p v-if="shortUrl && data.status === 'active'" class="link num">{{ shortUrl }}</p>
+            <van-button v-if="shortUrl && data.status === 'active'" block @click="copyText(shortUrl)">复制 NFC 名片链接</van-button>
             <ol class="steps muted">
               <li>在安卓手机上安装 NFC 助手。</li>
-              <li>回到员工端「发送名片 → 手机 NFC」，再点按助手入口；或在助手中粘贴员工端复制的 NFC 链接。</li>
+              <li>安装后返回本页，点「已安装，打开 NFC 助手」；也可在助手中粘贴上方名片链接。</li>
               <li>在助手中核对名片后，由你手动开始{{ mode === 'write' ? '写入并回读校验' : '模拟' }}。</li>
             </ol>
             <NfcInstallHelp />
@@ -71,4 +79,5 @@ const role = computed(() => data.value ? [data.value.title, data.value.company.s
 .preview{display:grid;gap:4px;padding:var(--sp-4);background:var(--c-bg);border-radius:var(--r-md)}
 .preview b{font-size:var(--fs-lg);color:var(--c-ink)}
 .steps{padding-left:20px;display:grid;gap:6px;list-style:decimal}
+.link{overflow-wrap:anywhere;padding:var(--sp-3);background:var(--c-bg);border-radius:var(--r-sm);font-size:var(--fs-xs)}
 </style>

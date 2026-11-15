@@ -61,6 +61,38 @@ export function nfcHelperUrl(shortUrl: string, mode: NfcMode, campaign?: number)
   return url.href
 }
 
+/** Explicit Android launch; the browser fallback is the same validated public help URL. */
+export function nfcIntentUrl(helperUrl: string): string | undefined {
+  try {
+    const url = new URL(helperUrl)
+    if (url.protocol !== 'https:' || url.username || url.password || url.port || url.hash) return undefined
+    const match = /^(.*)\/share\/nfc$/.exec(url.pathname)
+    if (!match || !PREFIX_PATTERN.test(match[1])) return undefined
+    const query: Record<string, unknown> = {}
+    for (const [key, value] of url.searchParams) {
+      if (key in query) return undefined
+      query[key] = value
+    }
+    if (typeof parseNfcQuery(query) === 'string') return undefined
+    return `intent://${url.host}${url.pathname}${url.search}#Intent;scheme=https;package=cn.aicardhub.nfc;S.browser_fallback_url=${encodeURIComponent(url.href)};end`
+  }
+  catch { return undefined }
+}
+
+/** Public help can prepare a fixed NFC URL without staff authentication or visitor attribution. */
+export function nfcPublicShortUrl(params: NfcParams, origin: string, base: string): string | undefined {
+  try {
+    const prefix = base.replace(/\/$/, '')
+    if (!PREFIX_PATTERN.test(prefix) || !nfcCode(params.code)) return undefined
+    const url = new URL(`${prefix}/c/${encodeURIComponent(params.code)}`, origin)
+    if (url.protocol !== 'https:' || url.username || url.password || url.port) return undefined
+    url.searchParams.set('s', 'nfc')
+    if (params.mode === 'emulate' && params.campaign) url.searchParams.set('e', String(params.campaign))
+    return url.href
+  }
+  catch { return undefined }
+}
+
 /** Optional controlled APK location; only plain HTTPS URLs are shown. */
 export function nfcApkUrl(value: unknown = import.meta.env.VITE_NFC_APK_URL): string | undefined {
   if (typeof value !== 'string' || !value.trim()) return undefined
