@@ -1,0 +1,13 @@
+# aicardhub-native: generated file; edit the template, not this file.
+[Unit]
+Description=Daily AICardHub private backup timer (opt-in)
+
+[Timer]
+OnCalendar=*-*-* 02:30:00
+RandomizedDelaySec=15m
+AccuracySec=1m
+Persistent=true
+Unit=@@BACKUP_UNIT@@
+
+[Install]
+WantedBy=timers.target

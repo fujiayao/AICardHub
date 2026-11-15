@@ -1,0 +1,50 @@
+# aicardhub-native: generated file; edit the template, not this file.
+[Unit]
+Description=AICardHub API (loopback @@API_HOST@@:@@API_PORT@@, one worker)
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=@@CURRENT_LINK@@/@@VENV_DIR@@/bin/python
+ConditionPathExists=@@CURRENT_LINK@@/server/app/main.py
+StartLimitIntervalSec=120
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=@@SERVICE_USER@@
+Group=@@SERVICE_GROUP@@
+WorkingDirectory=@@CURRENT_LINK@@/server
+EnvironmentFile=@@ENV_FILE@@
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=@@CURRENT_LINK@@/@@VENV_DIR@@/bin/python -m uvicorn app.main:app --host @@API_HOST@@ --port @@API_PORT@@ --workers @@API_WORKERS@@ --root-path /aicardhub --no-server-header --proxy-headers --forwarded-allow-ips=@@API_HOST@@
+Restart=always
+RestartSec=5s
+TimeoutStartSec=30s
+TimeoutStopSec=30s
+KillSignal=SIGTERM
+UMask=0022
+LimitNOFILE=65536
+TasksMax=256
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectKernelLogs=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+ReadWritePaths=@@UPLOAD_DIR@@ @@KB_DIR@@
+MemoryHigh=@@API_MEMORY_HIGH@@
+MemoryMax=@@API_MEMORY_MAX@@
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,24 @@
+# aicardhub-native: generated file; edit the template, not this file.
+[Unit]
+Description=AICardHub private backup (briefly quiesces API and scheduler)
+ConditionPathExists=@@OPS_DIR@@/backup.sh
+ConditionPathExists=@@BACKUP_ENV_FILE@@
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=@@OPS_DIR@@/backup.sh --config @@BACKUP_ENV_FILE@@
+TimeoutStartSec=1h
+UMask=0077
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+PrivateTmp=true
+ProtectHome=true
+NoNewPrivileges=true
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

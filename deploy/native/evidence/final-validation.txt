@@ -1,0 +1,10 @@
+== render ==
+D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub.locations.conf
+D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub.stage.conf
+D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub-api.service
+D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub-scheduler.service
+D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub-backup.service
+D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub-backup.timer
+D:\dev\cache\tmp\tmp.G6mXXBq5gm\render\aicardhub.logrotate
+== template/config invariants ==
+validation failed: files regex missing {32}

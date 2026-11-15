@@ -1,0 +1,50 @@
+# aicardhub-native: generated file; edit the template, not this file.
+[Unit]
+Description=AICardHub scheduler (single independent process)
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=@@CURRENT_LINK@@/@@VENV_DIR@@/bin/python
+ConditionPathExists=@@CURRENT_LINK@@/server/app/scheduler.py
+StartLimitIntervalSec=120
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=@@SERVICE_USER@@
+Group=@@SERVICE_GROUP@@
+WorkingDirectory=@@CURRENT_LINK@@/server
+EnvironmentFile=@@ENV_FILE@@
+Environment=PYTHONUNBUFFERED=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=@@CURRENT_LINK@@/@@VENV_DIR@@/bin/python -m app.scheduler
+Restart=always
+RestartSec=5s
+TimeoutStartSec=30s
+TimeoutStopSec=30s
+KillSignal=SIGTERM
+UMask=0022
+LimitNOFILE=65536
+TasksMax=128
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+ProtectKernelLogs=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+ReadWritePaths=@@UPLOAD_DIR@@ @@KB_DIR@@
+MemoryHigh=@@SCHEDULER_MEMORY_HIGH@@
+MemoryMax=@@SCHEDULER_MEMORY_MAX@@
+
+[Install]
+WantedBy=multi-user.target

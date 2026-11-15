@@ -1,0 +1,9 @@
+# AICardHub MySQL backup client configuration.
+# Install as /etc/aicardhub/mysql-backup.cnf root:root mode 0600.
+# Replace every placeholder out-of-band. Never pass a password on the command line.
+[client]
+host=127.0.0.1
+port=3306
+user=REPLACE_BACKUP_USER
+password=REPLACE_OUT_OF_BAND
+default-character-set=utf8mb4

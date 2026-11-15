@@ -1,0 +1,31 @@
+# aicardhub-native: generated file; edit the template, not this file.
+# Rotates only dedicated AICardHub nginx logs and the backup log.
+# API/scheduler output goes to journald; journald retention is host policy and is
+# intentionally not changed here. Do not add a fake empty app log rotation.
+
+@@NGINX_ACCESS_LOG@@ @@NGINX_ERROR_LOG@@ {
+    daily
+    rotate 14
+    missingok
+    notifempty
+    compress
+    delaycompress
+    create 0640 @@NGINX_USER@@ @@NGINX_LOG_GROUP@@
+    sharedscripts
+    postrotate
+        if [ -s @@NGINX_PID_FILE@@ ]; then
+            kill -USR1 "$(cat @@NGINX_PID_FILE@@)"
+        fi
+    endscript
+}
+
+@@BACKUP_LOG@@ {
+    weekly
+    rotate 8
+    missingok
+    notifempty
+    compress
+    delaycompress
+    create 0640 root @@NGINX_LOG_GROUP@@
+    su root @@NGINX_LOG_GROUP@@
+}

@@ -1,0 +1,1248 @@
+{
+  "authoring_model": "workbuddy/deepseek-v4.1-flash",
+  "provider": "Magpie WorkBuddy native Responses",
+  "evidence_boundary": "Invocation and tool execution evidence; upstream internal model identity is not independently attestable. Supervisor authored orchestration and this evidence summary, not deployment implementation.",
+  "base_commit": "fa89ef3efef230b18b1e2850f2283a82d9c0f39f",
+  "marker": {
+    "content": "NATIVE_WORKBUDDY_PROBE_fa89ef3_20261115",
+    "sha256": "f776869adcb243d27bb917e0212984bc05888096c6d5da3f9e4816abb8f84e9e"
+  },
+  "phases": [
+    {
+      "invocation": {
+        "phase": "finish",
+        "executable": "D:\\nvm\\nodejs\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe",
+        "executable_sha256": "ce1945eb440b5481ed1233ebaf32b7056ee7e4e452fa62ffe1cbfb26103cdee0",
+        "argv": [
+          "D:\\nvm\\nodejs\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe",
+          "exec",
+          "--ignore-user-config",
+          "--ignore-rules",
+          "--ephemeral",
+          "--json",
+          "--color",
+          "never",
+          "-C",
+          "D:\\AIWork\\智能名片\\worktrees\\native-deploy-deepseek",
+          "-m",
+          "workbuddy/deepseek-v4.1-flash",
+          "--dangerously-bypass-approvals-and-sandbox",
+          "-c",
+          "model_provider=\"native_magpie\"",
+          "-c",
+          "model_providers.native_magpie.name=\"Magpie WorkBuddy\"",
+          "-c",
+          "model_providers.native_magpie.base_url=\"http://127.0.0.1:3425/v1\"",
+          "-c",
+          "model_providers.native_magpie.wire_api=\"responses\"",
+          "-c",
+          "model_providers.native_magpie.requires_openai_auth=false",
+          "-c",
+          "model_providers.native_magpie.env_key=\"NATIVE_MAGPIE_LOCAL_MARKER\"",
+          "-c",
+          "model_reasoning_effort=\"high\"",
+          "-c",
+          "features.multi_agent=false",
+          "-o",
+          "D:\\AIWork\\智能名片\\.local\\native-deploy-run\\finish-final.txt",
+          "-"
+        ],
+        "working_directory": "D:\\AIWork\\智能名片\\worktrees\\native-deploy-deepseek",
+        "codex_home_initially_empty": true,
+        "inherited_environment_names": [
+          "CODEX_HOME",
+          "COMSPEC",
+          "NATIVE_MAGPIE_LOCAL_MARKER",
+          "PATH",
+          "PATHEXT",
+          "PROGRAMDATA",
+          "PROGRAMFILES",
+          "PROGRAMFILES(X86)",
+          "PYTHONIOENCODING",
+          "SYSTEMDRIVE",
+          "SYSTEMROOT",
+          "TEMP",
+          "TMP",
+          "WINDIR"
+        ],
+        "started_at": "2026-11-15T16:44:21+0800",
+        "prompt_sha256": "bd319182fd90bd9aead78435a3b3ceab8b63d8c16b477f58666c9a7298b79541",
+        "pid": 52244,
+        "exit_code": 4294967295,
+        "ended_at": "2026-11-15T16:46:37+0800"
+      },
+      "events_sha256": "fa2a4ecb584933a4a7a186e91c4351e37ab4738609229f307a34b5c6a4fa9785",
+      "completed_commands": [
+        {
+          "id": "item_2",
+          "exit_code": 255,
+          "command_sha256": "b4ff69ff5814950eaef72ddaba5df9daac5c0d2cf3a750845191159f511311bc"
+        },
+        {
+          "id": "item_3",
+          "exit_code": 129,
+          "command_sha256": "77e402530ab8759bf007b89f308f2a7580f106209db6569b81b281b42eb8d654"
+        },
+        {
+          "id": "item_6",
+          "exit_code": 0,
+          "command_sha256": "ee79b196843a38f82abd3727e40d8ae1b6fe932a277ad3cf55c897a819027042"
+        },
+        {
+          "id": "item_7",
+          "exit_code": 0,
+          "command_sha256": "469d56255265288557d53cde570384c4087a85e484f78506cbb08cdae6fac9a7"
+        },
+        {
+          "id": "item_14",
+          "exit_code": 1,
+          "command_sha256": "ad542f96df815aa87dda2ad0e5aa14d9a42663d499741ed007978882d66cfe72"
+        },
+        {
+          "id": "item_12",
+          "exit_code": 0,
+          "command_sha256": "4767796a573a54a751a5602d99b3d778e2b1a739aeb5d66f6e996257f9b121b7"
+        },
+        {
+          "id": "item_11",
+          "exit_code": 0,
+          "command_sha256": "3398191246a0fe04a0e15d1fc094aaf468a57bef9742d3f48490f490c8e1a044"
+        },
+        {
+          "id": "item_13",
+          "exit_code": 0,
+          "command_sha256": "df206c256f2e675e19aafdf0dde868dc25637d3735bc31caac64a19abad5db4b"
+        },
+        {
+          "id": "item_16",
+          "exit_code": 0,
+          "command_sha256": "94c13a81be0e2078eec77ed9b77d25d5f185a4aa7e97e5d81d8981ed5bb18ee8"
+        },
+        {
+          "id": "item_18",
+          "exit_code": 0,
+          "command_sha256": "c51f7f770f9648268da50377f11d36a458bff3fd5193958754ca72d7fdb31329"
+        },
+        {
+          "id": "item_19",
+          "exit_code": 0,
+          "command_sha256": "a815351730fa7353de1e6b2347589e336a6d08a09c71d7c29898a0f1d5c9955e"
+        },
+        {
+          "id": "item_17",
+          "exit_code": 0,
+          "command_sha256": "e3387cf6badb112a846dabc62c555a26ae2a30ff1bfb9516223bf4e47e9c07f2"
+        },
+        {
+          "id": "item_22",
+          "exit_code": 0,
+          "command_sha256": "0ebdc146f9d28d5b79060acaec017c3d183bb07a12f824a22ba1c8267ed08b75"
+        },
+        {
+          "id": "item_23",
+          "exit_code": 0,
+          "command_sha256": "5e263c6cd6ac531bc877f3a4c07fbe0892e59801eea8aad2eff2a615ae2c266a"
+        },
+        {
+          "id": "item_24",
+          "exit_code": 0,
+          "command_sha256": "446649980c6864e810b264ac88386e89cff429d3a888a202937d513099d6d238"
+        },
+        {
+          "id": "item_27",
+          "exit_code": 1,
+          "command_sha256": "b26533d5193514d73dcf269fb69a96be2d1d8a115d3bca309bef070603df66d7"
+        },
+        {
+          "id": "item_29",
+          "exit_code": 1,
+          "command_sha256": "98bc1f8be997102340374b3abe11c1ed511bdb7a184ee6bb251e17b597f0adf5"
+        }
+      ],
+      "file_changes": [],
+      "usage": [],
+      "warnings": [
+        "Model metadata for `workbuddy/deepseek-v4.1-flash` not found. Defaulting to fallback metadata; this can degrade performance and cause issues."
+      ]
+    },
+    {
+      "invocation": {
+        "phase": "implement",
+        "executable": "D:\\nvm\\nodejs\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe",
+        "executable_sha256": "ce1945eb440b5481ed1233ebaf32b7056ee7e4e452fa62ffe1cbfb26103cdee0",
+        "argv": [
+          "D:\\nvm\\nodejs\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe",
+          "exec",
+          "--ignore-user-config",
+          "--ignore-rules",
+          "--ephemeral",
+          "--json",
+          "--color",
+          "never",
+          "-C",
+          "D:\\AIWork\\智能名片\\worktrees\\native-deploy-deepseek",
+          "-m",
+          "workbuddy/deepseek-v4.1-flash",
+          "--dangerously-bypass-approvals-and-sandbox",
+          "-c",
+          "model_provider=\"native_magpie\"",
+          "-c",
+          "model_providers.native_magpie.name=\"Magpie WorkBuddy\"",
+          "-c",
+          "model_providers.native_magpie.base_url=\"http://127.0.0.1:3425/v1\"",
+          "-c",
+          "model_providers.native_magpie.wire_api=\"responses\"",
+          "-c",
+          "model_providers.native_magpie.requires_openai_auth=false",
+          "-c",
+          "model_providers.native_magpie.env_key=\"NATIVE_MAGPIE_LOCAL_MARKER\"",
+          "-c",
+          "model_reasoning_effort=\"high\"",
+          "-c",
+          "features.multi_agent=false",
+          "-o",
+          "D:\\AIWork\\智能名片\\.local\\native-deploy-run\\implement-final.txt",
+          "-"
+        ],
+        "working_directory": "D:\\AIWork\\智能名片\\worktrees\\native-deploy-deepseek",
+        "codex_home_initially_empty": true,
+        "inherited_environment_names": [
+          "CODEX_HOME",
+          "COMSPEC",
+          "NATIVE_MAGPIE_LOCAL_MARKER",
+          "PATH",
+          "PATHEXT",
+          "PROGRAMDATA",
+          "PROGRAMFILES",
+          "PROGRAMFILES(X86)",
+          "PYTHONIOENCODING",
+          "SYSTEMDRIVE",
+          "SYSTEMROOT",
+          "TEMP",
+          "TMP",
+          "WINDIR"
+        ],
+        "started_at": "2026-11-15T16:12:47+0800",
+        "prompt_sha256": "49c425d8a98f2e310fcde64e558af1be7d4426a1e7fcbfd1e9ea71e4095a0e45",
+        "pid": 57060,
+        "exit_code": 4294967295,
+        "ended_at": "2026-11-15T16:31:41+0800"
+      },
+      "events_sha256": "75308f2ca657258f7aabe41a1671025f6f3cdc3dda788394b97f7207ab06df07",
+      "completed_commands": [
+        {
+          "id": "item_2",
+          "exit_code": 1,
+          "command_sha256": "ab5c5e83bfafe5f81bf099af032864becfc961abbd5803b27c1143a3ce17c590"
+        },
+        {
+          "id": "item_3",
+          "exit_code": 255,
+          "command_sha256": "cbf1900356848b039d34ec5ba00302dbd7161ec61e17d4d17206c28d7e7312b8"
+        },
+        {
+          "id": "item_5",
+          "exit_code": 0,
+          "command_sha256": "8a910207d25ef1fa3be90746758b9d2711ed5fb4783220c497c15f43d8b2d564"
+        },
+        {
+          "id": "item_6",
+          "exit_code": 0,
+          "command_sha256": "7b8edf885ff3ff391016156599f2e000dbe3f77509b34e40c69a0fd57f63fc16"
+        },
+        {
+          "id": "item_8",
+          "exit_code": 0,
+          "command_sha256": "a7c95fd892f61837334ae0e6588e241bd950d768fc9b391c1a78e6d6c1d37fac"
+        },
+        {
+          "id": "item_9",
+          "exit_code": 0,
+          "command_sha256": "00c1bd4e2475057b92ae247b49ee3459483b472be3f90911a40b08b9b6bcb082"
+        },
+        {
+          "id": "item_10",
+          "exit_code": 0,
+          "command_sha256": "28960b95cca8d07d1d314522ddfbbcb020e978b5ff2f2d07dae9c2d0ecef088a"
+        },
+        {
+          "id": "item_12",
+          "exit_code": 0,
+          "command_sha256": "9cc936b6716b2ca16a056441cd085f199aacfc3b41d4397ac206f406dc2163f3"
+        },
+        {
+          "id": "item_13",
+          "exit_code": 0,
+          "command_sha256": "198d5c2d75e35147e5dd18acca6ab3adb673b2bd5b63956b0b2aabe3725b78e7"
+        },
+        {
+          "id": "item_14",
+          "exit_code": 0,
+          "command_sha256": "dd048e6752b80dcc925d9ab184f46c2daffafbc75bfb5c10b2ec8e20e18ad5e5"
+        },
+        {
+          "id": "item_15",
+          "exit_code": 0,
+          "command_sha256": "2a1890c5713a25306a1f7ee5208e3380528dcee0c79815f8116e0cb1211e8788"
+        },
+        {
+          "id": "item_17",
+          "exit_code": 0,
+          "command_sha256": "60e62581a7ef4c6857cd10767b871fcbd1d1175ebee5aa0f541b4df89f70ab51"
+        },
+        {
+          "id": "item_18",
+          "exit_code": 0,
+          "command_sha256": "48cba4804a8bd4bbbcfcab6cdf491d2d73417a98b8c048f22f561e613a1124d0"
+        },
+        {
+          "id": "item_19",
+          "exit_code": 0,
+          "command_sha256": "bd801b1876ba1b885b43a4a6156adeef98b3c13d9e00ecc4afb234ff1fb872e5"
+        },
+        {
+          "id": "item_20",
+          "exit_code": 0,
+          "command_sha256": "523711b7c2cc9c40998d787ad757b36a775b9a239e6e7c7a209c3390b79a882a"
+        },
+        {
+          "id": "item_22",
+          "exit_code": 1,
+          "command_sha256": "71f8d9bf05fcdada2c74025801b1a240af7b31c204148aff24b12f9ba09d8dce"
+        },
+        {
+          "id": "item_23",
+          "exit_code": 1,
+          "command_sha256": "03db3683986cc17dcdd91f21acb472740aa306baf4da916c8b4d47896154fc11"
+        },
+        {
+          "id": "item_24",
+          "exit_code": 0,
+          "command_sha256": "8ddd4434fefde2d5953578e57023df1b59ce1491fef345f809d832cf1acb82f9"
+        },
+        {
+          "id": "item_26",
+          "exit_code": 0,
+          "command_sha256": "d258616d2ec99e6208b04df3a98517ac82fe440b8268f1089037fafbe16af851"
+        },
+        {
+          "id": "item_27",
+          "exit_code": 1,
+          "command_sha256": "05c2a15fa14c6de944534e8f09e0fb794e233a84b90c89f1efa539cdf4ac0e3d"
+        },
+        {
+          "id": "item_28",
+          "exit_code": 255,
+          "command_sha256": "f57f63051f85f25a7ea599803f55e97105d10359f14eae91e477c5f4d06a78cc"
+        },
+        {
+          "id": "item_29",
+          "exit_code": 0,
+          "command_sha256": "c1382c84e95e02205180dd19fed695348f5b6ae3f7850994cff1f5aa7bedec76"
+        },
+        {
+          "id": "item_31",
+          "exit_code": 0,
+          "command_sha256": "bb91565d61484f1d7cc031533a4ed92ee6c0037600cc540b95e8cf63841a7b08"
+        },
+        {
+          "id": "item_32",
+          "exit_code": 0,
+          "command_sha256": "cfb3c4682fc34930b0c30029575076258e1c6408763ed5324eaeee85a08e72a4"
+        },
+        {
+          "id": "item_33",
+          "exit_code": 1,
+          "command_sha256": "d026f0e200e1935baa4ccebf8d44e38446f03e8e1d6e201c44597fb9a480214d"
+        },
+        {
+          "id": "item_34",
+          "exit_code": 255,
+          "command_sha256": "891036498c09258d992c71bc6d52fa459a1bed1819f9f6ae063815edd4a519a6"
+        },
+        {
+          "id": "item_36",
+          "exit_code": 0,
+          "command_sha256": "0b27f02bf79eebba539f25e1985361f4600254fa1008f21f4d8c7e917480c753"
+        },
+        {
+          "id": "item_37",
+          "exit_code": 0,
+          "command_sha256": "3aa30e1abb36aad7ed4633b9d7d5245a2e9099a2f485f8487ed0f013bfe76f60"
+        },
+        {
+          "id": "item_38",
+          "exit_code": 255,
+          "command_sha256": "2fb60a155bf06efc588fcfbfe30a47021137e535df086fc0dcaa278886fcee4d"
+        },
+        {
+          "id": "item_39",
+          "exit_code": 0,
+          "command_sha256": "93e4c8fd4178a2f77741e98184d9c583968acbc2633f01396c0c43a9f979647c"
+        },
+        {
+          "id": "item_41",
+          "exit_code": 0,
+          "command_sha256": "ad706ac515f36fc942aac94778f7e90df31ae91231cd44238c7c8bc58c6edb6b"
+        },
+        {
+          "id": "item_42",
+          "exit_code": 0,
+          "command_sha256": "258c67e8cd3ba7ac4669f0e95a4a47274e848e03c71c7e5d16b7a7b2986149ff"
+        },
+        {
+          "id": "item_43",
+          "exit_code": 0,
+          "command_sha256": "89808179d7806a118434ac79b0ff1c55efcb8481a7932896280cd5d880402d85"
+        },
+        {
+          "id": "item_44",
+          "exit_code": 1,
+          "command_sha256": "e2536281f832c00e0f3b45e2014de68cb7cacae6828ce1daaf4ab7f95498bd67"
+        },
+        {
+          "id": "item_46",
+          "exit_code": 255,
+          "command_sha256": "a36f9b84e518c872eb6f17620ac9c42bc0d9ab235688222dcb1dfea46add35b7"
+        },
+        {
+          "id": "item_47",
+          "exit_code": 0,
+          "command_sha256": "f4f4552f49be6a85d253dd2efe315e5c0ea384efc3ad61f2228654aad950f79b"
+        },
+        {
+          "id": "item_48",
+          "exit_code": 255,
+          "command_sha256": "937e68a888b683f2825ed3d408011dd366ecc571d61914e95fd8a434a45f7fdb"
+        },
+        {
+          "id": "item_50",
+          "exit_code": 255,
+          "command_sha256": "e9f52a4830167e20cac31cbee9c5d0b46ec63d9e67a364c4dd652aa5a85b53da"
+        },
+        {
+          "id": "item_51",
+          "exit_code": 255,
+          "command_sha256": "033cdb54307a6cf1b0d09a5318b8df97c57ef306cc48b645f5de11fdbd2a9abc"
+        },
+        {
+          "id": "item_53",
+          "exit_code": 0,
+          "command_sha256": "1333c5af51e9fcb5debaf0d924669193e847ec01bfd24404d2028647560f0e39"
+        },
+        {
+          "id": "item_54",
+          "exit_code": 0,
+          "command_sha256": "5643f34d5d570b7fe3eb2b10ede1281bcc0e804fc4722cfe1a9385fe83579674"
+        },
+        {
+          "id": "item_56",
+          "exit_code": 1,
+          "command_sha256": "f3eb2997738d99cd2e35b0db0b7e5e8a1af4d04a779ce983bc72f21a34ea90b0"
+        },
+        {
+          "id": "item_57",
+          "exit_code": 0,
+          "command_sha256": "d417a4c6b8c52123d3f5aa9c3d1cac4e1884f5c43ca780260b25e14e3becd1f6"
+        },
+        {
+          "id": "item_59",
+          "exit_code": 0,
+          "command_sha256": "574655dec11b5806169635a8a89b172238473d6de79dd0b16caafc94c82660d4"
+        },
+        {
+          "id": "item_61",
+          "exit_code": 0,
+          "command_sha256": "1930b1019098f46a641deff62a96945d767a5a1e2c1e9b3732a6a0dcb2ea405d"
+        },
+        {
+          "id": "item_64",
+          "exit_code": 1,
+          "command_sha256": "b54c9c9e5258468bfaa4a8d7a758c3a054ea9b8efdabf0b289a69a8cc46d4428"
+        },
+        {
+          "id": "item_65",
+          "exit_code": 0,
+          "command_sha256": "26a0f64b64e372eed36db06544e0d3f4712e5613b0076504db675386573d60b6"
+        },
+        {
+          "id": "item_66",
+          "exit_code": 0,
+          "command_sha256": "e823e0f3647df31d08b413441488e35dbecc33b7bbb7a4511692d617c7238753"
+        },
+        {
+          "id": "item_68",
+          "exit_code": 1,
+          "command_sha256": "5a47fb0450e0afc0df1904a0bca5dd21c019c3f513c2e34d31f512a21c2b44af"
+        },
+        {
+          "id": "item_71",
+          "exit_code": 1,
+          "command_sha256": "87edf2be8985952c98bc3d0fe8028846f6149a853e6752c07e8d372fbf8d8f3e"
+        },
+        {
+          "id": "item_73",
+          "exit_code": 0,
+          "command_sha256": "3836359cad45a52bd39421642457e5e8a30330eba8089e0c54689b881b96e656"
+        },
+        {
+          "id": "item_75",
+          "exit_code": 0,
+          "command_sha256": "88695a958b854c5292a850df004c1855182fb1b73079332e2610d5c21f1578f3"
+        },
+        {
+          "id": "item_77",
+          "exit_code": 0,
+          "command_sha256": "84330683eacd75a393e5ed0f25374cebce976912b99daa0bf103055e2a1156e8"
+        },
+        {
+          "id": "item_78",
+          "exit_code": 0,
+          "command_sha256": "76ffbaf275648f9ac4e3308a532f5d9ea3e22ce1be2de31fe91205c36eb55a96"
+        },
+        {
+          "id": "item_80",
+          "exit_code": 0,
+          "command_sha256": "1950f952a6c52ca03ca47b417493dceadf3004b603e64ed0c5e7f7d140432f71"
+        },
+        {
+          "id": "item_82",
+          "exit_code": 0,
+          "command_sha256": "bd82c057914e3c621e79d2be8a6b0ed754426affb0140cd19f968a34e96c5a41"
+        },
+        {
+          "id": "item_84",
+          "exit_code": 0,
+          "command_sha256": "150161a8f64d7d761f4e79db990aeda9731de0ddf265ae3a5f19ff73abb688e5"
+        },
+        {
+          "id": "item_86",
+          "exit_code": 0,
+          "command_sha256": "d7bf0f1cf9591ddc2a55e25a46e97b3363e95ea6a97d3dcdd664ffe07ab7be82"
+        },
+        {
+          "id": "item_88",
+          "exit_code": 0,
+          "command_sha256": "c3bc756ce810ccda59eb49f534794c9cc0987f738567fd4f4e6f1bfcad4cfd17"
+        },
+        {
+          "id": "item_90",
+          "exit_code": 1,
+          "command_sha256": "1dd6f96ce71bfa40296243587369122d9327de2bd231fd8f45b8db59fb64f9d4"
+        },
+        {
+          "id": "item_92",
+          "exit_code": 0,
+          "command_sha256": "eb39107151e2ced70e2c4c5727de8cdf452060b109bf56cf3131f08fa97e47c6"
+        },
+        {
+          "id": "item_94",
+          "exit_code": 0,
+          "command_sha256": "450c635c7360577135daba5d7432703bfa9e12b6e32b2bb16f307e872c7f087e"
+        },
+        {
+          "id": "item_96",
+          "exit_code": 0,
+          "command_sha256": "2ff091a5422efd3a3f1dce40a7e1a6ab8b097547f3be9b9a16dcdb6d270b5edf"
+        },
+        {
+          "id": "item_98",
+          "exit_code": 1,
+          "command_sha256": "794a35d9f42e765207b151f1ef20a29e0b48d0bd8c0edfaa41404adbb92f5be2"
+        },
+        {
+          "id": "item_100",
+          "exit_code": 1,
+          "command_sha256": "1b0aca74441c7a7f103d44ea0cf09e7b67536b2c348621c27560cab90f130ab0"
+        },
+        {
+          "id": "item_102",
+          "exit_code": 1,
+          "command_sha256": "d75b433800b061b6e09c368f04783db4a78958762823265884278d41521d849e"
+        },
+        {
+          "id": "item_104",
+          "exit_code": 0,
+          "command_sha256": "4968cce1b9ec3bcba03c3d090738f050d1a78d1c93cbd90de5ea1063d833c74b"
+        },
+        {
+          "id": "item_106",
+          "exit_code": 1,
+          "command_sha256": "3dbd704eed417bb12b691fe13950393be2a4f4733e55c364056cc860ea0ef32c"
+        },
+        {
+          "id": "item_108",
+          "exit_code": 1,
+          "command_sha256": "ddc9fbae8db87ce66522b49e283174d69fc8b59a59f5ddf73c5e9ec16da9fd56"
+        },
+        {
+          "id": "item_110",
+          "exit_code": 0,
+          "command_sha256": "8b5e074691748687193bde6413c01285954a20f1ece341645d565744129a35f0"
+        },
+        {
+          "id": "item_112",
+          "exit_code": 1,
+          "command_sha256": "f291d0f7a761cf2fd52afdad82465e1a005eb77468fc6ffc15d59587c7c0710c"
+        },
+        {
+          "id": "item_114",
+          "exit_code": 1,
+          "command_sha256": "162d90207a56f6990eef060c5d617ccd32ae34deca54a5346315a8e22e2aff8e"
+        },
+        {
+          "id": "item_116",
+          "exit_code": 0,
+          "command_sha256": "1d4dc9dedd4fa57272c615ea5aa6fb7d965883d67a7b2b1b85ca9a8ba18df641"
+        },
+        {
+          "id": "item_118",
+          "exit_code": 1,
+          "command_sha256": "0f1c6569fb3705ad37994853e45c5220aef4f6cd59c179e359bb75b3537a5734"
+        },
+        {
+          "id": "item_120",
+          "exit_code": 0,
+          "command_sha256": "a225798d74edcf057435fd22d773bede380deb43e090bcf2e39469a61485e819"
+        },
+        {
+          "id": "item_122",
+          "exit_code": 0,
+          "command_sha256": "6d93f35f7b808730d88b18ddfabc9733645e0f671639919fb6a176a3e8283eb4"
+        },
+        {
+          "id": "item_124",
+          "exit_code": 1,
+          "command_sha256": "6ebee89f59275ac22615d075b8ca06ac4c135d30a644104deb3b83af1663d986"
+        },
+        {
+          "id": "item_126",
+          "exit_code": 0,
+          "command_sha256": "cc8256ed6e80f3228a470a3d3bdad24a795f522942934de81d7410e9a98ce679"
+        },
+        {
+          "id": "item_128",
+          "exit_code": 0,
+          "command_sha256": "187f7275f615abc8c4f2f335b195629ecb486e9fac03439ac91d45bcbc9e53cc"
+        },
+        {
+          "id": "item_130",
+          "exit_code": 0,
+          "command_sha256": "1b012e84736617365adedf70273be056d3f522f0848b6f6eb57f48dd8d9e471e"
+        },
+        {
+          "id": "item_132",
+          "exit_code": 0,
+          "command_sha256": "6146c7e7a1b634feaae0560c2d391064b3e2b781de73bded01eea0c9f582f773"
+        },
+        {
+          "id": "item_134",
+          "exit_code": 1,
+          "command_sha256": "154774cb6989cf2977b5cf9a606f7746d736224cf785469824e1a84d4127f0c3"
+        },
+        {
+          "id": "item_136",
+          "exit_code": 0,
+          "command_sha256": "e194e7a727fcb7d5809b8000e7b02495e182166605e774ac143518b45e2d22f7"
+        },
+        {
+          "id": "item_138",
+          "exit_code": 255,
+          "command_sha256": "83e12b2fb172f312e589f37bd2e969e5b67559b5861c07575d4bb28ecadb9c84"
+        },
+        {
+          "id": "item_140",
+          "exit_code": 0,
+          "command_sha256": "cf4b6ab8e5efe84ef193df04397e5f19e66787d1405df41375f503537241f828"
+        },
+        {
+          "id": "item_142",
+          "exit_code": 0,
+          "command_sha256": "78e52195f1500187081e78ad603e83d47335b2d3b01da33e883d43db6308a3d2"
+        },
+        {
+          "id": "item_144",
+          "exit_code": 0,
+          "command_sha256": "683396040632fa46164769369d01836be96739723cf38fcd86e527f7e1d20eb0"
+        },
+        {
+          "id": "item_146",
+          "exit_code": 0,
+          "command_sha256": "280f3dd9eaec0eda1788882f6cc020e1ce98c3cce34e26dce803bfd05b2d9c41"
+        },
+        {
+          "id": "item_148",
+          "exit_code": 0,
+          "command_sha256": "ca526a1d84c06e866ca588a5f171ef49bfc9ee94811e99bc060d8865dd703f29"
+        },
+        {
+          "id": "item_150",
+          "exit_code": 0,
+          "command_sha256": "5aa9e2696ab84f81f05776ecf2402a2be4f431e6f4bc10bc14ba6c13c780c3e0"
+        },
+        {
+          "id": "item_152",
+          "exit_code": 0,
+          "command_sha256": "aa6ea05e2ebbe535c32fbb35f61fb9bbfe877dd242bd97810f060a8836eb80c3"
+        },
+        {
+          "id": "item_154",
+          "exit_code": 0,
+          "command_sha256": "43445729d03fb457348411183b751d92e8ae1bb87dfd23e80a5d43ca0eda2ed8"
+        },
+        {
+          "id": "item_156",
+          "exit_code": 0,
+          "command_sha256": "87ea2babde7b446572a50c10b6802469b544be6f661ece7cf5608a3869517788"
+        },
+        {
+          "id": "item_158",
+          "exit_code": 0,
+          "command_sha256": "b808d7cd7577453bc6a0384dc1b235743e1a6339c7ea818e7ddf352e81703c14"
+        },
+        {
+          "id": "item_160",
+          "exit_code": 0,
+          "command_sha256": "0590ccc30e5334f760a038c0f7d8cf223736956f7e147b4a0e7cb60e2e065c56"
+        },
+        {
+          "id": "item_162",
+          "exit_code": 0,
+          "command_sha256": "d8a389b573b4069f5d3dcac36c808514e907ae93df1d6e7f007bd6907b804d7d"
+        },
+        {
+          "id": "item_164",
+          "exit_code": 0,
+          "command_sha256": "d3c2c502499e5912e72a6e388135f84346d8501454c60e6b15f9c47a2441a894"
+        },
+        {
+          "id": "item_166",
+          "exit_code": 0,
+          "command_sha256": "331e6dfb3affcaaa52a0ad65395116109ab8daf8b36adefa02d87a884929ef21"
+        },
+        {
+          "id": "item_168",
+          "exit_code": 0,
+          "command_sha256": "e6d84e1c5cfdc46199ad58190415bc36639fe9985e7416b26ce37ba40877cc2a"
+        },
+        {
+          "id": "item_170",
+          "exit_code": 0,
+          "command_sha256": "9173db345e6cd9f247a4c60008b20156d4f1bc66218c770ab2c04d8495316286"
+        },
+        {
+          "id": "item_172",
+          "exit_code": 0,
+          "command_sha256": "12da2fb273e8cf365a3244a171b29d422ee129306b67beaaf11b772b1715dd48"
+        },
+        {
+          "id": "item_174",
+          "exit_code": 0,
+          "command_sha256": "d2e264c0518b9c5edde58dca130d1f0694b0ca7ba6301e593c02080dfe27a45d"
+        },
+        {
+          "id": "item_176",
+          "exit_code": 0,
+          "command_sha256": "fa51a0d2fb53f0ed6ad2ef60ac90bd1139c5099998313daed3ad18d6b143d226"
+        },
+        {
+          "id": "item_177",
+          "exit_code": 0,
+          "command_sha256": "8bba2d965c5ba7ddeca03c387930a8aa546f9c91029d84ed783b9fcd01eacad6"
+        },
+        {
+          "id": "item_178",
+          "exit_code": 0,
+          "command_sha256": "9944b1d78bc0a618e142b7265d7a9a9911c488c392b6125e9b43e30d90caec91"
+        },
+        {
+          "id": "item_180",
+          "exit_code": 0,
+          "command_sha256": "757ea630c6a878531c6104ad80b4bb354107f52890ba95e703d51b393afe83a5"
+        },
+        {
+          "id": "item_182",
+          "exit_code": 0,
+          "command_sha256": "bd4ec29976e3c25784b6aa946a067a76753099ff3175ffe5bedb39880713d516"
+        },
+        {
+          "id": "item_184",
+          "exit_code": 1,
+          "command_sha256": "a75109fb631fc8ea373ce5084fe612af2231d938d4c38c0d87dbc2a09b64ea8b"
+        },
+        {
+          "id": "item_186",
+          "exit_code": 0,
+          "command_sha256": "e3f40ecd579b6f066b218bb7d8912e22bd4f26eb7b6a79752abd62f90f26a93e"
+        },
+        {
+          "id": "item_188",
+          "exit_code": 0,
+          "command_sha256": "870d5fc66a4e6dd6c8c811d921e9fc4508795144fe5e02cfe38af8f8be4389e2"
+        },
+        {
+          "id": "item_191",
+          "exit_code": 0,
+          "command_sha256": "9b7c28e2996fe0c00001144d009dd9c2677b9bf20b218885bd4d416bad7b0dea"
+        },
+        {
+          "id": "item_193",
+          "exit_code": 0,
+          "command_sha256": "d2e264c0518b9c5edde58dca130d1f0694b0ca7ba6301e593c02080dfe27a45d"
+        },
+        {
+          "id": "item_195",
+          "exit_code": 0,
+          "command_sha256": "1a7a5e7cdcecea161b2580a0770652bf6845b9e73977b3640d22968c35afe4e3"
+        }
+      ],
+      "file_changes": [],
+      "usage": [],
+      "warnings": [
+        "Model metadata for `workbuddy/deepseek-v4.1-flash` not found. Defaulting to fallback metadata; this can degrade performance and cause issues."
+      ]
+    },
+    {
+      "invocation": {
+        "phase": "marker",
+        "executable": "D:\\nvm\\nodejs\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe",
+        "executable_sha256": "ce1945eb440b5481ed1233ebaf32b7056ee7e4e452fa62ffe1cbfb26103cdee0",
+        "argv": [
+          "D:\\nvm\\nodejs\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe",
+          "exec",
+          "--ignore-user-config",
+          "--ignore-rules",
+          "--ephemeral",
+          "--json",
+          "--color",
+          "never",
+          "-C",
+          "D:\\AIWork\\智能名片\\worktrees\\native-deploy-deepseek",
+          "-m",
+          "workbuddy/deepseek-v4.1-flash",
+          "--dangerously-bypass-approvals-and-sandbox",
+          "-c",
+          "model_provider=\"native_magpie\"",
+          "-c",
+          "model_providers.native_magpie.name=\"Magpie WorkBuddy\"",
+          "-c",
+          "model_providers.native_magpie.base_url=\"http://127.0.0.1:3425/v1\"",
+          "-c",
+          "model_providers.native_magpie.wire_api=\"responses\"",
+          "-c",
+          "model_providers.native_magpie.requires_openai_auth=false",
+          "-c",
+          "model_providers.native_magpie.env_key=\"NATIVE_MAGPIE_LOCAL_MARKER\"",
+          "-c",
+          "model_reasoning_effort=\"high\"",
+          "-c",
+          "features.multi_agent=false",
+          "-o",
+          "D:\\AIWork\\智能名片\\.local\\native-deploy-run\\marker-final.txt",
+          "-"
+        ],
+        "working_directory": "D:\\AIWork\\智能名片\\worktrees\\native-deploy-deepseek",
+        "codex_home_initially_empty": true,
+        "inherited_environment_names": [
+          "CODEX_HOME",
+          "COMSPEC",
+          "NATIVE_MAGPIE_LOCAL_MARKER",
+          "PATH",
+          "PATHEXT",
+          "PROGRAMDATA",
+          "PROGRAMFILES",
+          "PROGRAMFILES(X86)",
+          "PYTHONIOENCODING",
+          "SYSTEMDRIVE",
+          "SYSTEMROOT",
+          "TEMP",
+          "TMP",
+          "WINDIR"
+        ],
+        "started_at": "2026-11-15T16:11:01+0800",
+        "prompt_sha256": "b3d04386929d5ceb496c9be53c8a70a1bfe5530d090c55a46fb54813a5d2456b",
+        "pid": 63868,
+        "exit_code": 0,
+        "ended_at": "2026-11-15T16:11:20+0800"
+      },
+      "events_sha256": "aedc9e4ce708b844b1b4f32a1bb5cca510fae3cc9461994eec83286b17f9bae4",
+      "completed_commands": [
+        {
+          "id": "item_3",
+          "exit_code": 0,
+          "command_sha256": "462224d465551ccfeeef6fa718b2a40ee0ddbae4fd54f63354382f2cca01144d"
+        },
+        {
+          "id": "item_6",
+          "exit_code": 0,
+          "command_sha256": "3084e39b850185815dc8e1623279afb4a7b4edbc3cfa8d5ceb684f244d7dc8f0"
+        },
+        {
+          "id": "item_9",
+          "exit_code": 0,
+          "command_sha256": "4009668fdcbe216d65d7c0e5d47599a740d792a2a23236b50dd7533de0763110"
+        }
+      ],
+      "file_changes": [],
+      "usage": [
+        {
+          "input_tokens": 66621,
+          "cached_input_tokens": 49792,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1741,
+          "reasoning_output_tokens": 695
+        }
+      ],
+      "warnings": [
+        "Model metadata for `workbuddy/deepseek-v4.1-flash` not found. Defaulting to fallback metadata; this can degrade performance and cause issues."
+      ]
+    },
+    {
+      "invocation": {
+        "phase": "prefix",
+        "executable": "D:\\nvm\\nodejs\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe",
+        "executable_sha256": "ce1945eb440b5481ed1233ebaf32b7056ee7e4e452fa62ffe1cbfb26103cdee0",
+        "argv": [
+          "D:\\nvm\\nodejs\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe",
+          "exec",
+          "--ignore-user-config",
+          "--ignore-rules",
+          "--ephemeral",
+          "--json",
+          "--color",
+          "never",
+          "-C",
+          "D:\\AIWork\\智能名片\\worktrees\\native-deploy-deepseek",
+          "-m",
+          "workbuddy/deepseek-v4.1-flash",
+          "--dangerously-bypass-approvals-and-sandbox",
+          "-c",
+          "model_provider=\"native_magpie\"",
+          "-c",
+          "model_providers.native_magpie.name=\"Magpie WorkBuddy\"",
+          "-c",
+          "model_providers.native_magpie.base_url=\"http://127.0.0.1:3425/v1\"",
+          "-c",
+          "model_providers.native_magpie.wire_api=\"responses\"",
+          "-c",
+          "model_providers.native_magpie.requires_openai_auth=false",
+          "-c",
+          "model_providers.native_magpie.env_key=\"NATIVE_MAGPIE_LOCAL_MARKER\"",
+          "-c",
+          "model_reasoning_effort=\"high\"",
+          "-c",
+          "features.multi_agent=false",
+          "-o",
+          "D:\\AIWork\\智能名片\\.local\\native-deploy-run\\prefix-final.txt",
+          "-"
+        ],
+        "working_directory": "D:\\AIWork\\智能名片\\worktrees\\native-deploy-deepseek",
+        "codex_home_initially_empty": true,
+        "inherited_environment_names": [
+          "CODEX_HOME",
+          "COMSPEC",
+          "NATIVE_MAGPIE_LOCAL_MARKER",
+          "PATH",
+          "PATHEXT",
+          "PROGRAMDATA",
+          "PROGRAMFILES",
+          "PROGRAMFILES(X86)",
+          "PYTHONIOENCODING",
+          "SYSTEMDRIVE",
+          "SYSTEMROOT",
+          "TEMP",
+          "TMP",
+          "WINDIR"
+        ],
+        "started_at": "2026-11-15T16:32:37+0800",
+        "prompt_sha256": "f6677d9af92140c6942c1be5b4b0e71fd8a4f09e91d2eccf026d7b4b68fbac4b",
+        "pid": 31904,
+        "exit_code": 4294967295,
+        "ended_at": "2026-11-15T16:44:18+0800"
+      },
+      "events_sha256": "cfef53fbc62d8e68ce3148895d44b2e3752219e1248eb8a1817ed39ea3528026",
+      "completed_commands": [
+        {
+          "id": "item_4",
+          "exit_code": 0,
+          "command_sha256": "5731b7ef72465de7ab04a1d5ce32fe3f6d86dfa2b20a193e9818117ca2584586"
+        },
+        {
+          "id": "item_6",
+          "exit_code": 0,
+          "command_sha256": "7f00c7c2239c27cbcdd673f819daafbe2ebac328ba381f646ecb7215f05ef166"
+        },
+        {
+          "id": "item_8",
+          "exit_code": 0,
+          "command_sha256": "31c82c518e877745c5350c6f624772f6e3f0f8313440f5671ebcac69c495212c"
+        },
+        {
+          "id": "item_10",
+          "exit_code": 0,
+          "command_sha256": "ee072c188e16e6729eae4d7c96e75d8af7efc9ebd87061b3efe1c8a0e3dfc81d"
+        },
+        {
+          "id": "item_12",
+          "exit_code": 0,
+          "command_sha256": "a31bc10a4a75b516fd47c44b2abb2a3a9ed393e11adffc0bd4ed12ead913f7fd"
+        },
+        {
+          "id": "item_14",
+          "exit_code": 0,
+          "command_sha256": "711b9791846d332e99dd3e77a228a5f05000f65bee1913fc1237b6b71b966ade"
+        },
+        {
+          "id": "item_15",
+          "exit_code": 0,
+          "command_sha256": "4867f2df11ac97eb2dbcbbe92bb877d00e01fce0cc283eb653581739d4441176"
+        },
+        {
+          "id": "item_17",
+          "exit_code": 0,
+          "command_sha256": "86edd5249faa611fe528d086a17e1d3821045a0b762848948b94918626b802b1"
+        },
+        {
+          "id": "item_19",
+          "exit_code": 0,
+          "command_sha256": "6a99e2b0a05f9509de94f1aaabbf246b77527c204a0c1d216c6540ad0a4da46e"
+        },
+        {
+          "id": "item_21",
+          "exit_code": 0,
+          "command_sha256": "81a8f9a86dad6462d0cc4b95a6210e3c1b989b43b01658539f1a6ac6648cfd31"
+        },
+        {
+          "id": "item_23",
+          "exit_code": 0,
+          "command_sha256": "7cc0673c9af5d7b38a3590e5cabfdfbb11d730d6e020e67b39f83cc229aec810"
+        },
+        {
+          "id": "item_26",
+          "exit_code": 0,
+          "command_sha256": "1d14d5ecde940ab5adcefe6caa537323b484b1ab79232c617b9f33fa8f25d241"
+        },
+        {
+          "id": "item_28",
+          "exit_code": 0,
+          "command_sha256": "010a47fe7bc3f3b5478edcf17396f847668ddbef492fa57064119cb01fa80bc9"
+        },
+        {
+          "id": "item_30",
+          "exit_code": 0,
+          "command_sha256": "a31fb028f79e381716c9d04d2d0d3fc367ecb08b0be168d860c576ce786af65e"
+        },
+        {
+          "id": "item_32",
+          "exit_code": 0,
+          "command_sha256": "1fe969a86af30969d3f2c53abbe986448635681bbc6c9116825f050d8e29d67c"
+        },
+        {
+          "id": "item_34",
+          "exit_code": 0,
+          "command_sha256": "7f35667330a3221da2b628234ba1b210b803ca98fbc87238b8d793ea1a76fd33"
+        },
+        {
+          "id": "item_36",
+          "exit_code": 0,
+          "command_sha256": "3614471f3afbc1d5b871b84703630cf0f9d9764d9968d69f94f503f5977facf3"
+        },
+        {
+          "id": "item_38",
+          "exit_code": 0,
+          "command_sha256": "5331bee4df64d9cb5e1beb5d7052bab7b8d74304a76e5d65cda618838e7c9019"
+        },
+        {
+          "id": "item_40",
+          "exit_code": 0,
+          "command_sha256": "ed970e8ee3184c89679a9be54b9d0dfb8f88c0cbfe9c706015f09705e9638922"
+        },
+        {
+          "id": "item_42",
+          "exit_code": 0,
+          "command_sha256": "2b224cf8cac326b44231cb7bae7de765d95e8dbe3a7778e42600568912b4fb85"
+        },
+        {
+          "id": "item_44",
+          "exit_code": 0,
+          "command_sha256": "e33d26e911bf51782fc5bd67c7c740d10f6c367c60f28057de9b191e2f45f77c"
+        },
+        {
+          "id": "item_46",
+          "exit_code": 0,
+          "command_sha256": "819df30c43391cb4db6f0144c28936f736d88ea0d666bcc914ac52ddf1a51c9d"
+        },
+        {
+          "id": "item_49",
+          "exit_code": 1,
+          "command_sha256": "d68fbde19f7959f6c20ec1920e3e49ebdd0c5600bf9d9840654b535b3a20d0fd"
+        },
+        {
+          "id": "item_51",
+          "exit_code": 0,
+          "command_sha256": "a7d2abb52228a517b19e0de9f4d0cd02d8a64f0f6256791a94a1ee8b3f2f9d8a"
+        },
+        {
+          "id": "item_53",
+          "exit_code": 1,
+          "command_sha256": "7293ec1232fdf5a25f13c7c24beece15b4beb003a03ad42c37e287f99849708b"
+        },
+        {
+          "id": "item_55",
+          "exit_code": 1,
+          "command_sha256": "eb7f7d4e4e793b37c5067b9f748bfe21ee5dc7e117d5d112a711c4e6657e23f2"
+        },
+        {
+          "id": "item_57",
+          "exit_code": 1,
+          "command_sha256": "e3c3f963cdbd1296ee6ddaebb0089bce2fdd7f41f11643f77d8b9b42788a879f"
+        },
+        {
+          "id": "item_59",
+          "exit_code": 1,
+          "command_sha256": "feb3eb83225ed2ffee0645b38aa9e0d7fc3cbe612685968ca7fefc12673556c2"
+        },
+        {
+          "id": "item_61",
+          "exit_code": 0,
+          "command_sha256": "bbbe5f6c94eb34fbec31ca3ab20bcbbdab0c4040a0fa1f53e819d5fa08dbcc59"
+        },
+        {
+          "id": "item_63",
+          "exit_code": 1,
+          "command_sha256": "d5ac099d8d3799a4eb90796d8630e130c26390263eb702ad3f7f3216e8331fdf"
+        },
+        {
+          "id": "item_65",
+          "exit_code": 0,
+          "command_sha256": "c9cd3a3ccaadd348d050af8239d980d34df3da346afa8d66ed97c0d85a8ab526"
+        },
+        {
+          "id": "item_67",
+          "exit_code": 0,
+          "command_sha256": "24c59e4d75a8d91f6e7270bc98b9e50b81d2b829d60cfdb25383a6bd79ce296b"
+        },
+        {
+          "id": "item_69",
+          "exit_code": 0,
+          "command_sha256": "3e9611ea1a2940240e48c4d7245c4d2b82715217a3a34432b81ee1341a99ab39"
+        },
+        {
+          "id": "item_71",
+          "exit_code": 0,
+          "command_sha256": "f87079026d994198a4e118ecd67aba1a05a29405defbfda50d9951856446fc72"
+        },
+        {
+          "id": "item_73",
+          "exit_code": 0,
+          "command_sha256": "2c86f7197acd65d3b95dbfe8a6c61c0ec2987ea8002f9da51760ce17ba9dd2c6"
+        },
+        {
+          "id": "item_75",
+          "exit_code": 0,
+          "command_sha256": "67772cb618cc0068f4658bc5a0435c7f7e7c406509d68422f0d71155be83961a"
+        },
+        {
+          "id": "item_77",
+          "exit_code": 0,
+          "command_sha256": "a9efe6883f91111795d2ce3a1010f3dbe6e505165e370e61605ffc4ec1128485"
+        },
+        {
+          "id": "item_79",
+          "exit_code": 0,
+          "command_sha256": "4de641c9ba6c2c1c4228285352c5cc87dfed5f0895a511a1f1d312fb903328bf"
+        },
+        {
+          "id": "item_82",
+          "exit_code": 0,
+          "command_sha256": "d2cffcec1ddb37f184e17816603fca4635131afe85a0db6ada0f93f37830d1bf"
+        },
+        {
+          "id": "item_84",
+          "exit_code": 0,
+          "command_sha256": "4a6e762242cfe6777f6876851d0cdb5df09c5a235e8cae2258e3b5c78aca471d"
+        },
+        {
+          "id": "item_86",
+          "exit_code": 0,
+          "command_sha256": "ce62638ef0b7413e1e5db9ea9b1eeef3bb616a4f72b9ac9eec9e9ca298da1f19"
+        },
+        {
+          "id": "item_88",
+          "exit_code": 0,
+          "command_sha256": "0c571a1e38a92ddf50ac4267c647ebde753edc799184bb4dc0db26e4780a746e"
+        },
+        {
+          "id": "item_90",
+          "exit_code": 0,
+          "command_sha256": "a9ffeceab2bc648a106f789a85b9cdb88827ec9fc4e227f30ce6fc83371ed038"
+        },
+        {
+          "id": "item_93",
+          "exit_code": 0,
+          "command_sha256": "e703df229f522719d5c771e7553899cccce68582143c8177e459fa37291d09a3"
+        },
+        {
+          "id": "item_95",
+          "exit_code": 0,
+          "command_sha256": "080ac072c719e81420eb43b56a6e5b5e58c97db67ba178234cafcefceeb8065f"
+        },
+        {
+          "id": "item_98",
+          "exit_code": 0,
+          "command_sha256": "5814c02d5e11acb47460aa053beabbdca0e6dbc8d13df6c4f878ca0afdf7047f"
+        },
+        {
+          "id": "item_101",
+          "exit_code": 0,
+          "command_sha256": "7c1d77e8ffb2d284bdf9dafe5ec6e68edf29d0675087c180a8cb7fef1f680703"
+        },
+        {
+          "id": "item_105",
+          "exit_code": 0,
+          "command_sha256": "984c2dea3451c5480bc5efdb00b6fe8dd15a08c50d191feffe1ee78023568b1d"
+        },
+        {
+          "id": "item_108",
+          "exit_code": 0,
+          "command_sha256": "be6d7a2618f30c5b5dd5010654dff1ba2f0b2953af115eba8e2a368266604ea8"
+        },
+        {
+          "id": "item_111",
+          "exit_code": 0,
+          "command_sha256": "3a2bd9a9ad1615ff9479eb9c86ede0e42998e8cf1bcbef5bf55749d6d268969c"
+        },
+        {
+          "id": "item_116",
+          "exit_code": 0,
+          "command_sha256": "c066d84dcd0bf88450af60cd6a76174660f7fc32038707a3f3453c5059d4dcfc"
+        },
+        {
+          "id": "item_121",
+          "exit_code": 0,
+          "command_sha256": "ee7c412ca275f6ee086f619909b476e15281193d9b9fc9ee2f6b7d07ec0bd7bc"
+        },
+        {
+          "id": "item_126",
+          "exit_code": 0,
+          "command_sha256": "0f5dceabb75155c022790e281086cffdc15d8b48e2e5c73b54a91d3204e17c33"
+        },
+        {
+          "id": "item_131",
+          "exit_code": 0,
+          "command_sha256": "d7f9aee97570723b85f6561fb682e7e9bd73c95bfeb070b40b5afe2be46fe4c5"
+        },
+        {
+          "id": "item_136",
+          "exit_code": 0,
+          "command_sha256": "cc688977507f244e4cc0a5f0f8b83b518a5064eca1c76f975c26df9bc349fc69"
+        }
+      ],
+      "file_changes": [],
+      "usage": [],
+      "warnings": [
+        "Model metadata for `workbuddy/deepseek-v4.1-flash` not found. Defaulting to fallback metadata; this can degrade performance and cause issues."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,144 @@
+# aicardhub-native: generated file; edit the template, not this file.
+# Server-context include for the EXISTING TLS server that already terminates
+# haiwex.com. Insert only inside that server block:
+#     include @@NGINX_INCLUDE_FILE@@;
+# Do not place this file in conf.d/*.conf: conf.d is included at http context.
+# There is deliberately no server block, listen, server_name, root, upstream,
+# gzip, limit_req_zone or other http/server-level directive here.
+
+# Dotfiles and dot-directories under the prefix are denied before content
+# locations. Content locations below are plain prefix/regex locations, not ^~,
+# so this rejection keeps winning.
+location ~ ^/aicardhub/\. {
+    return 404;
+}
+
+location = /aicardhub {
+    return 301 /aicardhub/;
+}
+
+# API and SSE. proxy_pass strips only the /aicardhub prefix; query strings and
+# percent-encoded path segments are retained by nginx.
+location /aicardhub/api/ {
+    client_max_body_size 20m;
+    proxy_pass http://@@API_HOST@@:@@API_PORT@@/api/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Prefix /aicardhub;
+    proxy_set_header Connection "";
+    proxy_connect_timeout 10s;
+    proxy_send_timeout 120s;
+    proxy_read_timeout 120s;
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_cache off;
+    proxy_max_temp_file_size 0;
+    proxy_redirect off;
+}
+
+# NFC/QR short-link redirects. The prefix is stripped here. The backend's
+# Location header still needs its own /aicardhub-aware prefix handling; that
+# business-code change is owned by the backend agent and is documented as
+# pending in README/DELIVERY. No business code is edited by this package.
+location /aicardhub/c/ {
+    client_max_body_size 20m;
+    proxy_pass http://@@API_HOST@@:@@API_PORT@@/c/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Prefix /aicardhub;
+    proxy_set_header Connection "";
+    proxy_connect_timeout 10s;
+    proxy_send_timeout 120s;
+    proxy_read_timeout 120s;
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_cache off;
+    proxy_max_temp_file_size 0;
+    proxy_redirect off;
+}
+
+# Uploaded raster assets only, using the exact generated-name patterns. There
+# is no try_files and no proxy fallthrough. The alias serves from the real
+# shared/uploads directory, never from a release or the knowledge base.
+location ~ "^/aicardhub/files/((?:[0-9a-f]{32}(?:-bg)?\.jpg|[0-9a-f]{32}-wechat\.png|[0-9a-z]{1,32}-[0-9a-f]{10}-qr\.png|[0-9a-z]{1,32}-[0-9a-f]{10}-poster\.jpg))$" {
+    alias @@UPLOAD_DIR@@/$1;
+    default_type application/octet-stream;
+    types {
+        image/jpeg jpg;
+        image/png png;
+    }
+    disable_symlinks on;
+    limit_except GET {
+        deny all;
+    }
+    expires 1d;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Content-Security-Policy "default-src 'none'; sandbox" always;
+}
+
+# Every other /files request is a hard 404, including traversal, dotfiles,
+# uppercase extensions, scripts and names not produced by the application.
+location /aicardhub/files/ {
+    return 404;
+}
+
+location = /aicardhub/files {
+    return 404;
+}
+
+# Admin SPA, built with base /aicardhub/admin/. Missing assets are 404 and do
+# not fall back to index.html; nested history routes do fall back.
+location = /aicardhub/admin {
+    return 301 /aicardhub/admin/;
+}
+
+location = /aicardhub/admin/index.html {
+    alias @@ADMIN_DIR@@/index.html;
+    expires -1;
+}
+
+location /aicardhub/admin/assets/ {
+    alias @@ADMIN_DIR@@/assets/;
+    disable_symlinks on;
+    expires 30d;
+}
+
+location /aicardhub/admin/ {
+    alias @@ADMIN_DIR@@/;
+    index index.html;
+    error_page 404 /aicardhub/admin/index.html;
+    expires -1;
+}
+
+# H5 visitor/staff SPA, built with base /aicardhub/. Missing H5 assets are 404;
+# SPA history routes fall back to index.html.
+location = /aicardhub/ {
+    alias @@H5_DIR@@/index.html;
+    expires -1;
+}
+
+location = /aicardhub/index.html {
+    alias @@H5_DIR@@/index.html;
+    expires -1;
+}
+
+location /aicardhub/assets/ {
+    alias @@H5_DIR@@/assets/;
+    disable_symlinks on;
+    expires 30d;
+}
+
+location /aicardhub/ {
+    alias @@H5_DIR@@/;
+    index index.html;
+    error_page 404 /aicardhub/index.html;
+    expires -1;
+}
