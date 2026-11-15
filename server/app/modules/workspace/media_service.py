@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
@@ -13,6 +14,43 @@ from app.core.errors import AppError, ErrorCode
 from app.modules.workspace import schemas as s
 from app.modules.workspace import service as shared
 from app.modules.workspace.models import Card
+
+POSTER_FONT_PATHS = (
+    "C:/Windows/Fonts/msyh.ttc",
+    "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/google-noto-cjk/NotoSansCJK-Regular.ttc",
+    "/usr/share/fonts/opentype/source-han-sans/SourceHanSansSC-Regular.otf",
+    "/usr/share/fonts/adobe-source-han-sans/SourceHanSansSC-Regular.otf",
+)
+
+
+def poster_font(size: int = 36) -> ImageFont.FreeTypeFont:
+    """Administrator-owned local CJK font; never a request path or network download.
+
+    An explicit override fails closed if misconfigured. Administrators must install
+    a Chinese font (e.g. fonts-noto-cjk) or point the override to a CJK font file.
+    """
+    configured = os.environ.get("AICARD_POSTER_FONT_PATH", "").strip()
+    candidates = (configured,) if configured else POSTER_FONT_PATHS
+    for value in candidates:
+        # Only local, absolute paths. Do not resolve URLs or network shares.
+        if "://" in value or value.startswith(("//", "\\\\")):
+            continue
+        path = Path(value)
+        try:
+            if not path.is_file():
+                continue
+            if configured and not path.is_absolute():
+                continue
+            return ImageFont.truetype(str(path), size)
+        except (OSError, ValueError):
+            continue
+    raise AppError(
+        ErrorCode.INTERNAL_ERROR,
+        503,
+        "海报中文字体不可用，请管理员安装Noto/思源中文字体或配置AICARD_POSTER_FONT_PATH",
+    )
 
 
 def root() -> Path:
@@ -53,6 +91,8 @@ async def photo(db: AsyncSession, card: Card, content: bytes) -> s.PhotoData:
 def create_share(
     card: s.CardData, source: str = "link", campaign_id: int | None = None
 ) -> s.ShareData:
+    # Validate before writing either image; never report a garbled poster as success.
+    font = poster_font()
     base = get_settings().public_base_url.rstrip("/")
     suffix = f"&e={campaign_id}" if campaign_id is not None else ""
     short = f"{base}/c/{card.code}?s={source}{suffix}"
@@ -66,12 +106,6 @@ def create_share(
     qr.save(root() / qr_name)
     poster = Image.new("RGB", (750, 1100), "#f0f4fa")
     draw = ImageDraw.Draw(poster)
-    font_path = Path("C:/Windows/Fonts/msyh.ttc")
-    font = (
-        ImageFont.truetype(str(font_path), 36)
-        if font_path.exists()
-        else ImageFont.load_default(size=36)
-    )
     draw.text((60, 70), card.name, fill="#14263d", font=font)
     draw.text((60, 140), card.display_title, fill="#14263d", font=font)
     if card.photo_url.startswith("/files/"):
