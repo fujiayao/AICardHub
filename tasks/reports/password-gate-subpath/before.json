@@ -1,0 +1,22 @@
+{
+  "public_base": "https://haiwex.com/aicardhub",
+  "cases": [
+    {
+      "role": "employee",
+      "initial_profile": 403,
+      "business_before_change": 403,
+      "wrong_old_password": 403,
+      "change_password": 403,
+      "change_error_code": "PASSWORD_CHANGE_REQUIRED"
+    },
+    {
+      "role": "admin",
+      "initial_profile": 403,
+      "business_before_change": 403,
+      "wrong_old_password": 403,
+      "change_password": 403,
+      "change_error_code": "PASSWORD_CHANGE_REQUIRED"
+    }
+  ],
+  "temporary_accounts_removed": true
+}

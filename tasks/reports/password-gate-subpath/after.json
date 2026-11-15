@@ -1,0 +1,30 @@
+{
+  "public_base": "https://haiwex.com/aicardhub",
+  "cases": [
+    {
+      "role": "employee",
+      "initial_profile": 200,
+      "business_before_change": 403,
+      "wrong_old_password": 400,
+      "change_password": 200,
+      "change_error_code": null,
+      "old_token_status": 401,
+      "new_login": 200,
+      "must_change_after": false,
+      "new_profile": 200
+    },
+    {
+      "role": "admin",
+      "initial_profile": 200,
+      "business_before_change": 403,
+      "wrong_old_password": 400,
+      "change_password": 200,
+      "change_error_code": null,
+      "old_token_status": 401,
+      "new_login": 200,
+      "must_change_after": false,
+      "new_profile": 200
+    }
+  ],
+  "temporary_accounts_removed": true
+}
