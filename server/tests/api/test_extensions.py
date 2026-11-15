@@ -11,7 +11,9 @@ import pytest
 import pytest_asyncio
 from openpyxl import Workbook
 from PIL import Image
-from sqlalchemy import delete, select
+from sqlalchemy import delete, event, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import with_loader_criteria
 from starlette.concurrency import run_in_threadpool
 
 from app.core.config import get_settings
@@ -43,6 +45,67 @@ from app.modules.workspace.models import (
 from app.modules.workspace.render_service import chat_context, render_card
 
 pytest_plugins = ["test_backend_isolation"]
+
+
+@pytest_asyncio.fixture
+async def render_queue_db(db, employees):
+    """Run real rendering against only this fixture's queue, leaving backlog untouched."""
+    employee_ids = [employee.id for employee in employees]
+    codes = list(
+        (await db.scalars(select(Card.code).where(Card.employee_id.in_(employee_ids)))).all()
+    )
+    keys = [f"render_pending-{code}" for code in codes]
+    async with AsyncSession(db.bind, expire_on_commit=False) as scoped:
+
+        def restrict_queue(statement):
+            if statement.is_select:
+                statement.statement = statement.statement.options(
+                    with_loader_criteria(
+                        Card, Card.employee_id.in_(employee_ids), include_aliases=True
+                    ),
+                    with_loader_criteria(
+                        Setting,
+                        or_(~Setting.key.startswith("render_pending-"), Setting.key.in_(keys)),
+                        include_aliases=True,
+                    ),
+                )
+
+        event.listen(scoped.sync_session, "do_orm_execute", restrict_queue)
+        try:
+            yield scoped
+        finally:
+            event.remove(scoped.sync_session, "do_orm_execute", restrict_queue)
+            await scoped.rollback()
+
+
+async def test_渲染隔离不消费超过一批的其他待处理记录(db, employees, render_queue_db):
+    from app.modules.workspace.render_service import enqueue_card
+
+    card = await shared.own_card(db, employees[1].id)
+    own_key = f"render_pending-{card.code}"
+    marker = uuid4().hex
+    backlog = {
+        f"render_pending-isolation-{marker}-{index}": {"card_id": card.id, "version": marker}
+        for index in range(101)
+    }
+    try:
+        db.add_all([Setting(key=key, value=value) for key, value in backlog.items()])
+        # Make the tested card genuinely newer than a full batch of unrelated keys.
+        await db.execute(delete(Setting).where(Setting.key == own_key))
+        await db.flush()
+        await enqueue_card(db, card)
+        await db.commit()
+        assert await tasks.render_pending(render_queue_db) >= 1
+        await db.commit()
+        assert await db.scalar(select(Setting.id).where(Setting.key == own_key)) is None
+        remaining = (await db.scalars(select(Setting).where(Setting.key.in_(backlog)))).all()
+        assert {row.key: row.value for row in remaining} == backlog
+        store = await kb.get_store()
+        assert await run_in_threadpool(store.get, f"profile-{card.code}") is not None
+    finally:
+        await db.rollback()
+        await db.execute(delete(Setting).where(Setting.key.in_(backlog)))
+        await db.commit()
 
 
 @pytest.fixture(autouse=True)
@@ -371,7 +434,8 @@ async def test_知识上传仅返回未公开草稿且支持中文文件名(db):
     assert await run_in_threadpool(store.get, draft.file_id) is None
 
 
-async def test_资料重渲染撤销批准且私有纠错只对本人试聊可见(db, employees):
+async def test_资料重渲染撤销批准且私有纠错只对本人试聊可见(render_queue_db, employees):
+    db = render_queue_db
     actor, employee, colleague = employees
     card = await shared.own_card(db, employee.id)
     template = Template(name="合成模板", persona="{姓名}负责{负责业务}", opening="您好{姓名}")
@@ -871,12 +935,15 @@ def test_密码允许符号且登录兼容旧长口令():
     )
 
 
-async def test_公司保存只写持久待处理标记并过滤停用员工(db, employees, monkeypatch):
+async def test_公司保存只写持久待处理标记并过滤停用员工(
+    db, employees, monkeypatch, render_queue_db
+):
     from time import monotonic
 
     from app.modules.workspace.models import Company
 
-    actor, employee, colleague = employees
+    db = render_queue_db
+    actor, employee, colleague = [await db.get(Employee, row.id) for row in employees]
     colleague.status = "disabled"
     card = await shared.own_card(db, colleague.id)
     card.status = "disabled"
@@ -917,7 +984,7 @@ async def test_公司保存只写持久待处理标记并过滤停用员工(db, 
             s.NoteInput(title="派生资料", content="拒绝公开", public=True, approved=True),
             file_id=f"profile-{active_card.code}",
         )
-    await tasks.render_pending(db)
+    await tasks.render_pending(render_queue_db)
     current = await run_in_threadpool(store.get, f"profile-{active_card.code}")
     assert not current["approved"] and not current["public"]
     repo = __import__("app.modules.workspace.repo", fromlist=["assign"])

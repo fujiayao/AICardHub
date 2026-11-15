@@ -24,6 +24,7 @@ from app.modules.workspace.models import (
     Message,
     Notification,
     RateCounter,
+    Setting,
     Visitor,
 )
 
@@ -63,6 +64,12 @@ async def employees(db: AsyncSession) -> AsyncIterator[tuple[Employee, Employee,
         )
         values.append(row)
     await db.commit()
+    # Capture scalar identities before tests can rollback/expire ORM instances.
+    ids = [r.id for r in values]
+    owned_cards = list((await db.scalars(select(Card).where(Card.employee_id.in_(ids)))).all())
+    card_ids = [card.id for card in owned_cards]
+    pending_keys = [f"render_pending-{card.code}" for card in owned_cards]
+    company_id = company.id
     yield values[0], values[1], values[2]
     # Roll back test-created transactions by cleaning only known IDs and their dependants.
     from sqlalchemy import delete
@@ -76,11 +83,11 @@ async def employees(db: AsyncSession) -> AsyncIterator[tuple[Employee, Employee,
         Visit,
     )
 
-    ids = [r.id for r in values]
-    card_ids = list((await db.scalars(select(Card.id).where(Card.employee_id.in_(ids)))).all())
+    await db.rollback()
     sessions = select(ChatSession.id).where(ChatSession.card_id.in_(card_ids))
     await db.execute(delete(Message).where(Message.session_id.in_(sessions)))
     for model, where in [
+        (Setting, Setting.key.in_(pending_keys)),
         (Notification, Notification.employee_id.in_(ids)),
         (Lead, Lead.card_id.in_(card_ids)),
         (Correction, Correction.card_id.in_(card_ids)),
@@ -94,8 +101,35 @@ async def employees(db: AsyncSession) -> AsyncIterator[tuple[Employee, Employee,
     ]:
         await db.execute(delete(model).where(where))
     if added_company:
-        await db.delete(company)
+        await db.execute(delete(Company).where(Company.id == company_id))
     await db.commit()
+
+
+async def test_员工夹具回滚后仍清理自己的队列且不删除其他队列(db):
+    from sqlalchemy import delete
+
+    sentinel_key = f"render_pending-fixture-probe-{uuid4().hex}"
+    sentinel = {"card_id": 0, "version": "synthetic-unrelated"}
+    db.add(Setting(key=sentinel_key, value=sentinel))
+    await db.commit()
+    fixture = employees.__wrapped__(db)
+    try:
+        rows = await anext(fixture)
+        ids = [row.id for row in rows]
+        codes = list((await db.scalars(select(Card.code).where(Card.employee_id.in_(ids)))).all())
+        keys = [f"render_pending-{code}" for code in codes]
+        assert len((await db.scalars(select(Setting).where(Setting.key.in_(keys)))).all()) == 3
+        # Rollback expires ORM objects; teardown must use saved scalar identities.
+        await db.rollback()
+        with pytest.raises(StopAsyncIteration):
+            await anext(fixture)
+        assert await db.scalar(select(Setting.id).where(Setting.key.in_(keys))) is None
+        assert await db.scalar(select(Employee.id).where(Employee.id.in_(ids))) is None
+        assert await db.scalar(select(Setting.value).where(Setting.key == sentinel_key)) == sentinel
+    finally:
+        await fixture.aclose()
+        await db.execute(delete(Setting).where(Setting.key == sentinel_key))
+        await db.commit()
 
 
 async def test_真实MySQL线索及通知所有权(
