@@ -20,7 +20,7 @@ try {
     const visit = page.waitForResponse(r => r.request().method() === 'POST' && new URL(r.url()).pathname.endsWith('/public/visits'));
     await page.goto(`${base}/c/${code}?s=${source}`);
     await expect(page.locator('.vc-dark')).toBeVisible();
-    await expect(page.getByRole('textbox', { name: '输入消息' })).toBeEnabled();
+    await expect(page.getByRole('textbox', { name: '输入消息' })).toHaveCount(0);
     const response = await visit;
     expect(response.status()).toBe(200);
     expect(response.request().postDataJSON().source).toBe(source);
@@ -32,7 +32,7 @@ try {
     const context = await browser.newContext({ viewport: { width, height: 844 } });
     const page = await context.newPage();
     page.on('pageerror', () => { report.runtime_errors += 1; });
-    await page.goto(`${base}/card/${code}`);
+    await page.goto(`${base}/chat/${code}`);
     await expect(page.locator('.vc-dark')).toBeVisible();
     await expect(page.getByRole('textbox', { name: '输入消息' })).toBeEnabled();
     const dimensions = await page.evaluate(() => ({ viewport: innerWidth, scroll: document.documentElement.scrollWidth }));

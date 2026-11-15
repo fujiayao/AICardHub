@@ -1,0 +1,65 @@
+{
+  ".vc-dark": {
+    "backgroundColor": "rgb(6, 9, 12)",
+    "color": "rgb(231, 238, 245)",
+    "fontSize": "14.9994px",
+    "fontWeight": "400",
+    "borderRadius": "0px",
+    "padding": "0px",
+    "gap": "normal"
+  },
+  ".dk-hero": {
+    "backgroundColor": "rgba(0, 0, 0, 0)",
+    "color": "rgb(231, 238, 245)",
+    "fontSize": "14.9994px",
+    "fontWeight": "400",
+    "borderRadius": "0px",
+    "padding": "14.001px 21.9999px 26.0013px",
+    "gap": "normal"
+  },
+  ".dk-name": {
+    "backgroundColor": "rgba(0, 0, 0, 0)",
+    "color": "rgb(231, 238, 245)",
+    "fontSize": "24.999px",
+    "fontWeight": "650",
+    "borderRadius": "0px",
+    "padding": "0px",
+    "gap": "normal"
+  },
+  ".dk-avatar": {
+    "backgroundColor": "rgba(0, 0, 0, 0)",
+    "color": "rgb(231, 238, 245)",
+    "fontSize": "14.9994px",
+    "fontWeight": "400",
+    "borderRadius": "50%",
+    "padding": "0px",
+    "gap": "normal"
+  },
+  ".dk-ai-head": {
+    "backgroundColor": "rgba(8, 13, 17, 0.94)",
+    "color": "rgb(231, 238, 245)",
+    "fontSize": "14.9994px",
+    "fontWeight": "400",
+    "borderRadius": "0px",
+    "padding": "17.9985px 21.9999px 14.001px",
+    "gap": "9.9996px"
+  },
+  ".dk-assistant-bubble": {
+    "backgroundColor": "rgb(21, 31, 40)",
+    "color": "rgb(219, 230, 239)",
+    "fontSize": "13.5018px",
+    "fontWeight": "400",
+    "borderRadius": "4.9998px 14.001px 14.001px",
+    "padding": "11.0019px 14.001px",
+    "gap": "normal"
+  },
+  ".dk-inputbar": {
+    "backgroundColor": "rgb(15, 22, 29)",
+    "color": "rgb(231, 238, 245)",
+    "fontSize": "14.9994px",
+    "fontWeight": "400",
+    "borderRadius": "21.9999px",
+    "padding": "4.9998px 4.9998px 4.9998px 16.0017px",
+    "gap": "7.9989px"
+  }
+}

@@ -25,7 +25,7 @@ try {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await context.newPage();
     page.on('pageerror', error => report.errors.push(error.name));
-    await page.goto(`${base}/card/${card}`);
+    await page.goto(`${base}/chat/${card}`);
     await expect(page.getByRole('textbox', { name: '输入消息' })).toBeEnabled();
     const responsePromise = page.waitForResponse(response =>
       response.request().method() === 'POST' && new URL(response.url()).pathname.endsWith('/messages'),

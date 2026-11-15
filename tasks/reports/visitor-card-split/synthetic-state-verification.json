@@ -1,0 +1,12 @@
+{
+  "fixture_only": true,
+  "checks": [
+    "Home shows real fields and campaign without creating chat",
+    "Guide question sent once; refresh restores same session",
+    "Product question reuses session and keeps source/campaign",
+    "Legacy lead deep-link and explicit consent preserved",
+    "Legacy question deep-link migrates to chat and does not replay",
+    "Disabled card hides personal information on both routes"
+  ],
+  "page_errors": []
+}

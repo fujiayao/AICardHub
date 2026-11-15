@@ -22,6 +22,7 @@ declare module 'vue' {
     CorrectionSheet: typeof import('./../components/staff/CorrectionSheet.vue')['default']
     CustomerHistory: typeof import('./../components/staff/CustomerHistory.vue')['default']
     CustomerList: typeof import('./../components/staff/CustomerList.vue')['default']
+    DarkCardBody: typeof import('./../components/visitor/DarkCardBody.vue')['default']
     DarkCardHero: typeof import('./../components/visitor/DarkCardHero.vue')['default']
     DarkInlineChat: typeof import('./../components/visitor/DarkInlineChat.vue')['default']
     DarkMessages: typeof import('./../components/visitor/DarkMessages.vue')['default']

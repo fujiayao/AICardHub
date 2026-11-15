@@ -26,7 +26,7 @@ try {
     try {
       const page = await context.newPage();
       page.on('pageerror', error => report.page_errors.push(error.name));
-      await page.goto(`${base}/card/${test.card}`);
+      await page.goto(`${base}/chat/${test.card}`);
       const input = page.getByRole('textbox', { name: '输入消息' });
       await expect(input).toBeEnabled();
       const auditStart = auditLog ? (await readFile(auditLog)).length : 0;

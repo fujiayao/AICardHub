@@ -1,0 +1,52 @@
+{
+  "base": "http://127.0.0.1:5173",
+  "sources": [
+    {
+      "source": "qr",
+      "visit_status": 200,
+      "home_chat_back": true,
+      "empty_sessions": 0
+    },
+    {
+      "source": "nfc",
+      "visit_status": 200,
+      "home_chat_back": true,
+      "empty_sessions": 0
+    },
+    {
+      "source": "link",
+      "visit_status": 200,
+      "home_chat_back": true,
+      "empty_sessions": 0
+    },
+    {
+      "source": "poster",
+      "visit_status": 200,
+      "home_chat_back": true,
+      "empty_sessions": 0
+    },
+    {
+      "source": "sig",
+      "visit_status": 200,
+      "home_chat_back": true,
+      "empty_sessions": 0
+    }
+  ],
+  "viewports": [
+    {
+      "width": 360,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "width": 430,
+      "overflow": false
+    }
+  ],
+  "style_differences": [],
+  "page_errors": [],
+  "live_model": null
+}

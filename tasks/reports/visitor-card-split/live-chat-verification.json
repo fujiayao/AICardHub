@@ -1,0 +1,27 @@
+{
+  "base": "http://127.0.0.1:5173",
+  "cases": [
+    {
+      "id": "identity",
+      "card": "ffe358d1",
+      "question": "你是谁？",
+      "identity": "楼跃进",
+      "role": "董事长",
+      "noRefs": true,
+      "status": 200,
+      "answer": "我是义乌市数智产业发展集团有限公司董事长楼跃进的 AI 商务助理，可以协助您了解集团治理相关信息、梳理合作需求及商务接洽事宜。",
+      "done": {
+        "message_id": 578,
+        "kb_refs": [],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": [],
+      "tools": [],
+      "semantic_review": "pending",
+      "history_restored": true
+    }
+  ],
+  "page_errors": [],
+  "tool_execution_verified_by": "not verified by this run"
+}
