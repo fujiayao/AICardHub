@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-15",
+  "public_base": "https://haiwex.com/aicardhub/",
+  "release_revision": "919589c2555e9b5a37015397e2149a085143cfa1",
+  "migration": {
+    "table_counts_equal": true,
+    "tables": 21,
+    "file_hashes_equal": true,
+    "files": 4260
+  },
+  "source_snapshot": "previous_complete_backup",
+  "fresh_snapshot_verified": false,
+  "fresh_snapshot_blocker": "Local MySQL80 stopped; current process cannot start service",
+  "services": {
+    "api": {"port": "127.0.0.1:18000", "memory_bytes": 225095680},
+    "mysql": {"port": "127.0.0.1:13306", "memory_bytes": 483131392},
+    "scheduler": {"memory_bytes": 77926400}
+  },
+  "available_memory_mb": 2458,
+  "admin_staff_login_verified": true,
+  "short_link_prefix_verified": true,
+  "public_image_verified": true,
+  "real_model_questions": 2,
+  "nginx_config_test": true,
+  "system_packages_changed_this_resume": false,
+  "ssh_config_changed_this_resume": false,
+  "application_private_runtime": true,
+  "daily_private_backup": true,
+  "server_browser_verified": false,
+  "external_kb_product_integration": false
+}

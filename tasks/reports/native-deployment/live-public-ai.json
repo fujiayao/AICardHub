@@ -1,0 +1,33 @@
+{
+  "public_url": "https://haiwex.com/aicardhub/",
+  "cases": [
+    {
+      "card": "ffe358d1",
+      "question": "你是谁？",
+      "answer": "我是义乌市数智产业发展集团有限公司董事长楼跃进的 AI 商务助理，可以协助介绍集团相关业务、解答合作咨询，并帮助梳理接洽需求。",
+      "done": {
+        "message_id": 582,
+        "kb_refs": [],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": [],
+      "seconds": 4.58
+    },
+    {
+      "card": "5dbb1d43",
+      "question": "请按需查阅知识库，简要介绍义乌数科的公开业务方向。",
+      "answer": "义乌数科的公开业务方向包括：\n\n- 公共数据资源运营、国资云与数字基础设施；\n- 政务与国企数字化、AI应用与实操培训咨询；\n- 数据及AI产业生态合作。\n\n以上是业务方向，不代表均有固定标准套餐或已落地特定客户项目；具体合作范围需进一步确认。来源：〔note-67ba8670ea004cb5b6a55c90f465c199〕",
+      "done": {
+        "message_id": 584,
+        "kb_refs": [
+          "note-67ba8670ea004cb5b6a55c90f465c199"
+        ],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": [],
+      "seconds": 8.19
+    }
+  ]
+}

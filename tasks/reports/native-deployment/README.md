@@ -2,6 +2,28 @@
 
 日期：2026-11-15。负责人授权无Docker部署与完整业务数据迁移，正式访问路径为`https://haiwex.com/aicardhub/`。
 
+## 当前结果（SSH修复后续部署）
+
+负责人通过VNC修复OpenSSH/OpenSSL兼容问题后，SSH重新连接成功，主机指纹与原记录一致。本轮**没有安装或升级系统包、没有修改SSH/系统库/防火墙配置**；仅创建本应用目录、应用账号、应用服务和现有Nginx里的前缀include。
+
+应用已在`https://haiwex.com/aicardhub/`运行。访客名片`/card/5dbb1d43`、员工`/staff/login`、后台`/admin/login`、API及短链均通过公网HTTPS检查。原网站根路径仍200，原new-api、CLIProxy与SSH服务均active。Nginx真实`nginx -t`通过后平滑reload。
+
+系统Python3.12的ensurepip因pyexpat依赖错误不可用，本轮没有修系统库；在`/opt/aicardhub/ops/tools`放置独立uv，仅将私有CPython3.12.16安装到`/opt/aicardhub/shared/python`，项目依赖放release内venv。专用MySQL实例`aicardhub-db.service`只监听`127.0.0.1:13306`，独立数据目录，未启动或改写系统mysqld实例。
+
+API`aicardhub-api`、数据库`aicardhub-db`、独立调度`aicardhub-scheduler`均active并开机启用。最后检查占用约API215MB、DB461MB、scheduler74MB，系统可用内存约2458MB，无swap使用。服务器已生成root私有SQL和文件备份，并启用应用专用每日备份timer；14天保留，只清理其命名范围的旧备份。
+
+### 数据与验收边界
+
+本机MySQL80处于Stopped，当前进程无权限启动，已请负责人管理员启动。最新快照重取未成功，**服务器恢复的是此前最近一次完整备份，不保证包含该备份之后的本地新增记录**。该备份21表记录计数、4260文件SHA-256均与服务器恢复结果相等。模型密钥重加密、新JWT轮换成功；原管理员/员工账号通过公网登录验证。
+
+公网真实`gpt-6.1-terra`两题通过：董事长身份回答正确；业务题产生真实list/read工具审计及文档引用，SSE最终done、无error。见`live-public-ai.json`。中文海报字体使用服务器已有NotoCJK文件实测加载成功。
+
+本机Chrome无头启动失败，当前聊天的内置浏览器工具也不可用，因此本轮**没有完成上线后的真浏览器视觉/点击验收**；HTTP页面/资源/登录/API/SSE检查已过，之前本地production-prefix浏览器证据仍保留。未把这些结果混称远端浏览器验收。外部远程知识库生产接入仍未完成，运行的是本产品自己的已迁移KnowledgeStore。
+
+Nginx真实检查发现`location = /aicardhub/`使用文件alias会拼成`index.htmlindex.html`，已改成内部rewrite到exact index，线上根入口现200；源码模板同步修正另有提交。
+
+以下章节保留前期准备及阻塞历史，不代表当前仍然SSH不可用。
+
 ## 已完成的事实
 
 - 对目标服务器进行了SSH只读检查并固定主机指纹。CentOS Stream 9 x86_64、4CPU、3722MB内存，检查时可用2914MB，4GB swap、52GB可用磁盘。
