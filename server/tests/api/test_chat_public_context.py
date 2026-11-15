@@ -236,4 +236,3 @@ async def test_真实公开投影进入模型但员工登录手机号和其他�
         await db.flush()
         await db.delete(company)
         await db.commit()
-
