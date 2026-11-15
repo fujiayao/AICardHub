@@ -1,9 +1,20 @@
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import SecretStr
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def normalize_root_path(value: str) -> str:
+    """An origin-relative deployment prefix, never an external redirect target."""
+    if value in ("", "/"):
+        return ""
+    normalized = value.removesuffix("/")
+    if not re.fullmatch(r"(?:/[A-Za-z0-9_-]+)+", normalized):
+        raise ValueError("AICARD_ROOT_PATH must be a local absolute path prefix")
+    return normalized
 
 
 class Settings(BaseSettings):
@@ -12,6 +23,13 @@ class Settings(BaseSettings):
     test_database_url: str = ""
     jwt_secret: SecretStr
     app_env: str = "local"
+    aicard_root_path: str = ""
+
+    @field_validator("aicard_root_path")
+    @classmethod
+    def valid_root_path(cls, value: str) -> str:
+        return normalize_root_path(value)
+
     llm_mode: str = "fake"
     llm_base_url: str = ""
     llm_api_key: str = ""

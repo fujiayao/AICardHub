@@ -1,8 +1,10 @@
 from typing import Annotated
+from urllib.parse import quote
 
 from fastapi import APIRouter, File, Query, Request, UploadFile
 from fastapi.responses import PlainTextResponse, RedirectResponse, StreamingResponse
 
+from app.core.config import normalize_root_path
 from app.core.deps import DB, Credentials, StaffDep, VisitorDep
 from app.modules.workspace import chat_service as chat
 from app.modules.workspace import knowledge_service as kb
@@ -91,7 +93,11 @@ async def visit_update(id: int, payload: s.StayInput, db: DB, visitor: VisitorDe
 
 @public_redirect.get("/c/{code}", operation_id="card_short_link", response_model=None)
 async def short_link(
-    code: str, db: DB, s: s.Source = "link", e: int | None = Query(default=None, ge=1)
+    code: str,
+    db: DB,
+    request: Request,
+    s: s.Source = "link",
+    e: int | None = Query(default=None, ge=1),
 ) -> RedirectResponse:
     await shared.by_code(db, code)
     if e is not None:
@@ -99,7 +105,8 @@ async def short_link(
 
         await get(db, e, public=True)
     suffix = f"&e={e}" if e is not None else ""
-    return RedirectResponse(f"/card/{code}?s={s}{suffix}", status_code=302)
+    prefix = normalize_root_path(request.scope.get("root_path", ""))
+    return RedirectResponse(f"{prefix}/card/{quote(code, safe='')}?s={s}{suffix}", status_code=302)
 
 
 @router.get(

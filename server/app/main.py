@@ -20,7 +20,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await engine.dispose()
 
 
-app = FastAPI(title="AICardHub 本地候选", version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="AICardHub 本地候选",
+    version="1.0.0",
+    lifespan=lifespan,
+    root_path=get_settings().aicard_root_path,
+)
 register_errors(app)
 app.include_router(public_redirect)
 app.include_router(router)
