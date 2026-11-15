@@ -268,7 +268,8 @@ def check_locations(text: str, values: dict[str, str]) -> None:
     lacks(admin_spa, "try_files", "admin fallback must use a safe alias/error_page")
 
     h5_root = block(visible, "location = /aicardhub/ {")
-    has(h5_root, f"alias {h5}/index.html;")
+    has(h5_root, "rewrite ^ /aicardhub/index.html last;")
+    lacks(h5_root, "alias ", "H5 slash root must rewrite to exact index instead of file alias")
     h5_index = block(visible, "location = /aicardhub/index.html {")
     has(h5_index, f"alias {h5}/index.html;")
     h5_assets = block(visible, "location /aicardhub/assets/ {")

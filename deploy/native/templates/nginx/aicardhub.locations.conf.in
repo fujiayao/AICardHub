@@ -123,8 +123,7 @@ location /aicardhub/admin/ {
 # H5 visitor/staff SPA, built with base /aicardhub/. Missing H5 assets are 404;
 # SPA history routes fall back to index.html.
 location = /aicardhub/ {
-    alias @@H5_DIR@@/index.html;
-    expires -1;
+    rewrite ^ /aicardhub/index.html last;
 }
 
 location = /aicardhub/index.html {
