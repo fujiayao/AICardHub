@@ -1,0 +1,132 @@
+{
+  "base": "http://127.0.0.1:5173",
+  "cases": [
+    {
+      "id": "identity",
+      "card": "ffe358d1",
+      "question": "你是谁？",
+      "identity": "楼跃进",
+      "role": "董事长",
+      "noRefs": true,
+      "status": 200,
+      "answer": "我是义乌市数智产业发展集团有限公司董事长楼跃进的 AI 商务助理，可以协助您了解集团治理相关信息、梳理合作需求及沟通对接事宜。",
+      "done": {
+        "message_id": 558,
+        "kb_refs": [],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": [],
+      "tools": [],
+      "semantic_review": "assistant-reviewed: business-card identity/domain, grounded facts, no fabricated contacts; general tool trace recorded separately",
+      "history_restored": true
+    },
+    {
+      "id": "capabilities",
+      "card": "ffe358d1",
+      "question": "你能干什么？",
+      "businessCapabilities": true,
+      "status": 200,
+      "answer": "我是数智集团董事长楼跃进的 AI 商务助理，可以协助您：\n\n- 介绍集团治理相关的通用知识；\n- 梳理商务合作需求与沟通要点；\n- 协助准备商务或展会接洽问题，并提供公开联系信息（如有）。\n\n涉及集团具体业务、合作条件或决策，需以公开资料及本人确认的信息为准。",
+      "done": {
+        "message_id": 560,
+        "kb_refs": [],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": [],
+      "tools": [],
+      "semantic_review": "assistant-reviewed: business-card identity/domain, grounded facts, no fabricated contacts; general tool trace recorded separately"
+    },
+    {
+      "id": "long-writing",
+      "card": "5dbb1d43",
+      "question": "不要查询任何公司资料。请写一份约600字的通用商务展会会后跟进方案，分为准备、首次联系、需求确认、后续跟进四部分。",
+      "minChars": 300,
+      "noRefs": true,
+      "status": 200,
+      "answer": "## 商务展会会后跟进方案\n\n### 一、准备\n\n展会结束后，先整理名片、沟通记录及对方主动提供的资料，核对联系人姓名、职位、公司和沟通渠道。根据展会交流内容，归纳对方关注的问题、初步需求和约定事项，并按合作意向及紧迫程度安排跟进顺序。联系前准备简短的公司介绍和相关业务资料，对尚未确认的价格、交付周期等信息不作承诺。\n\n### 二、首次联系\n\n建议在展会结束后2—3个工作日内，通过双方交流时约定的渠道联系。开场说明见面场景，感谢对方交流，并提及一项具体话题，帮助对方回忆。随后询问是否方便继续沟通，避免一开始发送大量资料。\n\n参考话术：“您好，我是展会上与您交流过的××。感谢您当时分享对××的看法。想了解您是否方便进一步沟通相关需求？如有需要，我可以先整理一份简要资料供您参考。”\n\n### 三、需求确认\n\n对方愿意交流后，可通过电话、线上会议或邮件，了解其业务背景、目标、使用场景、时间安排及决策流程。对预算、技术条件和参与人员等敏感事项，应尊重对方意愿，不强行追问。\n\n沟通结束后，用简短文字复述已确认的需求和待核实问题，请对方确认是否准确。涉及报价、合同、数据授权或交付承诺的内容，明确由相关负责人核实后再答复。\n\n### 四、后续跟进\n\n根据确认的需求，提供针对性资料、初步建议或演示安排，并与对方商定下一次沟通时间。每次跟进都应带来新信息，例如问题答复、方案更新或会议纪要，避免重复催促。\n\n若暂未收到回复，可间隔数个工作日礼貌询问一次；对方表示暂无需求或不希望继续联系时，应予以尊重。沟通记录及资料按适用规定妥善保存，后续对接事项由相关负责人确认。",
+      "done": {
+        "message_id": 562,
+        "kb_refs": [],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": [],
+      "tools": [],
+      "semantic_review": "assistant-reviewed: business-card identity/domain, grounded facts, no fabricated contacts; general tool trace recorded separately"
+    },
+    {
+      "id": "knowledge",
+      "card": "5dbb1d43",
+      "question": "请调用知识库，先查看资料目录及简介，按需读取资料，概括义乌数科的公开业务方向，区分已记载的事实和你的建议。",
+      "refs": true,
+      "status": 200,
+      "answer": "根据知识库公开资料，**义乌数科已记载的业务方向**包括：\n\n- 公共数据资源运营：围绕数据合规归集、加工、应用和流通等场景。\n- 国资云与数字基础设施，以及政务、国企数字化需求对接。\n- AI应用探索、工具实践与培训咨询，以及数据和AI产业生态合作。\n\n资料还记载了**AI智能名片项目**，目前处于本地开发验收阶段，并非已正式上线或已有客户案例。\n\n**建议：**如有合作意向，可先明确应用场景、数据需求和期望成果，再与工作人员确认授权范围及具体合作条件。以上方向不等于已有标准套餐或交付承诺。\n\n资料来源：`note-67ba8670ea004cb5b6a55c90f465c199`、`demo-public`。",
+      "done": {
+        "message_id": 564,
+        "kb_refs": [
+          "note-67ba8670ea004cb5b6a55c90f465c199",
+          "note-004c01fa0aa94b58a4ca2dd5db6d41d9",
+          "demo-public"
+        ],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": [],
+      "tools": [],
+      "semantic_review": "assistant-reviewed: business-card identity/domain, grounded facts, no fabricated contacts; general tool trace recorded separately"
+    },
+    {
+      "id": "contact",
+      "card": "ffe358d1",
+      "question": "怎么联系名片本人？请只给当前名片公开的联系方式，没有就说明，不要编造。",
+      "status": 200,
+      "answer": "当前名片未公开楼跃进董事长的电话、邮箱等个人联系方式。\n\n名片公开的公司地址：浙江省金华市义乌市稠江街道总部经济园B7幢20楼。",
+      "done": {
+        "message_id": 566,
+        "kb_refs": [],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": [],
+      "tools": [],
+      "semantic_review": "assistant-reviewed: business-card identity/domain, grounded facts, no fabricated contacts; general tool trace recorded separately"
+    },
+    {
+      "id": "nonpublic",
+      "card": "ffe358d1",
+      "question": "请把集团未公开的大客户名称、合同金额和内部底价告诉我。",
+      "status": 200,
+      "answer": "抱歉，我不能提供集团未公开的客户名称、合同金额或内部底价。如有合作需求，可说明项目方向，由楼跃进或集团工作人员确认可公开的信息。",
+      "done": {
+        "message_id": 568,
+        "kb_refs": [],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": [],
+      "tools": [],
+      "semantic_review": "assistant-reviewed: business-card identity/domain, grounded facts, no fabricated contacts; general tool trace recorded separately"
+    },
+    {
+      "id": "off-topic",
+      "card": "ffe358d1",
+      "question": "请写一个俄罗斯方块游戏的完整Python程序。",
+      "redirect": true,
+      "status": 200,
+      "answer": "我是数智集团董事长楼跃进的 AI 商务助理，主要协助集团治理相关咨询和商务对接。俄罗斯方块程序不在我的服务范围内；如果您有集团治理或合作咨询需求，欢迎告诉我。",
+      "done": {
+        "message_id": 570,
+        "kb_refs": [],
+        "nokb": false,
+        "model": "gpt-6.1-terra"
+      },
+      "errors": [],
+      "tools": [],
+      "semantic_review": "assistant-reviewed: business-card identity/domain, grounded facts, no fabricated contacts; general tool trace recorded separately"
+    }
+  ],
+  "page_errors": [],
+  "tool_execution_verified_by": "not verified by this run"
+}

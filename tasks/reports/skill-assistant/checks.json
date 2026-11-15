@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-15",
+  "backend": {
+    "pytest_passed": 421,
+    "seconds": 187.87,
+    "ruff": true,
+    "format_files": 65,
+    "mypy_source_files": 43,
+    "contract_operations": 102,
+    "contract_unchanged": true
+  },
+  "h5": {
+    "tests": 17,
+    "lint": true,
+    "typecheck": true,
+    "build": true,
+    "final_two_copy_lines_targeted_lint": true
+  },
+  "real_model": {
+    "model": "gpt-6.1-terra",
+    "browser_cases": 7,
+    "native_tool_probe": true
+  },
+  "active_h5": "http://127.0.0.1:5173",
+  "api_target": "http://127.0.0.1:8002",
+  "api_started_by_user": true,
+  "no_deploy": true,
+  "pushed": false
+}
