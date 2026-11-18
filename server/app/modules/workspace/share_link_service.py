@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from html import escape
-from urllib.parse import quote, urlencode
+from urllib.parse import parse_qs, quote, urlencode, urlsplit, urlunsplit
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,6 +48,7 @@ async def share_link(
 class ShortLinkResult:
     location: str = ""
     recovery_html: str = ""
+    preview_html: str = ""
 
 
 def accepts_html(accept: str) -> bool:
@@ -80,6 +81,57 @@ def campaign_recovery_html(location: str) -> str:
     )
 
 
+def _absolute_asset(value: str) -> str:
+    if not value:
+        return ""
+    if value.startswith(("http://", "https://")):
+        return value
+    base = urlsplit(get_settings().public_base_url)
+    prefix = base.path.rstrip("/")
+    path = value if prefix and value.startswith(prefix + "/") else prefix + "/" + value.lstrip("/")
+    return urlunsplit((base.scheme, base.netloc, path, "", ""))
+
+
+def share_preview_html(card: s.PublicCard, location: str) -> str:
+    """Crawler-readable preview that keeps the normal short-link redirect intact."""
+    role = "｜".join(value for value in (card.title, card.dept) if value)
+    brand = card.company.short_name or card.company.name
+    title = " · ".join(value for value in (card.name, role, brand) if value) or "数科商务数字名片"
+    description = (
+        card.business_scope or card.intro or "了解业务方向与合作方式，查看商务数字名片"
+    ).strip()[:120]
+    safe_title = escape(title)
+    safe_description = escape(description)
+    # location already includes root_path; append it to the configured origin only.
+    base = urlsplit(get_settings().public_base_url)
+    absolute_location = urlunsplit((base.scheme, base.netloc, "", "", "")) + location
+    event = parse_qs(urlsplit(location).query).get("e", [""])[0]
+    campaign_id = int(event) if event.isascii() and event.isdecimal() else None
+    image = short_url(card.code, "poster", campaign_id).replace("?", "?image=1&", 1)
+    safe_location = escape(absolute_location, quote=True)
+    safe_image = escape(image, quote=True)
+    return (
+        '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        f'<title>{safe_title}</title><meta name="description" content="{safe_description}">'
+        f'<meta property="og:type" content="profile"><meta property="og:title" content="{safe_title}">'
+        f'<meta property="og:description" content="{safe_description}"><meta property="og:url" content="{safe_location}">'
+        f'<meta property="og:image" content="{safe_image}"><meta property="og:site_name" content="{escape(brand)}">'
+        '<meta name="twitter:card" content="summary_large_image">'
+        f'<meta name="twitter:title" content="{safe_title}"><meta name="twitter:description" content="{safe_description}">'
+        f'<meta name="twitter:image" content="{safe_image}">'
+        f'<meta http-equiv="refresh" content="0;url={safe_location}"></head>'
+        '<body style="margin:0;background:#06090c;color:#e7eef5;font-family:system-ui,-apple-system, sans-serif">'
+        f'<main style="max-width:480px;margin:0 auto;padding:48px 24px;background:linear-gradient(160deg,#0f161d,#06090c);min-height:100vh">'
+        f'<div style="color:#2fd6b4;letter-spacing:.12em;font-size:12px">{escape(brand)}</div>'
+        f'<h1 style="font-size:28px;margin:24px 0 8px">{escape(card.name or "商务联系人")}</h1>'
+        f'<p style="color:#93a7b6;margin:0;line-height:1.6">{escape(role or "商务合作")}</p>'
+        f'<p style="margin-top:32px;line-height:1.7">{safe_description}</p>'
+        f'<a href="{safe_location}" style="display:inline-block;margin-top:24px;color:#06090c;background:#2fd6b4;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:700">打开名片</a>'
+        "</main></body></html>"
+    )
+
+
 async def resolve_short_link(
     db: AsyncSession,
     code: str,
@@ -87,6 +139,7 @@ async def resolve_short_link(
     source: s.Source = "link",
     campaign_id: int | None = None,
     accept: str = "",
+    preview: bool = False,
 ) -> ShortLinkResult:
     # Disabled cards still reach the H5 disabled state; no personal data is returned here.
     await shared.by_code(db, code)
@@ -98,4 +151,10 @@ async def resolve_short_link(
             raise
         location = prefix + card_path(code, source, short=False)
         return ShortLinkResult(recovery_html=campaign_recovery_html(location))
-    return ShortLinkResult(location=prefix + card_path(code, source, campaign_id, short=False))
+    location = prefix + card_path(code, source, campaign_id, short=False)
+    if preview:
+        card = await shared.public_card(db, code, campaign_id)
+        if card.status != "active":
+            return ShortLinkResult(location=location)
+        return ShortLinkResult(location=location, preview_html=share_preview_html(card, location))
+    return ShortLinkResult(location=location)

@@ -13,7 +13,7 @@ import { ensureVisit } from '@/composables/useVisit'
 import { callPhone, copyText, isWechat, saveContact, share } from '@/platform'
 import { openMiniCardShare, useMiniProgram } from '@/platform/mini-program'
 import { useVisitorStore } from '@/stores/visitor'
-import { cardShareUrl } from '@/utils/app-path'
+import { clearShareMeta, publicCardShare, setShareMeta } from '@/utils/card-share'
 import { sceneCampaign, sceneQuery, sceneSource } from '@/utils/scene'
 import '@/components/visitor/dark-card.css'
 
@@ -44,7 +44,7 @@ function redirectLegacy(): boolean {
 
 watch(card, (value) => {
   if (!value) return
-  document.title = value.status === 'disabled' ? '该名片已停用' : `${value.name}｜${value.title}｜${value.company.short_name || value.company.name}`
+  setShareMeta(value, `s=${activeSource.value}${eventId.value ? `&e=${eventId.value}` : ''}`, origin)
   // 停用名片绝不跳对话、不上报，只显示公司信息。
   if (value.status !== 'active') return
   if (redirectLegacy()) return
@@ -72,9 +72,9 @@ function stay() {
   }
 }
 window.addEventListener('pagehide', stay)
-onUnmounted(() => { stay(); window.removeEventListener('pagehide', stay) })
+onUnmounted(() => { stay(); clearShareMeta(); window.removeEventListener('pagehide', stay) })
 
-watch([code, eventId, activeSource], () => { stay(); started = Date.now(); trackingError.value = ''; guide.value = false; wechat.value = false; void reload() })
+watch([code, eventId, activeSource], () => { clearShareMeta(); stay(); started = Date.now(); trackingError.value = ''; guide.value = false; wechat.value = false; void reload() })
 
 function openChat(question?: string) {
   void router.push({ path: `/chat/${code.value}`, query: { ...sceneQuery(activeSource.value, eventId.value), ...(question ? { q: question } : {}) } })
@@ -87,7 +87,8 @@ function onShare() {
   if (card.value?.status !== 'active') return
   if (openMiniCardShare(card.value.code, eventId.value)) return
   const query = `s=${activeSource.value}${eventId.value ? `&e=${eventId.value}` : ''}`
-  share(`${card.value.name}｜${card.value.title}`, cardShareUrl(card.value.code, query, origin))
+  const data = publicCardShare(card.value, query, origin)
+  void share(data.title, data.url, data.text)
 }
 </script>
 

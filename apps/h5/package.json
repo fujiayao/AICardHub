@@ -15,6 +15,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "build": "vue-tsc --noEmit && vite build",
+    "build:production": "node scripts/check-production-build.mjs && pnpm build && node scripts/check-production-build.mjs --built",
     "preview": "vite preview",
     "generate:api": "node scripts/generate-api.mjs"
   },

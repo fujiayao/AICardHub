@@ -1,13 +1,20 @@
 from typing import Annotated
 
 from fastapi import APIRouter, File, Query, Request, UploadFile
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import (
+    HTMLResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    Response,
+    StreamingResponse,
+)
 
 from app.core.deps import DB, Credentials, StaffDep, VisitorDep
 from app.modules.workspace import chat_service as chat
 from app.modules.workspace import knowledge_service as kb
 from app.modules.workspace import me_service as me
 from app.modules.workspace import media_service as media
+from app.modules.workspace import public_share_media
 from app.modules.workspace import schemas as s
 from app.modules.workspace import service as shared
 from app.modules.workspace import share_link_service as links
@@ -97,9 +104,24 @@ async def short_link(
     request: Request,
     s: s.Source = "link",
     e: int | None = Query(default=None, ge=1),
-) -> RedirectResponse | HTMLResponse:
+) -> Response:
+    if request.query_params.get("image") == "1":
+        return Response(
+            await public_share_media.public_image(db, code, e),
+            media_type="image/jpeg",
+            headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+        )
+    user_agent = request.headers.get("user-agent", "").lower()
+    # Explicit share links work for crawlers without relying on their User-Agent.
+    preview = request.query_params.get("preview") == "1" or "micromessenger" in user_agent
     result = await links.resolve_short_link(
-        db, code, request.scope.get("root_path", ""), s, e, request.headers.get("accept", "")
+        db,
+        code,
+        request.scope.get("root_path", ""),
+        s,
+        e,
+        request.headers.get("accept", ""),
+        preview,
     )
     headers = {"Cache-Control": "no-store", "Vary": "Accept"}
     if result.recovery_html:
@@ -112,7 +134,22 @@ async def short_link(
                 "X-Content-Type-Options": "nosniff",
             },
         )
-    return RedirectResponse(result.location, status_code=302, headers=headers)
+    if result.preview_html:
+        return HTMLResponse(
+            result.preview_html,
+            headers={
+                **headers,
+                "Vary": "Accept, User-Agent",
+                "Content-Security-Policy": (
+                    "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' https:; "
+                    "base-uri 'none'; frame-ancestors 'none'"
+                ),
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+    return RedirectResponse(
+        result.location, status_code=302, headers={**headers, "Vary": "Accept, User-Agent"}
+    )
 
 
 @router.get(

@@ -4,12 +4,12 @@ import { cardShareLink } from '@/api/generated'
 import ResourceState from '@/components/common/ResourceState.vue'
 import { useResource } from '@/composables/useResource'
 import { copyText, share } from '@/platform'
-import { publicUrl } from '@/utils/app-path'
+import { previewShareUrl } from '@/utils/card-share'
 
 const props = defineProps<{ title: string, campaign?: number }>()
 const { data, loading, error, reload } = useResource(() => cardShareLink({ query: { s: 'link', e: props.campaign } }))
 watch(() => props.campaign, () => { void reload() })
-const url = computed(() => data.value ? publicUrl(data.value.short_url, window.location.origin) : '')
+const url = computed(() => data.value ? previewShareUrl(data.value.short_url, window.location.origin) : '')
 </script>
 
 <template>

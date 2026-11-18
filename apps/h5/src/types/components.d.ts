@@ -17,6 +17,7 @@ declare module 'vue' {
     CardAiEntry: typeof import('./../components/visitor/CardAiEntry.vue')['default']
     CardDetails: typeof import('./../components/visitor/CardDetails.vue')['default']
     CardHero: typeof import('./../components/visitor/CardHero.vue')['default']
+    CardShareSheet: typeof import('./../components/visitor/CardShareSheet.vue')['default']
     ChatComposer: typeof import('./../components/common/ChatComposer.vue')['default']
     ChatConversation: typeof import('./../components/common/ChatConversation.vue')['default']
     CorrectionSheet: typeof import('./../components/staff/CorrectionSheet.vue')['default']
