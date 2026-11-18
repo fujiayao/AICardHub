@@ -6,7 +6,9 @@ import StaffCard from '@/components/staff/StaffCard.vue'
 import StaffShell from '@/components/staff/StaffShell.vue'
 import StatsPanel from '@/components/staff/StatsPanel.vue'
 import { useResource } from '@/composables/useResource'
+import { useMiniProgram } from '@/platform/mini-program'
 import { dateLabel, intentLevelLabels, sourceLabel } from '@/utils/format'
+const inMiniProgram = useMiniProgram()
 const { data, loading, error, reload } = useResource(async () => {
   const [card, today, week, visitors] = await Promise.all([
     getCard(),
@@ -23,7 +25,7 @@ const { data, loading, error, reload } = useResource(async () => {
     <ResourceState :loading="loading" :error="error" @retry="reload">
       <template v-if="data">
         <div class="b2-body">
-        <div class="banner banner-ai">
+        <div v-if="!inMiniProgram" class="banner banner-ai">
           <span class="icon i-lucide-smartphone" aria-hidden="true" />
           <span class="grow">把员工端添加到手机桌面，新线索一打开就能看到</span>
           <router-link class="banner-act" to="/staff/me?install=1">去设置</router-link>
@@ -52,7 +54,7 @@ const { data, loading, error, reload } = useResource(async () => {
           </router-link>
         </div>
         <p v-else class="empty-inline">还没有访客，发送名片开启交流</p>
-        <router-link class="banner nfc-strip" to="/staff/card/share?tab=nfc">
+        <router-link v-if="!inMiniProgram" class="banner nfc-strip" to="/staff/card/share?tab=nfc">
           <span class="icon i-lucide-nfc nfc-ico" aria-hidden="true" />
           <span class="grow">手机分享 · NFC 碰一碰与写贴纸</span>
           <span class="icon i-lucide-chevron-right nfc-go" aria-hidden="true" />

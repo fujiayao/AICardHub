@@ -1,0 +1,2 @@
+<!-- 原型: B1–B13 员工端 -->
+<include src="../../templates/web-view.wxml" />

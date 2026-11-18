@@ -1,0 +1,12 @@
+{
+  "fixture_only": true,
+  "real_wechat_tested": false,
+  "cases": [
+    "card-share-contact",
+    "separate-chat-AI-label",
+    "staff-first-password-and-share"
+  ],
+  "sends": 1,
+  "changes": 1,
+  "errors": []
+}

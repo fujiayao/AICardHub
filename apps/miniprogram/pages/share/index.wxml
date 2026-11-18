@@ -1,0 +1,13 @@
+<view class="screen">
+  <view class="panel" wx:if="{{ready}}">
+    <image class="cover" src="{{cover}}" mode="widthFix" />
+    <view class="heading">转发商务名片</view>
+    <view class="description">朋友打开后会看到名片，不会收到你的聊天内容。</view>
+    <button class="action" open-type="share">发送给朋友</button>
+  </view>
+  <view class="panel" wx:else>
+    <view class="heading">暂时无法转发</view>
+    <view class="description">{{message}}</view>
+    <navigator class="back" url="/pages/home/index" open-type="reLaunch">返回首页</navigator>
+  </view>
+</view>

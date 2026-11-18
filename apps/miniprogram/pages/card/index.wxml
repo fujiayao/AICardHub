@@ -1,0 +1,2 @@
+<!-- 原型: A1–A5 访客名片及对话 -->
+<include src="../../templates/web-view.wxml" />

@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/card/index",
+    "pages/staff/index",
+    "pages/share/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "数科名片",
+    "navigationBarTextStyle": "black"
+  }
+}

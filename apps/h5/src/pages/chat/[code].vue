@@ -11,6 +11,7 @@ import DisabledCard from '@/components/visitor/DisabledCard.vue'
 import { useResource } from '@/composables/useResource'
 import { ensureVisit } from '@/composables/useVisit'
 import { callPhone, copyText, isWechat, saveContact, share } from '@/platform'
+import { openMiniCardShare, useMiniProgram } from '@/platform/mini-program'
 import { useVisitorStore } from '@/stores/visitor'
 import { cardShareUrl } from '@/utils/app-path'
 import { sceneCampaign, sceneQuery, sceneSource } from '@/utils/scene'
@@ -19,6 +20,7 @@ import '@/components/visitor/dark-card.css'
 const route = useRoute('/chat/[code]'); const router = useRouter(); const visitor = useVisitorStore()
 const code = computed(() => String(route.params.code))
 const origin = window.location.origin
+const inMiniProgram = useMiniProgram()
 const eventId = computed(() => sceneCampaign(route.query.e))
 const activeSource = computed(() => sceneSource(route.query.s))
 const autoQuestion = computed(() => (typeof route.query.q === 'string' ? route.query.q : undefined))
@@ -68,9 +70,10 @@ function stripQuestion() {
   const query = { ...sceneQuery(activeSource.value, eventId.value), ...(leadDeepLink.value ? { lead: '1' } : {}) }
   void router.replace({ path: route.path, query })
 }
-function contact() { if (isWechat) guide.value = true; else saveContact(code.value) }
+function contact() { if (inMiniProgram.value || isWechat) guide.value = true; else saveContact(code.value) }
 function onShare() {
-  if (!card.value) return
+  if (card.value?.status !== 'active') return
+  if (openMiniCardShare(card.value.code, eventId.value)) return
   const query = `s=${activeSource.value}${eventId.value ? `&e=${eventId.value}` : ''}`
   share(`${card.value.name}｜${card.value.title}`, cardShareUrl(card.value.code, query, origin))
 }
@@ -113,10 +116,11 @@ function onShare() {
       </van-popup>
 
       <van-overlay :z-index="30" :show="guide" @click="guide = false">
-        <section class="wechat-guide" role="dialog" aria-label="在浏览器打开" @click.stop>
+        <section class="wechat-guide" role="dialog" :aria-label="inMiniProgram ? '查看联系方式' : '在浏览器打开'" @click.stop>
           <span class="icon i-lucide-arrow-up-right wg-arrow" aria-hidden="true" />
-          <h2>在浏览器中打开，即可存入通讯录</h2>
-          <p class="wg-lead">微信里无法直接保存联系人。点击右上角 <span class="wg-dots" aria-hidden="true"><i /><i /><i /></span>，选择「在浏览器打开」，再点“存通讯录”。</p>
+          <h2>{{ inMiniProgram ? '查看联系方式' : '在浏览器中打开，即可存入通讯录' }}</h2>
+          <p v-if="inMiniProgram" class="wg-lead">{{ card.mobile ? '小程序内请复制下方号码，再手动添加到通讯录。' : '名片暂未公开电话号码。' }}</p>
+          <p v-else class="wg-lead">微信里无法直接保存联系人。点击右上角 <span class="wg-dots" aria-hidden="true"><i /><i /><i /></span>，选择「在浏览器打开」，再点“存通讯录”。</p>
           <div v-if="card.mobile" class="wg-alt">
             <span class="wg-alt-lbl">也可以直接复制号码</span>
             <div class="wg-alt-row"><b class="num">{{ card.mobile }}</b><van-button size="small" @click="copyText(card.mobile)">复制</van-button></div>

@@ -1,0 +1,9 @@
+<web-view wx:if="{{src}}" src="{{src}}" binderror="onWebViewError" />
+<view wx:elif="{{message}}" class="screen">
+  <view class="panel">
+    <view class="heading">暂时无法打开</view>
+    <view class="description">{{message}}</view>
+    <button wx:if="{{canRetry}}" class="action" bindtap="retry">重新加载</button>
+    <navigator class="back" url="/pages/home/index" open-type="reLaunch">返回首页</navigator>
+  </view>
+</view>

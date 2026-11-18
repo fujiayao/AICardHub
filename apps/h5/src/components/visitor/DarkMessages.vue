@@ -17,6 +17,7 @@ function refs(message: ChatMessage): string[] { return publicRefLabels(message.k
     <div v-for="message in list" :key="message.id" class="dk-msg" :class="message.role === 'user' ? 'dk-me' : 'dk-ai'">
       <span class="dk-who">{{ message.role === 'user' ? '我' : 'AI' }}</span>
       <div class="dk-bubble">
+        <span v-if="message.role === 'assistant' && message.content" class="dk-label">AI 生成</span>
         <MarkdownText v-if="message.content" :text="message.content" />
         <span v-if="message.role === 'assistant' && sending && !message.content" class="dk-cursor" aria-hidden="true" />
         <span v-if="message.role === 'assistant' && refs(message).length" class="dk-cite">
@@ -45,6 +46,7 @@ function refs(message: ChatMessage): string[] { return publicRefLabels(message.k
 }
 .dk-ai .dk-bubble { background: var(--dk-surface-2); border: 1px solid var(--dk-line); border-top-left-radius: 5px; color: var(--dk-bubble-ai); }
 .dk-me .dk-bubble { background: var(--dk-mint-dim); border: 1px solid var(--dk-mint-line); border-top-right-radius: 5px; color: var(--dk-bubble-me); }
+.dk-label { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 600; color: var(--dk-mint); }
 .dk-cite {
   display: block; margin-top: 9px; padding-top: 8px; border-top: 1px dashed var(--dk-cite-line);
   font-size: 10.5px; color: var(--dk-cite); letter-spacing: .01em;

@@ -1,0 +1,21 @@
+{
+  "appid": "touristappid",
+  "projectname": "AICardHub",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "./",
+  "setting": {
+    "urlCheck": true,
+    "ignoreDevUnusedFiles": false
+  },
+  "packOptions": {
+    "include": [
+      { "type": "file", "value": "config.local.json" },
+      { "type": "file", "value": "assets/share-cover.png" }
+    ],
+    "ignore": [
+      { "type": "file", "value": "config.local.example.json" },
+      { "type": "file", "value": "README.md" },
+      { "type": "folder", "value": "tests" }
+    ]
+  }
+}

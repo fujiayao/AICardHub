@@ -1,0 +1,8 @@
+<view class="screen">
+  <view class="panel">
+    <view class="heading">数科名片</view>
+    <view wx:if="{{configured}}" class="description">查看名片，请打开朋友转发的小程序名片，或用微信扫一扫扫描名片小程序码。</view>
+    <view wx:else class="description">{{message}}</view>
+    <navigator wx:if="{{configured}}" class="action" url="/pages/staff/index">进入员工端</navigator>
+  </view>
+</view>
