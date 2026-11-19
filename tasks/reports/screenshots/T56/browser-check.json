@@ -1,0 +1,10 @@
+{
+  "checks": [
+    "visitor card, public products and share; old chat URL discards question",
+    "legacy lead link opens consent form with no chat",
+    "staff signs in and edits card; assistant, polishing and direct trial page unavailable"
+  ],
+  "page_errors": [],
+  "ai_requests": [],
+  "isolated_mysql": true
+}

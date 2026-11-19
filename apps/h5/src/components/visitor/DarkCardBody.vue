@@ -5,7 +5,7 @@ import type { PublicCard } from '@/api/generated'
 import { computed, shallowRef } from 'vue'
 import { copyText, openMap } from '@/platform'
 
-const props = defineProps<{ card: PublicCard }>()
+const props = withDefaults(defineProps<{ card: PublicCard, showAi?: boolean }>(), { showAi: true })
 const emit = defineEmits<{ ask: [question: string], openChat: [], openLead: [] }>()
 
 const expanded = shallowRef(false)
@@ -69,14 +69,14 @@ const brandName = computed(() => props.card.company.short_name || props.card.com
           </div>
           <div class="dk-prod-body">
             <p>{{ product.summary }}</p>
-            <button v-if="product.ask_question" class="dk-prod-ask" @click="product.ask_question && emit('ask', product.ask_question)"><span class="icon i-lucide-sparkles" />问问 AI</button>
+            <button v-if="showAi && product.ask_question" class="dk-prod-ask" @click="product.ask_question && emit('ask', product.ask_question)"><span class="icon i-lucide-sparkles" />问问 AI</button>
           </div>
         </article>
       </div>
     </template>
 
     <!-- AI 入口放在全部公开信息之后：开场白 + 引导问题 + 进入对话（点击才进 /chat，首页不建会话） -->
-    <div class="dk-entry">
+    <div v-if="showAi" class="dk-entry">
       <div class="dk-entry-head">
         <span class="dk-entry-mark"><span class="icon i-lucide-sparkles" /></span>
         <div class="dk-entry-text">

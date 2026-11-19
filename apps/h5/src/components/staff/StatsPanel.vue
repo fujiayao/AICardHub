@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { StatsData } from '@/api/generated'
 import { computed } from 'vue'
+import { cardOnly } from '@/platform/release-mode'
 import { deltaValue, weekdayLabel } from '@/utils/format'
 // 今日数据来自 stats(range=today)，近7天柱状来自 stats(range=7d)。
 // 「较昨日」增量 = today 指标 − yesterday 指标（Asia/Shanghai 日历边界由后端给出）。
@@ -17,9 +18,9 @@ const maxVisits = computed(() => Math.max(1, ...props.week.daily.map(d => d.visi
   <section class="stats-block">
     <div class="sec-title"><span>今日数据</span><small>较昨日</small></div>
     <div class="panel">
-      <div class="stats">
+      <div class="stats" :class="{ 'stats-card-only': cardOnly }">
         <div class="stat"><b class="num">{{ cur.visitors ?? 0 }}</b><span>访客<em v-if="visitorsDelta" :class="`d-${visitorsDelta.dir}`">{{ visitorsDelta.text }}</em></span></div>
-        <div class="stat"><b class="num">{{ cur.chats ?? 0 }}</b><span>对话<em v-if="chatsDelta" :class="`d-${chatsDelta.dir}`">{{ chatsDelta.text }}</em></span></div>
+        <div v-if="!cardOnly" class="stat"><b class="num">{{ cur.chats ?? 0 }}</b><span>对话<em v-if="chatsDelta" :class="`d-${chatsDelta.dir}`">{{ chatsDelta.text }}</em></span></div>
         <div class="stat"><b class="num" :class="{ amber: (cur.leads ?? 0) > 0 }">{{ cur.leads ?? 0 }}</b><span>新线索</span></div>
       </div>
       <div class="chart-wrap">
@@ -59,6 +60,9 @@ const maxVisits = computed(() => Math.max(1, ...props.week.daily.map(d => d.visi
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+}
+.stats-card-only {
+  grid-template-columns: repeat(2, 1fr);
 }
 .stat {
   padding: 14px 0;

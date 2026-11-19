@@ -2,7 +2,7 @@
 import type { VisitorDetail, VisitorVisit } from '@/api/generated'
 import { dateLabel } from '@/utils/format'
 
-defineProps<{ visitor: VisitorDetail }>()
+withDefaults(defineProps<{ visitor: VisitorDetail, showConversations?: boolean }>(), { showConversations: true })
 const sources: Record<VisitorVisit['source'], string> = {
   nfc: 'NFC 碰一碰', qr: '扫码', poster: '海报', link: '链接', sig: '签名链接',
 }
@@ -20,20 +20,22 @@ const intentLabels = { A: 'A 高意向', B: 'B 中意向', C: 'C 一般意向' }
     </ol>
     <p v-else class="muted">暂无访问记录</p>
   </section>
-  <van-empty v-if="!visitor.sessions.length" description="该访客还没有对话" />
-  <section v-for="session in visitor.sessions" :key="session.id" class="stack" :aria-label="`对话 ${session.id}`">
-    <div class="panel stack">
-      <div class="row between">
-        <h2>对话 #{{ session.id }}</h2>
-        <span v-if="session.intent_level" class="tag intent" :class="`intent-${session.intent_level}`">{{ intentLabels[session.intent_level] }}</span>
+  <template v-if="showConversations">
+    <van-empty v-if="!visitor.sessions.length" description="该访客还没有对话" />
+    <section v-for="session in visitor.sessions" :key="session.id" class="stack" :aria-label="`对话 ${session.id}`">
+      <div class="panel stack">
+        <div class="row between">
+          <h2>对话 #{{ session.id }}</h2>
+          <span v-if="session.intent_level" class="tag intent" :class="`intent-${session.intent_level}`">{{ intentLabels[session.intent_level] }}</span>
+        </div>
+        <p class="ai-hint preline">{{ session.summary || '暂无 AI 摘要' }}</p>
+        <ul v-if="session.tags?.length" class="tags" aria-label="需求标签">
+          <li v-for="(tag, index) in session.tags" :key="`${index}-${tag}`" class="tag">{{ tag }}</li>
+        </ul>
       </div>
-      <p class="ai-hint preline">{{ session.summary || '暂无 AI 摘要' }}</p>
-      <ul v-if="session.tags?.length" class="tags" aria-label="需求标签">
-        <li v-for="(tag, index) in session.tags" :key="`${index}-${tag}`" class="tag">{{ tag }}</li>
-      </ul>
-    </div>
-    <slot name="conversation" :session="session" />
-  </section>
+      <slot name="conversation" :session="session" />
+    </section>
+  </template>
 </template>
 
 <style scoped>

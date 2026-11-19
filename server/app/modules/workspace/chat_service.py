@@ -24,6 +24,7 @@ from app.modules.workspace.models import (
     Message,
     Setting,
 )
+from app.modules.workspace.release_mode import require_ai
 
 
 async def session_create(
@@ -35,6 +36,7 @@ async def session_create(
     campaign_id: int | None = None,
     source: s.Source = "link",
 ) -> s.SessionResult:
+    require_ai()
     assistant = await shared.assistant_get(db, card)
     if visitor_id is not None:
         from app.modules.workspace.campaign_service import attribution
@@ -119,6 +121,7 @@ async def stream(
     visitor_id: int | None = None,
     employee_id: int | None = None,
 ) -> AsyncIterator[str]:
+    require_ai()
     from app.integrations.llm.service import ChatEngine
     from app.kb.tools import ToolRuntime
     from app.modules.workspace.knowledge_service import get_store

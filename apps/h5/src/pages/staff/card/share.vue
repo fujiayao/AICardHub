@@ -10,6 +10,7 @@ import ShareLinkPanel from '@/components/staff/ShareLinkPanel.vue'
 import ShareMediaPanel from '@/components/staff/ShareMediaPanel.vue'
 import { useResource } from '@/composables/useResource'
 import { openMiniCardShare, useMiniProgram } from '@/platform/mini-program'
+import { cardOnly } from '@/platform/release-mode'
 
 type Tab = 'qr' | 'poster' | 'link' | 'nfc'
 const tabs: Tab[] = ['qr', 'poster', 'link', 'nfc']
@@ -51,7 +52,7 @@ const role = computed(() => data.value ? [data.value.card.display_title || data.
           </ShareLinkPanel>
           <ShareMediaPanel v-else-if="tab === 'qr' || tab === 'poster'" :key="tab" :kind="tab" :campaign="campaign">
             <div class="share-id"><h2>{{ data.card.name }}</h2><p class="muted role">{{ role }}</p></div>
-            <p class="muted hint">扫码查看名片，和我的 AI 分身聊聊</p>
+            <p class="muted hint">{{ cardOnly ? '扫码查看名片和联系方式' : '扫码查看名片，和我的 AI 分身聊聊' }}</p>
           </ShareMediaPanel>
         </section>
       </template>

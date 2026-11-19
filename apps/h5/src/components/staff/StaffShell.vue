@@ -1,8 +1,20 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import { useUnreadCount } from '@/composables/useUnreadCount'
+import { cardOnly } from '@/platform/release-mode'
 const props = defineProps<{ title: string }>()
 const unread = useUnreadCount(); const route = useRoute(); const router = useRouter()
 </script>
-<template><main class="page"><header class="staff-header row between"><h1>{{ props.title }}</h1><div class="row"><slot name="action" /><van-badge :content="unread.count || undefined"><button class="icon-button" aria-label="消息通知" @click="router.push('/staff/messages')"><span class="icon i-lucide-bell" /></button></van-badge></div></header><div class="content"><p v-if="unread.error" class="muted small">{{ unread.error }}</p><slot /></div><van-tabbar :model-value="route.path" route safe-area-inset-bottom><van-tabbar-item name="/staff/card" to="/staff/card"><template #icon><span class="icon i-lucide-contact-round" /></template>名片</van-tabbar-item><van-tabbar-item name="/staff/assistant" to="/staff/assistant"><template #icon><span class="icon i-lucide-sparkles" /></template>AI 助手</van-tabbar-item><van-tabbar-item name="/staff/customers" to="/staff/customers" :badge="unread.count || undefined"><template #icon><span class="icon i-lucide-users-round" /></template>客户</van-tabbar-item><van-tabbar-item name="/staff/me" to="/staff/me"><template #icon><span class="icon i-lucide-user-round" /></template>我的</van-tabbar-item></van-tabbar></main></template>
+<template>
+  <main class="page">
+    <header class="staff-header row between"><h1>{{ props.title }}</h1><div class="row"><slot name="action" /><van-badge :content="unread.count || undefined"><button class="icon-button" aria-label="消息通知" @click="router.push('/staff/messages')"><span class="icon i-lucide-bell" /></button></van-badge></div></header>
+    <div class="content"><p v-if="unread.error" class="muted small">{{ unread.error }}</p><slot /></div>
+    <van-tabbar :model-value="route.path" route safe-area-inset-bottom>
+      <van-tabbar-item name="/staff/card" to="/staff/card"><template #icon><span class="icon i-lucide-contact-round" /></template>名片</van-tabbar-item>
+      <van-tabbar-item v-if="!cardOnly" name="/staff/assistant" to="/staff/assistant"><template #icon><span class="icon i-lucide-sparkles" /></template>AI 助手</van-tabbar-item>
+      <van-tabbar-item name="/staff/customers" to="/staff/customers" :badge="unread.count || undefined"><template #icon><span class="icon i-lucide-users-round" /></template>客户</van-tabbar-item>
+      <van-tabbar-item name="/staff/me" to="/staff/me"><template #icon><span class="icon i-lucide-user-round" /></template>我的</van-tabbar-item>
+    </van-tabbar>
+  </main>
+</template>
 <style scoped>.staff-header{height:64px;padding:var(--sp-3) var(--sp-5);background:var(--c-surface);border-bottom:1px solid var(--c-line);position:sticky;top:0;z-index:10}.staff-header h1{font-size:var(--fs-lg)}</style>

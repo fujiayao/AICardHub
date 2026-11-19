@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     jwt_secret: SecretStr
     app_env: str = "local"
     aicard_root_path: str = ""
+    aicard_card_only: bool = False
 
     @field_validator("aicard_root_path")
     @classmethod

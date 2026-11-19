@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, File, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
 from fastapi.responses import (
     HTMLResponse,
     PlainTextResponse,
@@ -18,6 +18,7 @@ from app.modules.workspace import public_share_media
 from app.modules.workspace import schemas as s
 from app.modules.workspace import service as shared
 from app.modules.workspace import share_link_service as links
+from app.modules.workspace.release_mode import card_only, require_ai
 
 router = APIRouter(prefix="/api/v1")
 public_redirect = APIRouter()
@@ -33,6 +34,14 @@ async def health(db: DB) -> s.HealthData:
     from app.core.errors import AppError, ErrorCode
     from app.modules.workspace.runtime_settings import load
 
+    if card_only():
+        from sqlalchemy import text
+
+        try:
+            await db.execute(text("SELECT 1"))
+        except SQLAlchemyError as exc:
+            raise AppError(ErrorCode.INTERNAL_ERROR, 503, "数据库不可用") from exc
+        return s.HealthData(model="未启用模型", llm_mode="disabled")
     try:
         settings = await load(db)
     except (SQLAlchemyError, AppError) as exc:
@@ -66,7 +75,10 @@ async def profile(db: DB, staff: StaffDep) -> s.Staff:
 
 
 @router.get(
-    "/me/assistant/metrics", operation_id="me_assistant_metrics", response_model=s.AssistantMetrics
+    "/me/assistant/metrics",
+    operation_id="me_assistant_metrics",
+    response_model=s.AssistantMetrics,
+    dependencies=[Depends(require_ai)],
 )
 async def assistant_metrics(db: DB, staff: StaffDep) -> s.AssistantMetrics:
     return await me.assistant_metrics(db, staff.id)
@@ -172,7 +184,10 @@ async def lead_create(payload: s.LeadInput, db: DB, visitor: VisitorDep) -> s.Le
 
 
 @router.post(
-    "/public/chat/sessions", operation_id="chat_session_create", response_model=s.SessionResult
+    "/public/chat/sessions",
+    operation_id="chat_session_create",
+    response_model=s.SessionResult,
+    dependencies=[Depends(require_ai)],
 )
 async def session_create(payload: s.SessionInput, db: DB, visitor: VisitorDep) -> s.SessionResult:
     return await chat.session_create(
@@ -189,6 +204,7 @@ async def session_create(payload: s.SessionInput, db: DB, visitor: VisitorDep) -
     "/public/chat/sessions/{id}/messages",
     operation_id="chat_message_list",
     response_model=s.Page[s.MessageData],
+    dependencies=[Depends(require_ai)],
 )
 async def message_list(
     id: int, db: DB, visitor: VisitorDep, page: PageNumber = 1, page_size: PageSize = 20
@@ -205,6 +221,7 @@ SSE_DESCRIPTION = "SSE events: delta {text}; lead_prompt {reason,title}; done {m
     response_model=None,
     description=SSE_DESCRIPTION,
     responses={200: {"content": {"text/event-stream": {"schema": {"type": "string"}}}}},
+    dependencies=[Depends(require_ai)],
 )
 async def message_stream(
     id: int, payload: s.MessageInput, request: Request, db: DB, visitor: VisitorDep
@@ -218,7 +235,12 @@ async def message_stream(
     )
 
 
-@router.post("/public/messages/{id}/feedback", operation_id="chat_feedback", response_model=s.OK)
+@router.post(
+    "/public/messages/{id}/feedback",
+    operation_id="chat_feedback",
+    response_model=s.OK,
+    dependencies=[Depends(require_ai)],
+)
 async def feedback(id: int, payload: s.FeedbackInput, db: DB, visitor: VisitorDep) -> s.OK:
     return await chat.feedback(db, visitor.id, id)
 
@@ -264,14 +286,24 @@ async def card_wechat_qr(db: DB, staff: StaffDep, file: UploadFile = File(...)) 
     )
 
 
-@router.get("/me/assistant", operation_id="me_assistant_get", response_model=s.AssistantData)
+@router.get(
+    "/me/assistant",
+    operation_id="me_assistant_get",
+    response_model=s.AssistantData,
+    dependencies=[Depends(require_ai)],
+)
 async def assistant_get(db: DB, staff: StaffDep) -> s.AssistantData:
     return s.AssistantData.model_validate(
         await shared.assistant_get(db, await shared.own_card(db, staff.id))
     )
 
 
-@router.put("/me/assistant", operation_id="me_assistant_update", response_model=s.AssistantData)
+@router.put(
+    "/me/assistant",
+    operation_id="me_assistant_update",
+    response_model=s.AssistantData,
+    dependencies=[Depends(require_ai)],
+)
 async def assistant_update(payload: s.AssistantInput, db: DB, staff: StaffDep) -> s.AssistantData:
     return await shared.assistant_update(db, await shared.own_card(db, staff.id), payload)
 
@@ -280,6 +312,7 @@ async def assistant_update(payload: s.AssistantInput, db: DB, staff: StaffDep) -
     "/me/assistant/templates",
     operation_id="me_assistant_templates",
     response_model=list[s.TemplateData],
+    dependencies=[Depends(require_ai)],
 )
 async def assistant_templates(db: DB, staff: StaffDep) -> list[s.TemplateData]:
     from app.modules.workspace.render_service import template_previews
@@ -287,7 +320,12 @@ async def assistant_templates(db: DB, staff: StaffDep) -> list[s.TemplateData]:
     return await template_previews(db, staff.id)
 
 
-@router.post("/me/assistant/polish", operation_id="me_assistant_polish", response_model=s.TextData)
+@router.post(
+    "/me/assistant/polish",
+    operation_id="me_assistant_polish",
+    response_model=s.TextData,
+    dependencies=[Depends(require_ai)],
+)
 async def assistant_polish(payload: s.PolishInput, staff: StaffDep, db: DB) -> s.TextData:
     return await kb.polish(payload, db)
 
@@ -396,7 +434,10 @@ async def kb_import(staff: StaffDep, file: UploadFile = File(...)) -> s.ImportRe
 
 
 @router.get(
-    "/me/corrections", operation_id="me_correction_list", response_model=s.Page[s.CorrectionData]
+    "/me/corrections",
+    operation_id="me_correction_list",
+    response_model=s.Page[s.CorrectionData],
+    dependencies=[Depends(require_ai)],
 )
 async def correction_list(
     db: DB, staff: StaffDep, page: PageNumber = 1, page_size: PageSize = 20
@@ -405,7 +446,10 @@ async def correction_list(
 
 
 @router.post(
-    "/me/corrections", operation_id="me_correction_create", response_model=s.CorrectionData
+    "/me/corrections",
+    operation_id="me_correction_create",
+    response_model=s.CorrectionData,
+    dependencies=[Depends(require_ai)],
 )
 async def correction_create(
     payload: s.CorrectionInput, db: DB, staff: StaffDep
@@ -413,12 +457,22 @@ async def correction_create(
     return await kb.correction_create(db, staff.id, payload)
 
 
-@router.delete("/me/corrections/{id}", operation_id="me_correction_delete", response_model=s.OK)
+@router.delete(
+    "/me/corrections/{id}",
+    operation_id="me_correction_delete",
+    response_model=s.OK,
+    dependencies=[Depends(require_ai)],
+)
 async def correction_delete(id: int, db: DB, staff: StaffDep) -> s.OK:
     return await kb.correction_delete(db, staff.id, id)
 
 
-@router.post("/me/issues", operation_id="me_issue_create", response_model=s.IssueData)
+@router.post(
+    "/me/issues",
+    operation_id="me_issue_create",
+    response_model=s.IssueData,
+    dependencies=[Depends(require_ai)],
+)
 async def issue_create(payload: s.IssueInput, db: DB, staff: StaffDep) -> s.IssueData:
     return await kb.issue_create(db, staff.id, payload)
 
@@ -427,6 +481,7 @@ async def issue_create(payload: s.IssueInput, db: DB, staff: StaffDep) -> s.Issu
     "/me/test-chat/sessions",
     operation_id="test_chat_session_create",
     response_model=s.SessionResult,
+    dependencies=[Depends(require_ai)],
 )
 async def test_session_create(payload: s.Empty, db: DB, staff: StaffDep) -> s.SessionResult:
     return await chat.session_create(db, await shared.own_card(db, staff.id), None, staff.id)
@@ -438,6 +493,7 @@ async def test_session_create(payload: s.Empty, db: DB, staff: StaffDep) -> s.Se
     response_model=None,
     description=SSE_DESCRIPTION,
     responses={200: {"content": {"text/event-stream": {"schema": {"type": "string"}}}}},
+    dependencies=[Depends(require_ai)],
 )
 async def test_message_stream(
     id: int, payload: s.MessageInput, request: Request, db: DB, staff: StaffDep

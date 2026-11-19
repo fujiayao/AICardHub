@@ -14,6 +14,7 @@ from app.core.config import get_settings
 from app.core.errors import AppError, ErrorCode
 from app.integrations.llm.client import LLMClient, build_client
 from app.modules.workspace.models import AuditLog, Employee, Setting
+from app.modules.workspace.release_mode import require_ai
 
 MASK = "********"
 SECRET_KEYS = frozenset({"llm_api_key", "llm_fallback_api_key", "llm_tertiary_api_key"})
@@ -160,6 +161,7 @@ async def save(
 
 
 def clients(settings: RuntimeSettings) -> tuple[LLMClient, list[LLMClient]]:
+    require_ai()
     # Validate the entire chain before allocating any HTTP transport.
     settings = validate(settings.model_dump())
     primary = build_client(settings)

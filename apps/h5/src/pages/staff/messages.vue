@@ -10,7 +10,7 @@ import { useMutation } from '@/composables/useMutation'
 import { usePaged } from '@/composables/usePaged'
 import { useUnreadCount } from '@/composables/useUnreadCount'
 import { dateLabel } from '@/utils/format'
-import { notificationTarget } from '@/utils/notification-target'
+import { notificationCopy, notificationTarget } from '@/utils/notification-target'
 const router = useRouter()
 const unread = useUnreadCount(); const tab = shallowRef('all')
 const pager = usePaged(page => notifications({ query: { page, page_size: 20 } }))
@@ -19,8 +19,15 @@ const { saving, failure, run } = useMutation()
 const visible = computed(() => tab.value === 'unread' ? items.value.filter(n => !n.read_at) : items.value)
 const groups = computed(() => {
  const now = new Date(); const today = now.toLocaleDateString('zh-CN'); const yesterday = new Date(now.getTime() - 86400000).toLocaleDateString('zh-CN')
- const result = new Map<string, NotificationData[]>()
- for (const item of visible.value) { const date = new Date(item.created_at).toLocaleDateString('zh-CN'); const group = date === today ? '今天' : date === yesterday ? '昨天' : date; result.set(group, [...(result.get(group) || []), item]) }
+ const result = new Map<string, { item: NotificationData, copy: ReturnType<typeof notificationCopy> }[]>()
+ for (const item of visible.value) {
+  const date = new Date(item.created_at).toLocaleDateString('zh-CN')
+  const group = date === today ? '今天' : date === yesterday ? '昨天' : date
+  const entry = { item, copy: notificationCopy(item) }
+  const records = result.get(group)
+  if (records) records.push(entry)
+  else result.set(group, [entry])
+ }
  return [...result.entries()]
 })
 async function read(item: NotificationData) {
@@ -45,7 +52,32 @@ const categories: Record<string, { icon: string, cls: string }> = {
 }
 function category(item: NotificationData) { return categories[item.target_type || ''] || { icon: 'i-lucide-bell', cls: 'cat-sys' } }
 </script>
-<template><PageShell title="消息中心" back><template #action><button class="text-button" :disabled="saving || !unread.count" @click="markAll">全部已读</button></template><van-tabs v-model:active="tab"><van-tab title="全部" name="all" /><van-tab :title="`未读（${unread.count}）`" name="unread" /></van-tabs><p v-if="failure" class="error" role="alert">{{ failure }}</p><van-pull-refresh v-model="refreshing" @refresh="pager.refresh"><ResourceState :error="error" :empty="!loading && !visible.length" empty-text="暂时没有消息" @retry="pager.refresh"><van-list :loading="loading" :finished="finished" :immediate-check="false" @load="pager.load()"><section v-for="[date, records] in groups" :key="date" class="group"><h2 class="day">{{ date }}</h2><div class="noti-card"><button v-for="item in records" :key="item.id" class="noti" :class="{ read: item.read_at }" :aria-label="`${item.read_at ? '已读' : '未读'}消息：${item.title}`" @click="read(item)"><span class="ic" :class="category(item).cls"><span class="icon" :class="category(item).icon" aria-hidden="true" /></span><div class="main"><div class="l1"><b>{{ item.title }}</b><span v-if="!item.read_at" class="dot" aria-label="未读" /><span class="t">{{ dateLabel(item.created_at) }}</span></div><p class="preline body">{{ item.content }}</p></div></button></div></section></van-list></ResourceState><van-loading v-if="loading" size="20">正在加载</van-loading></van-pull-refresh></PageShell></template>
+<template>
+  <PageShell title="消息中心" back>
+    <template #action><button class="text-button" :disabled="saving || !unread.count" @click="markAll">全部已读</button></template>
+    <van-tabs v-model:active="tab"><van-tab title="全部" name="all" /><van-tab :title="`未读（${unread.count}）`" name="unread" /></van-tabs>
+    <p v-if="failure" class="error" role="alert">{{ failure }}</p>
+    <van-pull-refresh v-model="refreshing" @refresh="pager.refresh">
+      <ResourceState :error="error" :empty="!loading && !visible.length" empty-text="暂时没有消息" @retry="pager.refresh">
+        <van-list :loading="loading" :finished="finished" :immediate-check="false" @load="pager.load()">
+          <section v-for="[date, records] in groups" :key="date" class="group">
+            <h2 class="day">{{ date }}</h2>
+            <div class="noti-card">
+              <button v-for="{ item, copy } in records" :key="item.id" class="noti" :class="{ read: item.read_at }" :aria-label="`${item.read_at ? '已读' : '未读'}消息：${copy.title}`" @click="read(item)">
+                <span class="ic" :class="category(item).cls"><span class="icon" :class="category(item).icon" aria-hidden="true" /></span>
+                <div class="main">
+                  <div class="l1"><b>{{ copy.title }}</b><span v-if="!item.read_at" class="dot" aria-label="未读" /><span class="t">{{ dateLabel(item.created_at) }}</span></div>
+                  <p class="preline body">{{ copy.content }}</p>
+                </div>
+              </button>
+            </div>
+          </section>
+        </van-list>
+      </ResourceState>
+      <van-loading v-if="loading" size="20">正在加载</van-loading>
+    </van-pull-refresh>
+  </PageShell>
+</template>
 <style scoped>
 .group{margin-bottom:var(--sp-4)}
 .day{padding:14px 4px 6px;font-size:var(--fs-xs);color:var(--c-text-3);font-weight:400}

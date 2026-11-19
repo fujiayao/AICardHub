@@ -25,6 +25,7 @@ from app.modules.workspace.models import (
     Visit,
     Visitor,
 )
+from app.modules.workspace.release_mode import card_only
 from app.modules.workspace.runtime_settings import clients, close_client, load
 from app.modules.workspace.service import lead_owner
 
@@ -87,6 +88,8 @@ async def summarize(
 async def end_sessions(
     db: AsyncSession, now: datetime | None = None, client: LLMClient | None = None
 ) -> int:
+    if card_only():
+        return 0
     now = now or utcnow()
     candidates = list(
         (

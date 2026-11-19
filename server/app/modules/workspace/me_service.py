@@ -261,6 +261,8 @@ async def visitors(
 
 
 async def visitor_detail(db: AsyncSession, employee_id: int, visitor_id: int) -> s.VisitorDetail:
+    from app.modules.workspace.release_mode import card_only
+
     card_ids = await shared.customer_card_ids(db, employee_id)
     visit = await repo.optional(
         db, Visit, Visit.card_id.in_(card_ids), Visit.visitor_id == visitor_id
@@ -276,7 +278,7 @@ async def visitor_detail(db: AsyncSession, employee_id: int, visitor_id: int) ->
         raise AppError(ErrorCode.NOT_FOUND, 404, "访客不存在或无权访问")
     visitor = await repo.one(db, Visitor, Visitor.id == visitor_id)
     details = []
-    for session in sessions:
+    for session in [] if card_only() else sessions:
         messages = await repo.many(db, Message, Message.session_id == session.id)
         details.append(
             s.VisitorSession(

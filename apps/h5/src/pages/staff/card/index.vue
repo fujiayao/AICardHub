@@ -7,6 +7,7 @@ import StaffShell from '@/components/staff/StaffShell.vue'
 import StatsPanel from '@/components/staff/StatsPanel.vue'
 import { useResource } from '@/composables/useResource'
 import { useMiniProgram } from '@/platform/mini-program'
+import { cardOnly } from '@/platform/release-mode'
 import { dateLabel, intentLevelLabels, sourceLabel } from '@/utils/format'
 const inMiniProgram = useMiniProgram()
 const { data, loading, error, reload } = useResource(async () => {
@@ -49,7 +50,7 @@ const { data, loading, error, reload } = useResource(async () => {
             </div>
             <div class="vis-side">
               <span class="icon i-lucide-chevron-right vis-arrow" />
-              <span v-if="visitor.intent_level" class="lv" :class="`lv-${visitor.intent_level}`" :aria-label="intentLevelLabels[visitor.intent_level]">{{ visitor.intent_level }}</span>
+              <span v-if="!cardOnly && visitor.intent_level" class="lv" :class="`lv-${visitor.intent_level}`" :aria-label="intentLevelLabels[visitor.intent_level]">{{ visitor.intent_level }}</span>
             </div>
           </router-link>
         </div>

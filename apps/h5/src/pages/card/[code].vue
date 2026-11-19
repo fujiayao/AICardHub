@@ -1,6 +1,7 @@
 <!-- 原型: A1 名片首页（暗色真实商务名片：身份 → 联系方式/简介/公司/主营业务 → AI 入口）/ A4 停用 / A5 微信引导 -->
 <!-- 首页绝不内联聊天、绝不建会话；AI 入口/引导问题/问问 AI 跳 /chat（带 q 发送一次）。 -->
 <script setup lang="ts">
+import { showToast } from 'vant'
 import { computed, onUnmounted, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { publicCard, updateVisit } from '@/api/generated'
@@ -8,10 +9,12 @@ import ResourceState from '@/components/common/ResourceState.vue'
 import DarkCardBody from '@/components/visitor/DarkCardBody.vue'
 import DarkCardHero from '@/components/visitor/DarkCardHero.vue'
 import DisabledCard from '@/components/visitor/DisabledCard.vue'
+import LeadSheet from '@/components/visitor/LeadSheet.vue'
 import { useResource } from '@/composables/useResource'
 import { ensureVisit } from '@/composables/useVisit'
 import { callPhone, copyText, isWechat, saveContact, share } from '@/platform'
 import { openMiniCardShare, useMiniProgram } from '@/platform/mini-program'
+import { cardOnly } from '@/platform/release-mode'
 import { useVisitorStore } from '@/stores/visitor'
 import { clearShareMeta, publicCardShare, setShareMeta } from '@/utils/card-share'
 import { sceneCampaign, sceneQuery, sceneSource } from '@/utils/scene'
@@ -24,6 +27,7 @@ const inMiniProgram = useMiniProgram()
 const eventId = computed(() => sceneCampaign(route.query.e))
 const activeSource = computed(() => sceneSource(route.query.s))
 const guide = shallowRef(false); const wechat = shallowRef(false); const trackingError = shallowRef('')
+const lead = shallowRef(false)
 const liveVisitId = shallowRef<number>(); let visitRevision = 0; let started = Date.now()
 
 const { data: card, loading, error, reload } = useResource(async () => {
@@ -35,6 +39,7 @@ const legacyQuestion = computed(() => (typeof route.query.q === 'string' && rout
 const legacyLead = computed(() => route.query.lead === '1')
 let redirecting = false
 function redirectLegacy(): boolean {
+  if (cardOnly) return false
   if (redirecting || (!legacyQuestion.value && !legacyLead.value)) return redirecting
   redirecting = true
   const query = { ...sceneQuery(activeSource.value, eventId.value), ...(legacyQuestion.value ? { q: legacyQuestion.value } : {}), ...(legacyLead.value ? { lead: '1' } : {}) }
@@ -52,6 +57,9 @@ watch(card, (value) => {
 })
 // 同一首页组件内仅 q/lead 变化时，名片已为 active 才跳转；停用不跳。
 watch([legacyQuestion, legacyLead], () => { if (card.value?.status === 'active') redirectLegacy() })
+if (cardOnly) {
+  watch([card, legacyLead], ([value, requested]) => { lead.value = value?.status === 'active' && requested })
+}
 
 async function trackVisit() {
   // 场景键在 await 前快照，revision guard 防止快速切换把旧来源写进新场景。
@@ -77,11 +85,14 @@ onUnmounted(() => { stay(); clearShareMeta(); window.removeEventListener('pagehi
 watch([code, eventId, activeSource], () => { clearShareMeta(); stay(); started = Date.now(); trackingError.value = ''; guide.value = false; wechat.value = false; void reload() })
 
 function openChat(question?: string) {
+  if (cardOnly) return
   void router.push({ path: `/chat/${code.value}`, query: { ...sceneQuery(activeSource.value, eventId.value), ...(question ? { q: question } : {}) } })
 }
 function openLead() {
+  if (cardOnly) { lead.value = true; return }
   void router.push({ path: `/chat/${code.value}`, query: { ...sceneQuery(activeSource.value, eventId.value), lead: '1' } })
 }
+function leadSubmitted() { showToast('联系方式已提交，工作人员会尽快与您联系') }
 function contact() { if (inMiniProgram.value || isWechat) guide.value = true; else saveContact(code.value) }
 function onShare() {
   if (card.value?.status !== 'active') return
@@ -104,14 +115,17 @@ function onShare() {
         @wechat="wechat = true"
         @share="onShare"
       />
-      <DarkCardBody :card="card" @ask="openChat" @open-chat="openChat()" @open-lead="openLead" />
+      <DarkCardBody :card="card" :show-ai="!cardOnly" @ask="openChat" @open-chat="openChat()" @open-lead="openLead" />
       <p v-if="trackingError" class="vc-dark-note">{{ trackingError }}</p>
 
       <div class="dk-bar">
         <button v-if="card.mobile" class="dk-bar-mini" @click="callPhone(card.mobile)"><span class="icon i-lucide-phone" />电话</button>
         <button v-if="card.wechat_qr_url" class="dk-bar-mini" @click="wechat = true"><span class="icon i-lucide-message-circle" />微信</button>
-        <button class="dk-bar-primary" @click="openChat()"><span class="icon i-lucide-message-square" />和TA聊聊</button>
+        <button v-if="cardOnly" class="dk-bar-primary" @click="openLead"><span class="icon i-lucide-user-round-plus" />留下联系方式</button>
+        <button v-else class="dk-bar-primary" @click="openChat()"><span class="icon i-lucide-message-square" />和TA聊聊</button>
       </div>
+
+      <LeadSheet v-if="cardOnly" v-model="lead" :code="code" :campaign-id="eventId" :visit-id="liveVisitId" :source="activeSource" @submitted="leadSubmitted" />
 
       <van-popup v-model:show="wechat" position="bottom" round closeable>
         <div class="sheet stack">

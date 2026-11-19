@@ -3,15 +3,21 @@ import type { Source } from '@/utils/scene'
 import { reactive, shallowRef } from 'vue'
 import { createLead } from '@/api/generated'
 import { useMutation } from '@/composables/useMutation'
+import { cardOnly } from '@/platform/release-mode'
+import { useVisitorStore } from '@/stores/visitor'
 const props = defineProps<{ code: string, sessionId?: number, campaignId?: number, visitId?: number, source?: Source }>()
 const emit = defineEmits<{ submitted: [summary: { name: string, phone: string, company_name: string }] }>()
 const show = defineModel<boolean>({ default: false })
 const form = reactive({ name: '', phone: '', company_name: '', need: '' })
 const consent = shallowRef(false)
+const visitor = cardOnly ? useVisitorStore() : undefined
 const { saving, failure, run } = useMutation()
 async function submit() {
  if (!consent.value) return
- const result = await run(() => createLead({ body: { ...form, card_code: props.code, session_id: props.sessionId, campaign_id: props.campaignId, visit_id: props.visitId, source: props.source || 'link', consent: true } }))
+ const result = await run(async () => {
+  if (visitor) await visitor.ensure()
+  return createLead({ body: { ...form, card_code: props.code, ...(!cardOnly && { session_id: props.sessionId }), campaign_id: props.campaignId, visit_id: props.visitId, source: props.source || 'link', consent: true } })
+ })
  if (result) { show.value = false; emit('submitted', { name: form.name, phone: form.phone, company_name: form.company_name }) }
 }
 </script>

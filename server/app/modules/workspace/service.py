@@ -20,6 +20,7 @@ from app.modules.workspace.models import (
     Visit,
     Visitor,
 )
+from app.modules.workspace.release_mode import card_only
 
 
 async def primary_company(db: AsyncSession) -> Company:
@@ -129,19 +130,22 @@ async def public_card(db: AsyncSession, code: str, campaign_id: int | None = Non
     company = s.CompanyData.model_validate(company_row)
     if card.status != "active" or employee.status != "active":
         return s.PublicCard(code=card.code, status="disabled", company=company)
-    assistant = await repo.one(db, Assistant, Assistant.card_id == card.id)
+    is_card_only = card_only()
     primary = await primary_company(db)
     campaign = None
     if campaign_id is not None:
         from app.modules.workspace import campaign_service
 
         campaign = await campaign_service.get(db, campaign_id, public=True)
-    public_assistant = s.PublicAssistant.model_validate(assistant)
-    if campaign is not None:
-        public_assistant.opening = campaign.opening_override or public_assistant.opening
-        public_assistant.guide_questions = (
-            campaign.guide_override[:3] or public_assistant.guide_questions
-        )
+    public_assistant = None
+    if not is_card_only:
+        assistant = await repo.one(db, Assistant, Assistant.card_id == card.id)
+        public_assistant = s.PublicAssistant.model_validate(assistant)
+        if campaign is not None:
+            public_assistant.opening = campaign.opening_override or public_assistant.opening
+            public_assistant.guide_questions = (
+                campaign.guide_override[:3] or public_assistant.guide_questions
+            )
     products = (
         await repo.many(db, Product, Product.enabled.is_(True))
         if company_row.id == primary.id
@@ -161,7 +165,12 @@ async def public_card(db: AsyncSession, code: str, campaign_id: int | None = Non
         business_scope=employee.business_scope,
         wechat_qr_url=card.wechat_qr_url,
         company=company,
-        products=[s.ProductData.model_validate(p) for p in sorted(products, key=lambda p: p.sort)],
+        products=[
+            s.ProductData.model_validate(p).model_copy(update={"ask_question": ""})
+            if is_card_only
+            else s.ProductData.model_validate(p)
+            for p in sorted(products, key=lambda p: p.sort)
+        ],
         assistant=public_assistant,
         campaign=s.PublicCampaign.model_validate(campaign) if campaign else None,
     )

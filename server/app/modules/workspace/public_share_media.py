@@ -13,6 +13,7 @@ from starlette.concurrency import run_in_threadpool
 from app.core.config import get_settings
 from app.core.errors import AppError, ErrorCode
 from app.modules.workspace import media_service, schemas, service, share_link_service
+from app.modules.workspace.release_mode import card_only
 
 # Mirrors the visitor dark-card palette. No external images or fonts are downloaded.
 BACKGROUND = "#06090c"
@@ -116,7 +117,8 @@ def render(card: schemas.PublicCard, url: str) -> bytes:
     image.paste(qr_image, (70, 826))
     text_block(draw, "长按识别 · 查看名片", 368, 858, 28, 440, count=2)
     text_block(draw, "了解业务与合作方向", 368, 960, 22, 430, color=MUTED)
-    text_block(draw, "保存联系方式 · 与 AI 助手交流", 368, 1000, 21, 430, count=2, color=MINT)
+    footer = "保存联系方式 · 咨询业务合作" if card_only() else "保存联系方式 · 与 AI 助手交流"
+    text_block(draw, footer, 368, 1000, 21, 430, count=2, color=MINT)
     output = BytesIO()
     image.save(output, "JPEG", quality=92, optimize=True)
     return output.getvalue()

@@ -222,8 +222,10 @@ async def issue_create(db: AsyncSession, employee_id: int, payload: s.IssueInput
 async def polish(payload: s.PolishInput, db: AsyncSession) -> s.TextData:
     # Preserve factual content: ask the configured model only for expression changes.
     from app.integrations.llm.client import build_client
+    from app.modules.workspace.release_mode import require_ai
     from app.modules.workspace.runtime_settings import load
 
+    require_ai()
     runtime = await load(db)
     client = build_client(runtime)
     if runtime.llm_mode == "fake":

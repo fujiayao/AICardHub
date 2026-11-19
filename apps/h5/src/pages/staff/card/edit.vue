@@ -12,6 +12,7 @@ import PhotoCropper from '@/components/staff/PhotoCropper.vue'
 import WechatQRUpload from '@/components/staff/WechatQRUpload.vue'
 import { useMutation } from '@/composables/useMutation'
 import { useResource } from '@/composables/useResource'
+import { cardOnly } from '@/platform/release-mode'
 
 const router = useRouter()
 const form = reactive({ display_title: '', mobile: '', email: '', intro: '', photo_url: '', photo_bg_url: '', wechat_qr_url: '' })
@@ -57,7 +58,8 @@ function submitFromHeader() {
 }
 async function save() {
   if (uploadingQR.value) return
-  const result = await run(() => saveCard({ body: { ...form, photo_bg_url: background.value ? form.photo_bg_url || form.photo_url : '' } }))
+  const photoBackground = cardOnly ? undefined : (background.value ? form.photo_bg_url || form.photo_url : '')
+  const result = await run(() => saveCard({ body: { ...form, photo_bg_url: photoBackground } }))
   if (result) { baseline = JSON.stringify(form); showToast('已保存，访客端立即生效'); router.push('/staff/card') }
 }
 onBeforeRouteLeave(async () => {
@@ -89,7 +91,7 @@ onBeforeRouteLeave(async () => {
           </div>
         </div>
 
-        <div class="group single">
+        <div v-if="!cardOnly" class="group single">
           <van-cell title="同时作为对话页背景" label="访客和 AI 分身聊天时显示为模糊背景">
             <template #right-icon><van-switch v-model="background" aria-label="同时作为对话页背景" size="24" /></template>
           </van-cell>
